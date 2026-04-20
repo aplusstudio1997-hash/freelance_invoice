@@ -3,7 +3,6 @@
 import { QuoteSettings } from "@/lib/types";
 import { CalcResult, fmt, fmtDate } from "@/lib/calc";
 import { Download, FileText } from "lucide-react";
-import { forwardRef } from "react";
 
 interface Props {
   data: QuoteSettings;
@@ -12,10 +11,12 @@ interface Props {
   downloading: boolean;
 }
 
-const QuotePreview = forwardRef<HTMLDivElement, Props>(function QuotePreview(
-  { data, calc, onDownload, downloading },
-  ref
-) {
+export default function QuotePreview({
+  data,
+  calc,
+  onDownload,
+  downloading,
+}: Props) {
   const today = new Date().toLocaleDateString("th-TH", {
     day: "numeric",
     month: "short",
@@ -36,53 +37,59 @@ const QuotePreview = forwardRef<HTMLDivElement, Props>(function QuotePreview(
       </div>
 
       <div className="flex-1 overflow-y-auto scrollbar-thin p-4">
-        <div
-          ref={ref}
-          className="bg-white rounded-lg border border-gray-200 p-5 space-y-4 text-xs"
-        >
-          <header className="flex items-start justify-between pb-3 border-b-2 border-brand-500">
-            <div>
-              <div className="text-lg font-bold text-gray-800">
-                {data.preparedBy || "FreelanceSolo"}
+        <div className="bg-white rounded-lg border border-gray-200 p-5 space-y-4 text-xs shadow-sm">
+          <header className="pb-3 border-b-2 border-brand-500">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="text-lg font-bold text-gray-800 truncate">
+                  {data.preparedBy || "FreelanceSolo"}
+                </div>
+                <div className="text-[10px] text-gray-500 mt-0.5 leading-tight">
+                  โปรแกรมช่วยคำนวณราคาและ
+                  <br />
+                  ทำใบเสนอราคาออนไลน์อย่างง่าย
+                </div>
               </div>
-              <div className="text-[10px] text-gray-500 mt-0.5">
-                โปรแกรมช่วยคำนวณราคาและทำใบเสนอราคาออนไลน์อย่างง่าย
+              <div className="text-right shrink-0">
+                <div className="inline-block bg-brand-500 text-white px-2 py-1 rounded text-[10px] font-semibold whitespace-nowrap">
+                  ใบเสนอราคา
+                </div>
+                <div className="text-[10px] text-gray-500 mt-1">{today}</div>
               </div>
-            </div>
-            <div className="text-right">
-              <div className="inline-block bg-brand-500 text-white px-2 py-0.5 rounded text-[10px] font-semibold">
-                ใบเสนอราคา
-              </div>
-              <div className="text-[10px] text-gray-500 mt-1">{today}</div>
             </div>
           </header>
 
           <section className="grid grid-cols-2 gap-3">
             <div>
               <div className="text-[10px] text-gray-500 mb-0.5">เรียน/สำหรับ</div>
-              <div className="font-medium">{data.customer.name || "—"}</div>
+              <div className="font-medium truncate">
+                {data.customer.name || "—"}
+              </div>
               {data.customer.phone && (
-                <div className="text-gray-600 text-[11px]">
+                <div className="text-gray-600 text-[11px] truncate">
                   โทร. {data.customer.phone}
                 </div>
               )}
               {data.customer.email && (
-                <div className="text-gray-600 text-[11px]">
+                <div className="text-gray-600 text-[11px] truncate">
                   {data.customer.email}
                 </div>
               )}
               {data.customer.address && (
-                <div className="text-gray-600 text-[11px] mt-1">
+                <div className="text-gray-600 text-[11px] mt-1 line-clamp-2">
                   {data.customer.address}
                 </div>
               )}
             </div>
-            <div className="text-right">
+            <div className="text-right min-w-0">
               <div className="text-[10px] text-gray-500 mb-0.5">โครงการ</div>
-              <div className="font-medium">{data.projectName || "—"}</div>
+              <div className="font-medium break-words">
+                {data.projectName || "—"}
+              </div>
               {data.startDate && (
                 <div className="text-gray-600 text-[11px] mt-1">
-                  {fmtDate(data.startDate)} - {fmtDate(data.endDate)}
+                  {fmtDate(data.startDate)}
+                  <br />— {fmtDate(data.endDate)}
                 </div>
               )}
             </div>
@@ -106,15 +113,15 @@ const QuotePreview = forwardRef<HTMLDivElement, Props>(function QuotePreview(
                 ) : (
                   data.services.map((s) => (
                     <tr key={s.id} className="border-b border-gray-100">
-                      <td className="py-1.5">
-                        {s.name}
+                      <td className="py-1.5 pr-2">
+                        <span className="break-words">{s.name}</span>
                         {s.free && (
-                          <span className="ml-1.5 text-[9px] bg-green-100 text-green-700 px-1 py-0.5 rounded">
+                          <span className="ml-1.5 text-[9px] bg-green-100 text-green-700 px-1 py-0.5 rounded whitespace-nowrap">
                             ฟรี
                           </span>
                         )}
                       </td>
-                      <td className="py-1.5 text-right">
+                      <td className="py-1.5 text-right tabular-nums whitespace-nowrap">
                         {s.free ? "—" : `฿${fmt(s.price)}`}
                       </td>
                     </tr>
@@ -124,7 +131,7 @@ const QuotePreview = forwardRef<HTMLDivElement, Props>(function QuotePreview(
                 {calc.difficultyFee > 0 && (
                   <tr className="border-b border-gray-100 text-gray-600">
                     <td className="py-1.5">ค่าความซับซ้อน</td>
-                    <td className="py-1.5 text-right">
+                    <td className="py-1.5 text-right tabular-nums">
                       ฿{fmt(calc.difficultyFee)}
                     </td>
                   </tr>
@@ -132,13 +139,15 @@ const QuotePreview = forwardRef<HTMLDivElement, Props>(function QuotePreview(
                 {calc.extrasFee > 0 && (
                   <tr className="border-b border-gray-100 text-gray-600">
                     <td className="py-1.5">บริการเพิ่มเติม</td>
-                    <td className="py-1.5 text-right">฿{fmt(calc.extrasFee)}</td>
+                    <td className="py-1.5 text-right tabular-nums">
+                      ฿{fmt(calc.extrasFee)}
+                    </td>
                   </tr>
                 )}
                 {calc.hiddenCostNum > 0 && (
                   <tr className="border-b border-gray-100 text-gray-600">
                     <td className="py-1.5">ต้นทุนแฝง</td>
-                    <td className="py-1.5 text-right">
+                    <td className="py-1.5 text-right tabular-nums">
                       ฿{fmt(calc.hiddenCostNum)}
                     </td>
                   </tr>
@@ -146,9 +155,9 @@ const QuotePreview = forwardRef<HTMLDivElement, Props>(function QuotePreview(
                 {calc.revisionFeeTotal > 0 && (
                   <tr className="border-b border-gray-100 text-gray-600">
                     <td className="py-1.5">
-                      ค่าแก้ไขส่วนเกิน ({data.revisions - 3} รอบ)
+                      ค่าแก้ไข ({data.revisions - 3} รอบ)
                     </td>
-                    <td className="py-1.5 text-right">
+                    <td className="py-1.5 text-right tabular-nums">
                       ฿{fmt(calc.revisionFeeTotal)}
                     </td>
                   </tr>
@@ -156,7 +165,7 @@ const QuotePreview = forwardRef<HTMLDivElement, Props>(function QuotePreview(
                 {calc.discountValue > 0 && (
                   <tr className="border-b border-gray-100 text-green-600">
                     <td className="py-1.5">ส่วนลด</td>
-                    <td className="py-1.5 text-right">
+                    <td className="py-1.5 text-right tabular-nums">
                       -฿{fmt(calc.discountValue)}
                     </td>
                   </tr>
@@ -164,7 +173,7 @@ const QuotePreview = forwardRef<HTMLDivElement, Props>(function QuotePreview(
                 {calc.taxDeduction > 0 && (
                   <tr className="border-b border-gray-100 text-gray-600">
                     <td className="py-1.5">หัก ณ ที่จ่าย 3%</td>
-                    <td className="py-1.5 text-right">
+                    <td className="py-1.5 text-right tabular-nums">
                       -฿{fmt(calc.taxDeduction)}
                     </td>
                   </tr>
@@ -175,11 +184,7 @@ const QuotePreview = forwardRef<HTMLDivElement, Props>(function QuotePreview(
 
           <section className="space-y-1.5 pt-2">
             <Row label="ยอดรวม" value={`฿${fmt(calc.subtotal)}`} />
-            <Row
-              label="รวมทั้งสิ้น"
-              value={`฿${fmt(calc.total)}`}
-              highlight
-            />
+            <Row label="รวมทั้งสิ้น" value={`฿${fmt(calc.total)}`} highlight />
             <Row
               label="มัดจำที่ต้องชำระ"
               value={`฿${fmt(calc.deposit)}`}
@@ -227,18 +232,21 @@ const QuotePreview = forwardRef<HTMLDivElement, Props>(function QuotePreview(
           {downloading ? (
             <>
               <FileText size={18} className="animate-pulse" />
-              กำลังสร้าง PDF...
+              กำลังเตรียมเอกสาร...
             </>
           ) : (
             <>
-              <Download size={18} /> ดาวน์โหลด PDF
+              <Download size={18} /> บันทึกเป็น PDF
             </>
           )}
         </button>
+        <p className="text-[10px] text-gray-400 text-center mt-2">
+          จะเปิดหน้าใหม่และกล่องพิมพ์ · เลือก &ldquo;Save as PDF&rdquo;
+        </p>
       </div>
     </aside>
   );
-});
+}
 
 function Row({
   label,
@@ -258,9 +266,7 @@ function Row({
       }`}
     >
       <span className="text-[11px]">{label}</span>
-      <span className="text-sm">{value}</span>
+      <span className="text-sm tabular-nums">{value}</span>
     </div>
   );
 }
-
-export default QuotePreview;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { QuoteSettings, DEFAULT_QUOTE } from "@/lib/types";
 import { loadDraft, saveDraft, clearDraft } from "@/lib/storage";
 import { calculate } from "@/lib/calc";
@@ -19,7 +19,6 @@ export default function Home() {
   const [reliefOpen, setReliefOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"" | "saving" | "saved">("");
-  const previewRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setData(loadDraft());
@@ -51,51 +50,13 @@ export default function Home() {
     }
   };
 
-  const downloadPDF = async () => {
-    if (!previewRef.current) return;
+  const downloadPDF = () => {
     setDownloading(true);
-    try {
-      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
-        import("html2canvas"),
-        import("jspdf"),
-      ]);
-
-      const node = previewRef.current;
-      const canvas = await html2canvas(node, {
-        scale: 2,
-        backgroundColor: "#ffffff",
-        logging: false,
-        useCORS: true,
-      });
-
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({ unit: "mm", format: "a4" });
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const margin = 10;
-      const maxW = pdfWidth - margin * 2;
-      const imgRatio = canvas.height / canvas.width;
-      let imgW = maxW;
-      let imgH = imgW * imgRatio;
-
-      if (imgH > pdfHeight - margin * 2) {
-        imgH = pdfHeight - margin * 2;
-        imgW = imgH / imgRatio;
-      }
-
-      const x = (pdfWidth - imgW) / 2;
-      pdf.addImage(imgData, "PNG", x, margin, imgW, imgH);
-
-      const projectSlug =
-        data.projectName.replace(/[^ก-๙a-zA-Z0-9]/g, "_").slice(0, 30) ||
-        "quote";
-      pdf.save(`${projectSlug}_${Date.now()}.pdf`);
-    } catch (e) {
-      console.error(e);
-      alert("ไม่สามารถสร้าง PDF ได้ · ลองอีกครั้ง");
-    } finally {
+    saveDraft(data);
+    setTimeout(() => {
+      window.open("/print", "_blank");
       setDownloading(false);
-    }
+    }, 250);
   };
 
   if (!hydrated) {
@@ -160,7 +121,6 @@ export default function Home() {
         <ServicesPanel data={data} update={update} />
         <TimelinePanel data={data} update={update} calc={calc} />
         <QuotePreview
-          ref={previewRef}
           data={data}
           calc={calc}
           onDownload={downloadPDF}
