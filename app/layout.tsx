@@ -1,10 +1,17 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "FreelanceSolo — โปรแกรมช่วยคำนวณราคาและทำใบเสนอราคาออนไลน์",
   description:
     "เครื่องมือฟรีสำหรับฟรีแลนซ์ คำนวณราคางานและสร้างใบเสนอราคาแบบมืออาชีพ",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#f97316",
 };
 
 export default function RootLayout({

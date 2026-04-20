@@ -36,7 +36,7 @@ export default function ServicesPanel({ data, update }: Props) {
 
   if (collapsed) {
     return (
-      <div className="w-12 bg-white border-r border-gray-200 flex flex-col items-center py-4">
+      <div className="hidden lg:flex w-12 bg-white border-r border-gray-200 flex-col items-center py-4">
         <button
           onClick={() => setCollapsed(false)}
           className="text-gray-500 hover:text-brand-500"
@@ -52,8 +52,8 @@ export default function ServicesPanel({ data, update }: Props) {
   }
 
   return (
-    <aside className="w-full lg:w-80 bg-white border-r border-gray-200 flex flex-col">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+    <aside className="w-full lg:w-80 bg-white lg:border-r border-gray-200 flex flex-col h-full">
+      <div className="hidden lg:flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <h2 className="text-sm font-semibold text-gray-700">จัดการบริการ</h2>
         <button
           onClick={() => setCollapsed(true)}
@@ -72,27 +72,28 @@ export default function ServicesPanel({ data, update }: Props) {
               placeholder="ชื่อบริการ"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              className="w-full border border-gray-200 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
+              className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
             />
             <input
               type="number"
+              inputMode="numeric"
               placeholder="ราคา (฿)"
               value={newPrice}
               onChange={(e) => setNewPrice(e.target.value)}
-              className="w-full border border-gray-200 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
+              className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
             />
-            <label className="flex items-center gap-2 text-gray-700 cursor-pointer">
+            <label className="flex items-center gap-2.5 text-gray-700 cursor-pointer py-1">
               <input
                 type="checkbox"
                 checked={newFree}
                 onChange={(e) => setNewFree(e.target.checked)}
-                className="w-4 h-4 accent-brand-500"
+                className="w-5 h-5 accent-brand-500"
               />
               แถมฟรี
             </label>
             <button
               onClick={addService}
-              className="w-full bg-brand-500 hover:bg-brand-600 text-white py-2 rounded-md font-medium flex items-center justify-center gap-2 transition"
+              className="w-full bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white py-2.5 rounded-md font-medium flex items-center justify-center gap-2 transition"
             >
               <Plus size={16} /> เพิ่ม
             </button>
@@ -110,7 +111,7 @@ export default function ServicesPanel({ data, update }: Props) {
               {data.services.map((s) => (
                 <li
                   key={s.id}
-                  className="flex items-center gap-2 bg-white border border-gray-200 rounded-md px-3 py-2 animate-fadeIn"
+                  className="flex items-center gap-2 bg-white border border-gray-200 rounded-md px-3 py-2.5 animate-fadeIn"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="truncate">
@@ -127,10 +128,10 @@ export default function ServicesPanel({ data, update }: Props) {
                   </div>
                   <button
                     onClick={() => removeService(s.id)}
-                    className="text-gray-400 hover:text-red-500"
+                    className="text-gray-400 hover:text-red-500 active:text-red-600 p-2 -mr-2"
                     aria-label="ลบ"
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={18} />
                   </button>
                 </li>
               ))}
@@ -140,7 +141,7 @@ export default function ServicesPanel({ data, update }: Props) {
 
         <section className="pt-2 border-t border-gray-100">
           <h3 className="font-medium text-gray-700 mb-2">เพิ่มเติม</h3>
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Check
               label="ไฟล์ต้นฉบับ (+20%)"
               checked={data.extras.sourceFile}
@@ -170,16 +171,17 @@ export default function ServicesPanel({ data, update }: Props) {
           <div className="flex gap-2">
             <input
               type="number"
+              inputMode="numeric"
               value={data.discount}
               onChange={(e) => update({ discount: Number(e.target.value) })}
-              className="flex-1 border border-gray-200 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
+              className="flex-1 border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
             />
             <select
               value={data.discountUnit}
               onChange={(e) =>
                 update({ discountUnit: e.target.value as "baht" | "percent" })
               }
-              className="border border-gray-200 rounded-md px-2 py-2 bg-white"
+              className="border border-gray-200 rounded-md px-2 py-2.5 bg-white"
             >
               <option value="percent">%</option>
               <option value="baht">฿</option>
@@ -201,12 +203,12 @@ function Check({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="flex items-center gap-2 cursor-pointer text-gray-700">
+    <label className="flex items-center gap-2.5 cursor-pointer text-gray-700 py-1.5">
       <input
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="w-4 h-4 accent-brand-500 rounded"
+        className="w-5 h-5 accent-brand-500 rounded"
       />
       {label}
     </label>

@@ -16,7 +16,7 @@ export default function SettingsPanel({ data, update }: Props) {
 
   if (collapsed) {
     return (
-      <div className="w-12 bg-white border-r border-gray-200 flex flex-col items-center py-4">
+      <div className="hidden lg:flex w-12 bg-white border-r border-gray-200 flex-col items-center py-4">
         <button
           onClick={() => setCollapsed(false)}
           className="text-gray-500 hover:text-brand-500"
@@ -32,8 +32,8 @@ export default function SettingsPanel({ data, update }: Props) {
   }
 
   return (
-    <aside className="w-full lg:w-72 bg-white border-r border-gray-200 flex flex-col">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+    <aside className="w-full lg:w-72 bg-white lg:border-r border-gray-200 flex flex-col h-full">
+      <div className="hidden lg:flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <h2 className="text-sm font-semibold text-gray-700">ตั้งค่าใบเสนอราคา</h2>
         <button
           onClick={() => setCollapsed(true)}
@@ -70,6 +70,7 @@ export default function SettingsPanel({ data, update }: Props) {
               />
               <Input
                 placeholder="เบอร์โทร"
+                type="tel"
                 value={data.customer.phone}
                 onChange={(v) =>
                   update({ customer: { ...data.customer, phone: v } })
@@ -153,6 +154,7 @@ export default function SettingsPanel({ data, update }: Props) {
           </label>
           <Input
             placeholder="เช่น ค่าโปรแกรม/ซอฟต์แวร์"
+            type="number"
             value={data.hiddenCost}
             onChange={(v) => update({ hiddenCost: v })}
           />
@@ -174,9 +176,10 @@ export default function SettingsPanel({ data, update }: Props) {
           <div className="flex gap-2 mt-2">
             <input
               type="number"
+              inputMode="numeric"
               value={data.revisionFee}
               onChange={(e) => update({ revisionFee: Number(e.target.value) })}
-              className="flex-1 border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-200"
+              className="flex-1 border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200"
             />
             <select
               value={data.revisionFeeUnit}
@@ -185,7 +188,7 @@ export default function SettingsPanel({ data, update }: Props) {
                   revisionFeeUnit: e.target.value as "baht" | "percent",
                 })
               }
-              className="border border-gray-200 rounded-md px-2 py-2 text-sm bg-white"
+              className="border border-gray-200 rounded-md px-2 py-2.5 bg-white"
             >
               <option value="baht">฿</option>
               <option value="percent">%</option>
@@ -207,18 +210,18 @@ export default function SettingsPanel({ data, update }: Props) {
           <label className="block font-medium text-gray-700 mb-2">
             เงื่อนไขการชำระ
           </label>
-          <div className="grid grid-cols-4 gap-1 mb-2">
+          <div className="grid grid-cols-4 gap-1.5 mb-2">
             {(["30", "50", "70", "full"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => update({ paymentTerm: t })}
-                className={`px-2 py-2 rounded-md text-sm font-medium transition ${
+                className={`px-2 py-2.5 rounded-md text-sm font-medium transition ${
                   data.paymentTerm === t
                     ? "bg-brand-500 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200 active:bg-gray-300"
                 }`}
               >
-                {t === "full" ? "จ่ายเต็ม" : `${t}%`}
+                {t === "full" ? "เต็ม" : `${t}%`}
               </button>
             ))}
           </div>
@@ -231,7 +234,7 @@ export default function SettingsPanel({ data, update }: Props) {
           <select
             value={data.paymentCondition}
             onChange={(e) => update({ paymentCondition: e.target.value })}
-            className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm bg-white"
+            className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white"
           >
             <option>การชำระมัดจำก่อนเริ่มงาน</option>
             <option>ชำระเต็มก่อนเริ่มงาน</option>
@@ -261,7 +264,7 @@ function Input({
       placeholder={placeholder}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-300"
+      className="w-full border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-300"
     />
   );
 }
@@ -276,12 +279,12 @@ function Check({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="flex items-center gap-2 cursor-pointer text-gray-700">
+    <label className="flex items-center gap-2.5 cursor-pointer text-gray-700 py-1">
       <input
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="w-4 h-4 accent-brand-500 rounded"
+        className="w-5 h-5 accent-brand-500 rounded"
       />
       {label}
     </label>

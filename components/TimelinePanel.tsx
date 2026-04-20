@@ -16,7 +16,7 @@ export default function TimelinePanel({ data, update, calc }: Props) {
 
   if (collapsed) {
     return (
-      <div className="w-12 bg-white border-r border-gray-200 flex flex-col items-center py-4">
+      <div className="hidden lg:flex w-12 bg-white border-r border-gray-200 flex-col items-center py-4">
         <button
           onClick={() => setCollapsed(false)}
           className="text-gray-500 hover:text-brand-500"
@@ -34,8 +34,8 @@ export default function TimelinePanel({ data, update, calc }: Props) {
   const timelineMarkers = buildTimelineMarkers(data.startDate, data.endDate);
 
   return (
-    <section className="flex-1 min-w-0 bg-gray-50 border-r border-gray-200 flex flex-col">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white">
+    <section className="flex-1 min-w-0 bg-gray-50 lg:border-r border-gray-200 flex flex-col h-full">
+      <div className="hidden lg:flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white">
         <h2 className="text-sm font-semibold text-gray-700">ไทม์ไลน์</h2>
         <button
           onClick={() => setCollapsed(true)}
@@ -46,17 +46,17 @@ export default function TimelinePanel({ data, update, calc }: Props) {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto scrollbar-thin p-6 space-y-6">
+      <div className="flex-1 overflow-y-auto scrollbar-thin p-4 lg:p-6 space-y-5 lg:space-y-6">
         <section>
           <h3 className="font-medium text-gray-700 mb-3">ไทม์ไลน์โครงการ</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="block text-sm text-gray-600 mb-1">วันที่เริ่ม</label>
               <input
                 type="date"
                 value={data.startDate}
                 onChange={(e) => update({ startDate: e.target.value })}
-                className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
+                className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
               />
             </div>
             <div>
@@ -65,13 +65,13 @@ export default function TimelinePanel({ data, update, calc }: Props) {
                 type="date"
                 value={data.endDate}
                 onChange={(e) => update({ endDate: e.target.value })}
-                className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
+                className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
               />
             </div>
           </div>
         </section>
 
-        <section className="bg-white border border-gray-200 rounded-lg p-6">
+        <section className="bg-white border border-gray-200 rounded-lg p-4 lg:p-6">
           {timelineMarkers.length === 0 ? (
             <p className="text-center text-gray-400 py-8 text-sm">
               เลือกวันที่เริ่มเพื่อดูไทม์ไลน์
@@ -96,30 +96,33 @@ export default function TimelinePanel({ data, update, calc }: Props) {
                   />
                 ))}
               </div>
-              <div className="flex justify-between mt-3 text-xs text-gray-500">
+              <div className="hidden sm:flex justify-between mt-3 text-xs text-gray-500">
                 {timelineMarkers.map((m, i) => (
                   <span key={i}>{m.label}</span>
                 ))}
+              </div>
+              <div className="sm:hidden mt-3 text-xs text-gray-500 text-center">
+                จุดกลาง: {timelineMarkers[2]?.label}
               </div>
             </div>
           )}
         </section>
 
-        <section className="bg-white border border-gray-200 rounded-lg p-5">
+        <section className="bg-white border border-gray-200 rounded-lg p-4 lg:p-5">
           <div className="flex items-center gap-2 mb-4 text-brand-600">
             <Clock size={18} />
             <h3 className="font-medium">อัตรารายชั่วโมง</h3>
           </div>
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between py-1 border-b border-gray-100">
+            <div className="flex justify-between py-1.5 border-b border-gray-100">
               <span className="text-gray-600">จำนวนวันทำงาน</span>
               <span className="font-medium">{calc.workingDays}</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-gray-100">
+            <div className="flex justify-between py-1.5 border-b border-gray-100">
               <span className="text-gray-600">ชั่วโมงรวม (8h/d)</span>
               <span className="font-medium">{calc.totalHours}</span>
             </div>
-            <div className="flex justify-between py-1 text-brand-600 font-semibold">
+            <div className="flex justify-between py-1.5 text-brand-600 font-semibold">
               <span>ราคา/ชั่วโมง</span>
               <span>฿{fmt(calc.hourlyRate)}</span>
             </div>

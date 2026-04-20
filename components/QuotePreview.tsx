@@ -31,17 +31,17 @@ export default function QuotePreview({
   };
 
   return (
-    <aside className="w-full lg:w-96 bg-gray-50 flex flex-col">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white no-print">
+    <aside className="w-full lg:w-96 bg-gray-50 flex flex-col h-full">
+      <div className="hidden lg:flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white no-print">
         <h2 className="text-sm font-semibold text-gray-700">ใบเสนอราคา</h2>
       </div>
 
-      <div className="flex-1 overflow-y-auto scrollbar-thin p-4">
-        <div className="bg-white rounded-lg border border-gray-200 p-5 space-y-4 text-xs shadow-sm">
+      <div className="flex-1 overflow-y-auto scrollbar-thin p-3 sm:p-4">
+        <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-5 space-y-4 text-xs shadow-sm">
           <header className="pb-3 border-b-2 border-brand-500">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
-                <div className="text-lg font-bold text-gray-800 truncate">
+                <div className="text-base sm:text-lg font-bold text-gray-800 truncate">
                   {data.preparedBy || "FreelanceSolo"}
                 </div>
                 <div className="text-[10px] text-gray-500 mt-0.5 leading-tight">
@@ -60,7 +60,7 @@ export default function QuotePreview({
           </header>
 
           <section className="grid grid-cols-2 gap-3">
-            <div>
+            <div className="min-w-0">
               <div className="text-[10px] text-gray-500 mb-0.5">เรียน/สำหรับ</div>
               <div className="font-medium truncate">
                 {data.customer.name || "—"}
@@ -200,12 +200,12 @@ export default function QuotePreview({
           </section>
 
           <section className="flex items-end justify-between pt-6">
-            <div>
+            <div className="min-w-0">
               <div className="text-[10px] text-gray-500">เตรียมโดย</div>
-              <div className="font-semibold text-sm">{data.preparedBy}</div>
+              <div className="font-semibold text-sm truncate">{data.preparedBy}</div>
             </div>
-            <div className="text-right">
-              <div className="border-b border-gray-400 w-28 mb-1"></div>
+            <div className="text-right shrink-0">
+              <div className="border-b border-gray-400 w-24 sm:w-28 mb-1"></div>
               <div className="text-[10px] text-gray-500">ลงนาม</div>
             </div>
           </section>
@@ -223,11 +223,11 @@ export default function QuotePreview({
         </div>
       </div>
 
-      <div className="p-4 bg-white border-t border-gray-100 no-print">
+      <div className="p-3 sm:p-4 bg-white border-t border-gray-100 no-print safe-bottom">
         <button
           onClick={onDownload}
           disabled={downloading}
-          className="w-full bg-brand-500 hover:bg-brand-600 disabled:bg-brand-300 text-white py-3 rounded-md font-medium flex items-center justify-center gap-2 transition"
+          className="w-full bg-brand-500 hover:bg-brand-600 active:bg-brand-700 disabled:bg-brand-300 text-white py-3 rounded-md font-medium flex items-center justify-center gap-2 transition"
         >
           {downloading ? (
             <>
@@ -259,14 +259,14 @@ function Row({
 }) {
   return (
     <div
-      className={`flex justify-between items-center py-1.5 ${
+      className={`flex justify-between items-center py-1.5 gap-2 ${
         highlight
           ? "bg-orange-50 px-3 rounded text-brand-600 font-semibold"
           : "text-gray-700"
       }`}
     >
       <span className="text-[11px]">{label}</span>
-      <span className="text-sm tabular-nums">{value}</span>
+      <span className="text-sm tabular-nums whitespace-nowrap">{value}</span>
     </div>
   );
 }

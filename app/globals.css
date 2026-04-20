@@ -6,10 +6,25 @@ html,
 body {
   background: #fafafa;
   color: #1f2937;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+@media (min-width: 1024px) {
+  input,
+  select,
+  textarea {
+    font-size: 14px;
+  }
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator {
@@ -48,6 +63,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.safe-top {
+  padding-top: env(safe-area-inset-top);
 }
 
 @media print {
