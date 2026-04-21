@@ -1,7 +1,14 @@
-import { QuoteSettings, DEFAULT_QUOTE } from "./types";
+import {
+  QuoteSettings,
+  DEFAULT_QUOTE,
+  DEFAULT_EXTRAS,
+  Profile,
+  DEFAULT_PROFILE,
+} from "./types";
 
 const STORAGE_KEY = "freelance-solo-draft";
 const SESSION_KEY = "freelance-solo-session";
+const PROFILE_KEY = "freelance-solo-profile";
 
 export function getSessionId(): string {
   if (typeof window === "undefined") return "";
@@ -33,7 +40,20 @@ export function loadDraft(): QuoteSettings {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_QUOTE;
     const parsed = JSON.parse(raw);
-    return { ...DEFAULT_QUOTE, ...(parsed.data ?? {}) };
+    const d = parsed.data ?? {};
+
+    const merged: QuoteSettings = { ...DEFAULT_QUOTE, ...d };
+    if (!Array.isArray(merged.extras) || merged.extras.length === 0) {
+      merged.extras = DEFAULT_EXTRAS;
+    }
+    if (!Array.isArray(merged.milestones)) {
+      merged.milestones = [];
+    }
+    merged.services = (merged.services || []).map((s) => ({
+      ...s,
+      quantity: s.quantity && s.quantity > 0 ? s.quantity : 1,
+    }));
+    return merged;
   } catch {
     return DEFAULT_QUOTE;
   }
@@ -42,4 +62,24 @@ export function loadDraft(): QuoteSettings {
 export function clearDraft(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(STORAGE_KEY);
+}
+
+export function saveProfile(profile: Profile): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+  } catch (e) {
+    console.error("saveProfile failed", e);
+  }
+}
+
+export function loadProfile(): Profile {
+  if (typeof window === "undefined") return DEFAULT_PROFILE;
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if (!raw) return DEFAULT_PROFILE;
+    return { ...DEFAULT_PROFILE, ...JSON.parse(raw) };
+  } catch {
+    return DEFAULT_PROFILE;
+  }
 }

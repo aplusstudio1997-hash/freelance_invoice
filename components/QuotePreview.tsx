@@ -1,12 +1,14 @@
 "use client";
 
-import { QuoteSettings } from "@/lib/types";
+import { QuoteSettings, Profile } from "@/lib/types";
 import { CalcResult, fmt, fmtDate } from "@/lib/calc";
 import { Download, FileText } from "lucide-react";
 
 interface Props {
   data: QuoteSettings;
   calc: CalcResult;
+  profile: Profile;
+  currencySymbol: string;
   onDownload: () => void;
   downloading: boolean;
 }
@@ -14,6 +16,8 @@ interface Props {
 export default function QuotePreview({
   data,
   calc,
+  profile,
+  currencySymbol,
   onDownload,
   downloading,
 }: Props) {
@@ -30,6 +34,11 @@ export default function QuotePreview({
     full: "100%",
   };
 
+  const termsLines = profile.terms
+    .split("\n")
+    .map((l) => l.replace(/^[•\-\*]\s*/, "").trim())
+    .filter(Boolean);
+
   return (
     <aside className="w-full lg:w-96 bg-gray-50 flex flex-col h-full">
       <div className="hidden lg:flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white no-print">
@@ -40,14 +49,22 @@ export default function QuotePreview({
         <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-5 space-y-4 text-xs shadow-sm">
           <header className="pb-3 border-b-2 border-brand-500">
             <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="text-base sm:text-lg font-bold text-gray-800 truncate">
-                  {data.preparedBy || "FreelanceSolo"}
-                </div>
-                <div className="text-[10px] text-gray-500 mt-0.5 leading-tight">
-                  โปรแกรมช่วยคำนวณราคาและ
-                  <br />
-                  ทำใบเสนอราคาออนไลน์อย่างง่าย
+              <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                {profile.logo && (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={profile.logo}
+                    alt="logo"
+                    className="w-10 h-10 rounded object-contain shrink-0 border border-gray-100 bg-white"
+                  />
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="text-base sm:text-lg font-bold text-gray-800 truncate">
+                    {profile.studioName || "FreelanceSolo"}
+                  </div>
+                  <div className="text-[10px] text-gray-500 mt-0.5 leading-tight line-clamp-2">
+                    {profile.tagline}
+                  </div>
                 </div>
               </div>
               <div className="text-right shrink-0">
@@ -111,44 +128,59 @@ export default function QuotePreview({
                     </td>
                   </tr>
                 ) : (
-                  data.services.map((s) => (
-                    <tr key={s.id} className="border-b border-gray-100">
-                      <td className="py-1.5 pr-2">
-                        <span className="break-words">{s.name}</span>
-                        {s.free && (
-                          <span className="ml-1.5 text-[9px] bg-green-100 text-green-700 px-1 py-0.5 rounded whitespace-nowrap">
-                            ฟรี
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-1.5 text-right tabular-nums whitespace-nowrap">
-                        {s.free ? "—" : `฿${fmt(s.price)}`}
-                      </td>
-                    </tr>
-                  ))
+                  data.services.map((s) => {
+                    const qty = Math.max(1, s.quantity || 1);
+                    const lineTotal = s.free ? 0 : s.price * qty;
+                    return (
+                      <tr key={s.id} className="border-b border-gray-100">
+                        <td className="py-1.5 pr-2">
+                          <div className="break-words">
+                            {s.name}
+                            {s.free && (
+                              <span className="ml-1.5 text-[9px] bg-green-100 text-green-700 px-1 py-0.5 rounded whitespace-nowrap">
+                                ฟรี
+                              </span>
+                            )}
+                          </div>
+                          {!s.free && qty > 1 && (
+                            <div className="text-[9px] text-gray-400 mt-0.5">
+                              @ {currencySymbol}
+                              {fmt(s.price)} × {qty}
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-1.5 text-right tabular-nums whitespace-nowrap align-top">
+                          {s.free ? "—" : `${currencySymbol}${fmt(lineTotal)}`}
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
 
                 {calc.difficultyFee > 0 && (
                   <tr className="border-b border-gray-100 text-gray-600">
                     <td className="py-1.5">ค่าความซับซ้อน</td>
                     <td className="py-1.5 text-right tabular-nums">
-                      ฿{fmt(calc.difficultyFee)}
+                      {currencySymbol}
+                      {fmt(calc.difficultyFee)}
                     </td>
                   </tr>
                 )}
-                {calc.extrasFee > 0 && (
-                  <tr className="border-b border-gray-100 text-gray-600">
-                    <td className="py-1.5">บริการเพิ่มเติม</td>
+                {calc.extrasBreakdown.map((x, i) => (
+                  <tr key={i} className="border-b border-gray-100 text-gray-600">
+                    <td className="py-1.5">{x.label}</td>
                     <td className="py-1.5 text-right tabular-nums">
-                      ฿{fmt(calc.extrasFee)}
+                      {currencySymbol}
+                      {fmt(x.amount)}
                     </td>
                   </tr>
-                )}
+                ))}
                 {calc.hiddenCostNum > 0 && (
                   <tr className="border-b border-gray-100 text-gray-600">
                     <td className="py-1.5">ต้นทุนแฝง</td>
                     <td className="py-1.5 text-right tabular-nums">
-                      ฿{fmt(calc.hiddenCostNum)}
+                      {currencySymbol}
+                      {fmt(calc.hiddenCostNum)}
                     </td>
                   </tr>
                 )}
@@ -158,7 +190,8 @@ export default function QuotePreview({
                       ค่าแก้ไข ({data.revisions - 3} รอบ)
                     </td>
                     <td className="py-1.5 text-right tabular-nums">
-                      ฿{fmt(calc.revisionFeeTotal)}
+                      {currencySymbol}
+                      {fmt(calc.revisionFeeTotal)}
                     </td>
                   </tr>
                 )}
@@ -166,7 +199,8 @@ export default function QuotePreview({
                   <tr className="border-b border-gray-100 text-green-600">
                     <td className="py-1.5">ส่วนลด</td>
                     <td className="py-1.5 text-right tabular-nums">
-                      -฿{fmt(calc.discountValue)}
+                      -{currencySymbol}
+                      {fmt(calc.discountValue)}
                     </td>
                   </tr>
                 )}
@@ -174,7 +208,8 @@ export default function QuotePreview({
                   <tr className="border-b border-gray-100 text-gray-600">
                     <td className="py-1.5">หัก ณ ที่จ่าย 3%</td>
                     <td className="py-1.5 text-right tabular-nums">
-                      -฿{fmt(calc.taxDeduction)}
+                      -{currencySymbol}
+                      {fmt(calc.taxDeduction)}
                     </td>
                   </tr>
                 )}
@@ -183,11 +218,18 @@ export default function QuotePreview({
           </section>
 
           <section className="space-y-1.5 pt-2">
-            <Row label="ยอดรวม" value={`฿${fmt(calc.subtotal)}`} />
-            <Row label="รวมทั้งสิ้น" value={`฿${fmt(calc.total)}`} highlight />
+            <Row
+              label="ยอดรวม"
+              value={`${currencySymbol}${fmt(calc.subtotal)}`}
+            />
+            <Row
+              label="รวมทั้งสิ้น"
+              value={`${currencySymbol}${fmt(calc.total)}`}
+              highlight
+            />
             <Row
               label="มัดจำที่ต้องชำระ"
-              value={`฿${fmt(calc.deposit)}`}
+              value={`${currencySymbol}${fmt(calc.deposit)}`}
               highlight
             />
           </section>
@@ -202,7 +244,9 @@ export default function QuotePreview({
           <section className="flex items-end justify-between pt-6">
             <div className="min-w-0">
               <div className="text-[10px] text-gray-500">เตรียมโดย</div>
-              <div className="font-semibold text-sm truncate">{data.preparedBy}</div>
+              <div className="font-semibold text-sm truncate">
+                {profile.ownerName || profile.studioName}
+              </div>
             </div>
             <div className="text-right shrink-0">
               <div className="border-b border-gray-400 w-24 sm:w-28 mb-1"></div>
@@ -210,16 +254,18 @@ export default function QuotePreview({
             </div>
           </section>
 
-          <section className="pt-2 border-t border-gray-100">
-            <div className="text-[10px] text-gray-500 mb-1">หมายเหตุและเงื่อนไข</div>
-            <ul className="text-[10px] text-gray-600 space-y-0.5 list-disc list-inside">
-              <li>ชำระมัดจำเพื่อเริ่มงาน · โอนสิทธิ์เมื่อชำระครบ</li>
-              <li>
-                แก้ไขเพิ่มเติม ฿{fmt(data.revisionFee)} ต่อรอบ (รอบที่ 4+)
-              </li>
-              <li>ราคานี้มีผลภายใน 30 วันนับจากวันที่เสนอ</li>
-            </ul>
-          </section>
+          {termsLines.length > 0 && (
+            <section className="pt-2 border-t border-gray-100">
+              <div className="text-[10px] text-gray-500 mb-1">
+                หมายเหตุและเงื่อนไข
+              </div>
+              <ul className="text-[10px] text-gray-600 space-y-0.5 list-disc list-inside">
+                {termsLines.map((l, i) => (
+                  <li key={i}>{l}</li>
+                ))}
+              </ul>
+            </section>
+          )}
         </div>
       </div>
 
@@ -240,9 +286,6 @@ export default function QuotePreview({
             </>
           )}
         </button>
-        <p className="text-[10px] text-gray-400 text-center mt-2">
-          จะเปิดหน้าใหม่และกล่องพิมพ์ · เลือก &ldquo;Save as PDF&rdquo;
-        </p>
       </div>
     </aside>
   );

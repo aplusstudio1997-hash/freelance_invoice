@@ -215,13 +215,15 @@ export default function SettingsPanel({ data, update }: Props) {
               <button
                 key={t}
                 onClick={() => update({ paymentTerm: t })}
-                className={`px-2 py-2.5 rounded-md text-sm font-medium transition ${
+                className={`px-1 py-2.5 rounded-md font-medium transition ${
+                  t === "full" ? "text-[11px]" : "text-sm"
+                } ${
                   data.paymentTerm === t
                     ? "bg-brand-500 text-white"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200 active:bg-gray-300"
                 }`}
               >
-                {t === "full" ? "เต็ม" : `${t}%`}
+                {t === "full" ? "จ่ายเต็ม" : `${t}%`}
               </button>
             ))}
           </div>
@@ -236,7 +238,7 @@ export default function SettingsPanel({ data, update }: Props) {
             onChange={(e) => update({ paymentCondition: e.target.value })}
             className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white"
           >
-            <option>การชำระมัดจำก่อนเริ่มงาน</option>
+            <option>ชำระมัดจำก่อนเริ่มงาน</option>
             <option>ชำระเต็มก่อนเริ่มงาน</option>
             <option>ชำระตามงวดที่ตกลง</option>
             <option>ชำระหลังส่งมอบงาน</option>

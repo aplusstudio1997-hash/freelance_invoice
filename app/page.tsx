@@ -1,8 +1,14 @@
 "use client";
 
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { QuoteSettings, DEFAULT_QUOTE } from "@/lib/types";
-import { loadDraft, saveDraft, clearDraft } from "@/lib/storage";
+import { QuoteSettings, DEFAULT_QUOTE, Profile, getCurrencySymbol } from "@/lib/types";
+import {
+  loadDraft,
+  saveDraft,
+  clearDraft,
+  loadProfile,
+  saveProfile,
+} from "@/lib/storage";
 import { calculate, fmt } from "@/lib/calc";
 import SettingsPanel from "@/components/SettingsPanel";
 import ServicesPanel from "@/components/ServicesPanel";
@@ -10,6 +16,10 @@ import TimelinePanel from "@/components/TimelinePanel";
 import QuotePreview from "@/components/QuotePreview";
 import RandomPromptModal from "@/components/RandomPromptModal";
 import StressReliefModal from "@/components/StressReliefModal";
+import FeedbackModal from "@/components/FeedbackModal";
+import DonationModal from "@/components/DonationModal";
+import ShareModal from "@/components/ShareModal";
+import ProfileModal from "@/components/ProfileModal";
 import {
   Dice5,
   Smile,
@@ -21,22 +31,45 @@ import {
   FileText,
   Menu,
   X,
+  MessageSquare,
+  Heart,
+  Share2,
+  UserCog,
 } from "lucide-react";
 
 type Tab = "settings" | "services" | "timeline" | "preview";
 
 export default function Home() {
   const [data, setData] = useState<QuoteSettings>(DEFAULT_QUOTE);
+  const [profile, setProfile] = useState<Profile>(() => ({
+    studioName: "FreelanceSolo",
+    tagline: "โปรแกรมช่วยคำนวณราคาและทำใบเสนอราคาออนไลน์อย่างง่าย",
+    ownerName: "FreelanceSolo",
+    phone: "",
+    email: "",
+    address: "",
+    taxId: "",
+    currency: "THB",
+    terms: "",
+    logo: "",
+  }));
   const [hydrated, setHydrated] = useState(false);
+
   const [promptOpen, setPromptOpen] = useState(false);
   const [reliefOpen, setReliefOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [donationOpen, setDonationOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+
   const [downloading, setDownloading] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"" | "saving" | "saved">("");
   const [mobileTab, setMobileTab] = useState<Tab>("settings");
 
   useEffect(() => {
     setData(loadDraft());
+    setProfile(loadProfile());
     setHydrated(true);
   }, []);
 
@@ -56,7 +89,13 @@ export default function Home() {
     setData((d) => ({ ...d, ...patch }));
   }, []);
 
+  const updateProfile = (p: Profile) => {
+    setProfile(p);
+    saveProfile(p);
+  };
+
   const calc = useMemo(() => calculate(data), [data]);
+  const currencySymbol = getCurrencySymbol(profile.currency);
 
   const resetAll = () => {
     if (confirm("ล้างข้อมูลทั้งหมดและเริ่มใหม่?")) {
@@ -69,6 +108,7 @@ export default function Home() {
   const downloadPDF = () => {
     setDownloading(true);
     saveDraft(data);
+    saveProfile(profile);
     setTimeout(() => {
       window.open("/print", "_blank");
       setDownloading(false);
@@ -87,46 +127,74 @@ export default function Home() {
     <div className="h-[100dvh] flex flex-col bg-gray-50 overflow-hidden">
       <header className="bg-white border-b border-gray-200 px-3 sm:px-4 py-3 flex items-center justify-between no-print safe-top">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold shrink-0">
-            F
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-brand-500 text-white flex items-center justify-center font-bold shrink-0">
+            {profile.logo ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={profile.logo}
+                alt="logo"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              (profile.studioName || "F").charAt(0).toUpperCase()
+            )}
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="font-bold text-gray-800 truncate text-sm sm:text-base">
-                FreelanceSolo
+                {profile.studioName || "FreelanceSolo"}
               </h1>
               <span className="text-[9px] sm:text-[10px] bg-brand-500 text-white px-1.5 py-0.5 rounded font-semibold">
                 BETA
               </span>
             </div>
             <p className="text-[10px] sm:text-xs text-gray-500 truncate">
-              คำนวณราคาและทำใบเสนอราคาออนไลน์
+              {profile.tagline || "คำนวณราคาและทำใบเสนอราคาออนไลน์"}
             </p>
           </div>
         </div>
 
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-1.5 flex-wrap">
           {saveStatus && (
-            <span className="flex items-center gap-1 text-xs text-gray-400">
+            <span className="flex items-center gap-1 text-xs text-gray-400 mr-1">
               <Save size={12} />
               {saveStatus === "saving" ? "กำลังบันทึก..." : "บันทึกแล้ว"}
             </span>
           )}
-          <button
+          <HeaderBtn
+            icon={<Dice5 size={14} />}
+            label="สุ่มโจทย์"
             onClick={() => setPromptOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 border border-brand-200 text-brand-600 hover:bg-brand-50 rounded-full text-sm transition"
-          >
-            <Dice5 size={14} /> สุ่มโจทย์
-          </button>
-          <button
+          />
+          <HeaderBtn
+            icon={<Smile size={14} />}
+            label="คลายเครียด"
             onClick={() => setReliefOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 border border-brand-200 text-brand-600 hover:bg-brand-50 rounded-full text-sm transition"
-          >
-            <Smile size={14} /> คลายเครียด
-          </button>
+          />
+          <div className="w-px h-5 bg-gray-200 mx-0.5" />
+          <HeaderBtn
+            icon={<MessageSquare size={14} />}
+            label="Feedback"
+            onClick={() => setFeedbackOpen(true)}
+          />
+          <HeaderBtn
+            icon={<Heart size={14} />}
+            label="Donation"
+            onClick={() => setDonationOpen(true)}
+          />
+          <HeaderBtn
+            icon={<Share2 size={14} />}
+            label="Share"
+            onClick={() => setShareOpen(true)}
+          />
+          <HeaderBtn
+            icon={<UserCog size={14} />}
+            label="ตั้งค่าส่วนตัว"
+            onClick={() => setProfileOpen(true)}
+          />
           <button
             onClick={resetAll}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-full text-sm transition"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full text-sm transition ml-1"
             title="เริ่มใหม่"
           >
             <RotateCcw size={14} />
@@ -135,7 +203,7 @@ export default function Home() {
 
         <button
           onClick={() => setMenuOpen(true)}
-          className="md:hidden p-2 text-gray-600 hover:text-brand-600"
+          className="lg:hidden p-2 text-gray-600 hover:text-brand-600"
           aria-label="เมนู"
         >
           <Menu size={22} />
@@ -144,14 +212,14 @@ export default function Home() {
 
       {menuOpen && (
         <div
-          className="md:hidden fixed inset-0 bg-black/40 z-40"
+          className="lg:hidden fixed inset-0 bg-black/40 z-40"
           onClick={() => setMenuOpen(false)}
         >
           <div
-            className="absolute right-0 top-0 bottom-0 w-72 bg-white shadow-xl safe-top animate-fadeIn"
+            className="absolute right-0 top-0 bottom-0 w-72 bg-white shadow-xl safe-top animate-fadeIn overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 sticky top-0 bg-white">
               <span className="font-semibold text-gray-700">เมนู</span>
               <button
                 onClick={() => setMenuOpen(false)}
@@ -161,7 +229,16 @@ export default function Home() {
                 <X size={20} />
               </button>
             </div>
-            <div className="p-3 space-y-1">
+            <div className="p-3 space-y-0.5">
+              <MenuItem
+                icon={<UserCog size={18} />}
+                label="ตั้งค่าส่วนตัว"
+                onClick={() => {
+                  setProfileOpen(true);
+                  setMenuOpen(false);
+                }}
+              />
+              <div className="h-px bg-gray-100 my-1.5" />
               <MenuItem
                 icon={<Dice5 size={18} />}
                 label="สุ่มโจทย์ฝึกคิดราคา"
@@ -178,6 +255,32 @@ export default function Home() {
                   setMenuOpen(false);
                 }}
               />
+              <div className="h-px bg-gray-100 my-1.5" />
+              <MenuItem
+                icon={<MessageSquare size={18} />}
+                label="ส่งข้อเสนอแนะ (Feedback)"
+                onClick={() => {
+                  setFeedbackOpen(true);
+                  setMenuOpen(false);
+                }}
+              />
+              <MenuItem
+                icon={<Heart size={18} />}
+                label="สนับสนุน (Donation)"
+                onClick={() => {
+                  setDonationOpen(true);
+                  setMenuOpen(false);
+                }}
+              />
+              <MenuItem
+                icon={<Share2 size={18} />}
+                label="แชร์ (Share)"
+                onClick={() => {
+                  setShareOpen(true);
+                  setMenuOpen(false);
+                }}
+              />
+              <div className="h-px bg-gray-100 my-1.5" />
               <MenuItem
                 icon={<RotateCcw size={18} />}
                 label="ล้างข้อมูลและเริ่มใหม่"
@@ -195,35 +298,46 @@ export default function Home() {
         </div>
       )}
 
-      <main className="flex-1 flex overflow-hidden flex-col md:flex-row">
+      <main className="flex-1 flex overflow-hidden flex-col lg:flex-row">
         <div
-          className={`${mobileTab === "settings" ? "flex" : "hidden"} md:flex flex-1 md:flex-none min-h-0`}
+          className={`${mobileTab === "settings" ? "flex" : "hidden"} lg:flex flex-1 lg:flex-none min-h-0`}
         >
           <SettingsPanel data={data} update={update} />
         </div>
         <div
-          className={`${mobileTab === "services" ? "flex" : "hidden"} md:flex flex-1 md:flex-none min-h-0`}
+          className={`${mobileTab === "services" ? "flex" : "hidden"} lg:flex flex-1 lg:flex-none min-h-0`}
         >
-          <ServicesPanel data={data} update={update} />
+          <ServicesPanel
+            data={data}
+            update={update}
+            currencySymbol={currencySymbol}
+          />
         </div>
         <div
-          className={`${mobileTab === "timeline" ? "flex" : "hidden"} md:flex flex-1 md:flex-1 min-h-0`}
+          className={`${mobileTab === "timeline" ? "flex" : "hidden"} lg:flex flex-1 lg:flex-1 min-h-0`}
         >
-          <TimelinePanel data={data} update={update} calc={calc} />
+          <TimelinePanel
+            data={data}
+            update={update}
+            calc={calc}
+            currencySymbol={currencySymbol}
+          />
         </div>
         <div
-          className={`${mobileTab === "preview" ? "flex" : "hidden"} md:flex flex-1 md:flex-none min-h-0`}
+          className={`${mobileTab === "preview" ? "flex" : "hidden"} lg:flex flex-1 lg:flex-none min-h-0`}
         >
           <QuotePreview
             data={data}
             calc={calc}
+            profile={profile}
+            currencySymbol={currencySymbol}
             onDownload={downloadPDF}
             downloading={downloading}
           />
         </div>
       </main>
 
-      <nav className="md:hidden bg-white border-t border-gray-200 safe-bottom no-print">
+      <nav className="lg:hidden bg-white border-t border-gray-200 safe-bottom no-print">
         <div className="px-1.5 py-1 grid grid-cols-4 gap-0.5">
           <TabButton
             active={mobileTab === "settings"}
@@ -248,21 +362,47 @@ export default function Home() {
             active={mobileTab === "preview"}
             onClick={() => setMobileTab("preview")}
             icon={<FileText size={19} />}
-            label={calc.total > 0 ? `฿${fmt(calc.total)}` : "ใบเสนอ"}
+            label={calc.total > 0 ? `${currencySymbol}${fmt(calc.total)}` : "ใบเสนอ"}
             highlight={calc.total > 0}
           />
         </div>
       </nav>
 
-      <RandomPromptModal
-        open={promptOpen}
-        onClose={() => setPromptOpen(false)}
+      <RandomPromptModal open={promptOpen} onClose={() => setPromptOpen(false)} />
+      <StressReliefModal open={reliefOpen} onClose={() => setReliefOpen(false)} />
+      <FeedbackModal
+        open={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
+        onOpenDonation={() => setDonationOpen(true)}
       />
-      <StressReliefModal
-        open={reliefOpen}
-        onClose={() => setReliefOpen(false)}
+      <DonationModal open={donationOpen} onClose={() => setDonationOpen(false)} />
+      <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} />
+      <ProfileModal
+        open={profileOpen}
+        profile={profile}
+        onClose={() => setProfileOpen(false)}
+        onSave={updateProfile}
       />
     </div>
+  );
+}
+
+function HeaderBtn({
+  icon,
+  label,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center gap-1.5 px-2.5 py-1.5 text-gray-600 hover:text-brand-600 hover:bg-brand-50 rounded-full text-sm transition"
+    >
+      {icon} <span className="hidden xl:inline">{label}</span>
+    </button>
   );
 }
 

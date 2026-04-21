@@ -1,18 +1,57 @@
 "use client";
 
-import { QuoteSettings } from "@/lib/types";
-import { CalcResult, fmt } from "@/lib/calc";
-import { Clock, ChevronDown, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { QuoteSettings, Milestone } from "@/lib/types";
+import { CalcResult, fmt, fmtDateShort, buildMilestones } from "@/lib/calc";
+import {
+  Clock,
+  ChevronDown,
+  ChevronRight,
+  Circle,
+  CheckCircle2,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 interface Props {
   data: QuoteSettings;
   update: (patch: Partial<QuoteSettings>) => void;
   calc: CalcResult;
+  currencySymbol: string;
 }
 
-export default function TimelinePanel({ data, update, calc }: Props) {
+export default function TimelinePanel({
+  data,
+  update,
+  calc,
+  currencySymbol,
+}: Props) {
   const [collapsed, setCollapsed] = useState(false);
+
+  const computedMilestones = useMemo(
+    () =>
+      buildMilestones(
+        data.startDate,
+        data.endDate,
+        data.revisions,
+        data.milestones
+      ),
+    [data.startDate, data.endDate, data.revisions, data.milestones]
+  );
+
+  useEffect(() => {
+    const serialize = (m: Milestone[]) =>
+      m.map((x) => `${x.id}|${x.date}`).join(",");
+    if (serialize(data.milestones) !== serialize(computedMilestones)) {
+      update({ milestones: computedMilestones });
+    }
+  }, [computedMilestones, data.milestones, update]);
+
+  const updateMilestoneDate = (id: string, date: string) => {
+    update({
+      milestones: computedMilestones.map((m) =>
+        m.id === id ? { ...m, date } : m
+      ),
+    });
+  };
 
   if (collapsed) {
     return (
@@ -31,7 +70,9 @@ export default function TimelinePanel({ data, update, calc }: Props) {
     );
   }
 
-  const timelineMarkers = buildTimelineMarkers(data.startDate, data.endDate);
+  const depositAmount = calc.deposit;
+  const depositPercent =
+    data.paymentTerm === "full" ? "100%" : `${data.paymentTerm}%`;
 
   return (
     <section className="flex-1 min-w-0 bg-gray-50 lg:border-r border-gray-200 flex flex-col h-full">
@@ -46,10 +87,10 @@ export default function TimelinePanel({ data, update, calc }: Props) {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto scrollbar-thin p-4 lg:p-6 space-y-5 lg:space-y-6">
+      <div className="flex-1 overflow-y-auto scrollbar-thin p-4 lg:p-6 space-y-5">
         <section>
           <h3 className="font-medium text-gray-700 mb-3">ไทม์ไลน์โครงการ</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-sm text-gray-600 mb-1">วันที่เริ่ม</label>
               <input
@@ -71,42 +112,86 @@ export default function TimelinePanel({ data, update, calc }: Props) {
           </div>
         </section>
 
-        <section className="bg-white border border-gray-200 rounded-lg p-4 lg:p-6">
-          {timelineMarkers.length === 0 ? (
-            <p className="text-center text-gray-400 py-8 text-sm">
-              เลือกวันที่เริ่มเพื่อดูไทม์ไลน์
-            </p>
-          ) : (
-            <div>
-              <div className="flex items-center justify-between mb-3 text-xs text-gray-500">
-                <span>{timelineMarkers[0].label}</span>
-                <span>{timelineMarkers[timelineMarkers.length - 1].label}</span>
-              </div>
-              <div className="relative h-2 bg-orange-100 rounded-full">
-                <div className="absolute inset-0 bg-gradient-to-r from-brand-400 to-brand-500 rounded-full" />
-                {timelineMarkers.map((m, i) => (
-                  <div
-                    key={i}
-                    className="absolute -top-1.5 w-5 h-5 bg-white border-2 border-brand-500 rounded-full shadow-sm"
-                    style={{
-                      left: `${m.pos}%`,
-                      transform: "translateX(-50%)",
-                    }}
-                    title={m.label}
-                  />
-                ))}
-              </div>
-              <div className="hidden sm:flex justify-between mt-3 text-xs text-gray-500">
-                {timelineMarkers.map((m, i) => (
-                  <span key={i}>{m.label}</span>
-                ))}
-              </div>
-              <div className="sm:hidden mt-3 text-xs text-gray-500 text-center">
-                จุดกลาง: {timelineMarkers[2]?.label}
-              </div>
+        {data.startDate && data.endDate ? (
+          <section className="bg-white border border-gray-200 rounded-lg p-4 lg:p-6">
+            <h3 className="font-medium text-gray-700 mb-4">ลำดับงาน</h3>
+            <div className="relative pl-2">
+              {computedMilestones.map((m, i) => {
+                const isLast = i === computedMilestones.length - 1;
+                const isFirst = i === 0;
+                const isEndpoint = m.type === "deposit" || m.type === "final";
+                return (
+                  <div key={m.id} className="relative flex gap-3 pb-5 last:pb-0">
+                    {!isLast && (
+                      <div
+                        className="absolute left-[11px] top-5 w-0.5 bg-gray-200"
+                        style={{ height: "calc(100% - 0.5rem)" }}
+                      />
+                    )}
+                    <div className="relative z-10 shrink-0 mt-0.5">
+                      {isEndpoint ? (
+                        <CheckCircle2
+                          size={24}
+                          className="text-brand-500 bg-gray-50 rounded-full"
+                          fill={isFirst ? "#f97316" : "white"}
+                          strokeWidth={2}
+                        />
+                      ) : (
+                        <Circle
+                          size={24}
+                          className="text-brand-400 bg-gray-50 rounded-full"
+                          strokeWidth={2}
+                        />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0 pt-0.5">
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <div className="min-w-0">
+                          <div className="font-medium text-gray-800 text-sm">
+                            {m.label}
+                          </div>
+                          {m.type === "deposit" && (
+                            <div className="text-xs text-brand-600 mt-0.5">
+                              มัดจำ {depositPercent} · {currencySymbol}
+                              {fmt(depositAmount)}
+                            </div>
+                          )}
+                          {m.type === "final" && (
+                            <div className="text-xs text-gray-500 mt-0.5">
+                              ชำระเต็มจำนวน
+                            </div>
+                          )}
+                          {m.type === "draft" && (
+                            <div className="text-xs text-gray-500 mt-0.5">
+                              การสำรวจหลักการ
+                            </div>
+                          )}
+                          {m.type === "revision" && (
+                            <div className="text-xs text-gray-500 mt-0.5">
+                              รวมแล้ว
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <input
+                        type="date"
+                        value={m.date}
+                        onChange={(e) =>
+                          updateMilestoneDate(m.id, e.target.value)
+                        }
+                        className="w-full sm:w-44 border border-gray-200 rounded-md px-2.5 py-1.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          )}
-        </section>
+          </section>
+        ) : (
+          <section className="bg-white border border-gray-200 rounded-lg p-6 text-center text-gray-400 text-sm">
+            เลือกวันที่เริ่มและวันจบ เพื่อดูไทม์ไลน์
+          </section>
+        )}
 
         <section className="bg-white border border-gray-200 rounded-lg p-4 lg:p-5">
           <div className="flex items-center gap-2 mb-4 text-brand-600">
@@ -124,36 +209,14 @@ export default function TimelinePanel({ data, update, calc }: Props) {
             </div>
             <div className="flex justify-between py-1.5 text-brand-600 font-semibold">
               <span>ราคา/ชั่วโมง</span>
-              <span>฿{fmt(calc.hourlyRate)}</span>
+              <span>
+                {currencySymbol}
+                {fmt(calc.hourlyRate)}
+              </span>
             </div>
           </div>
         </section>
       </div>
     </section>
   );
-}
-
-function buildTimelineMarkers(
-  start: string,
-  end: string
-): { pos: number; label: string }[] {
-  if (!start || !end) return [];
-  const s = new Date(start);
-  const e = new Date(end);
-  if (isNaN(s.getTime()) || isNaN(e.getTime()) || e < s) return [];
-
-  const total = e.getTime() - s.getTime();
-  if (total === 0) {
-    return [{ pos: 50, label: formatShort(s) }];
-  }
-
-  const markers = [0, 0.25, 0.5, 0.75, 1].map((r) => {
-    const d = new Date(s.getTime() + total * r);
-    return { pos: r * 100, label: formatShort(d) };
-  });
-  return markers;
-}
-
-function formatShort(d: Date): string {
-  return d.toLocaleDateString("th-TH", { day: "numeric", month: "short" });
 }
