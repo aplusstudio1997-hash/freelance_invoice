@@ -55,12 +55,13 @@ export interface Profile {
 export interface QuoteSettings {
   customer: Customer;
   projectName: string;
-  difficultCommunication: boolean;
-  frequentChanges: boolean;
+  difficulties: ExtraOption[];
   hiddenCost: string;
   revisions: number;
+  billableFromRevision: number;
   revisionFee: number;
   revisionFeeUnit: "baht" | "percent";
+  vat7: boolean;
   tax3Percent: boolean;
   services: Service[];
   extras: ExtraOption[];
@@ -115,6 +116,23 @@ export const DEFAULT_EXTRAS: ExtraOption[] = [
   },
 ];
 
+export const DEFAULT_DIFFICULTIES: ExtraOption[] = [
+  {
+    id: "difficult_communication",
+    label: "ยากต่อการสื่อสาร",
+    percent: 15,
+    enabled: false,
+    removable: false,
+  },
+  {
+    id: "frequent_changes",
+    label: "เปลี่ยนใจบ่อยๆ",
+    percent: 10,
+    enabled: false,
+    removable: false,
+  },
+];
+
 export const DEFAULT_PAYMENT: PaymentInfo = {
   bankName: "",
   accountName: "",
@@ -148,12 +166,13 @@ export const DEFAULT_QUOTE: QuoteSettings = {
     taxId: "",
   },
   projectName: "",
-  difficultCommunication: false,
-  frequentChanges: false,
+  difficulties: DEFAULT_DIFFICULTIES,
   hiddenCost: "",
   revisions: 3,
+  billableFromRevision: 4,
   revisionFee: 500,
   revisionFeeUnit: "baht",
+  vat7: false,
   tax3Percent: false,
   services: [],
   extras: DEFAULT_EXTRAS,

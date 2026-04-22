@@ -43,10 +43,18 @@ export default function QuotePreview({
   const hasPayment =
     pay.qrCode || pay.bankName || pay.accountName || pay.accountNumber;
 
+  const revisionLabel =
+    data.revisions >= data.billableFromRevision
+      ? `${data.revisions - (data.billableFromRevision - 1)} รอบ`
+      : "";
+
   return (
     <aside className="w-full lg:w-96 bg-gray-50 flex flex-col h-full">
       <div className="hidden lg:flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white no-print">
-        <h2 className="text-sm font-semibold text-gray-700">ใบเสนอราคา</h2>
+        <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+          <FileText size={14} className="text-brand-500" />
+          ใบเสนอราคา
+        </h2>
       </div>
 
       <div className="flex-1 overflow-y-auto scrollbar-thin p-3 sm:p-4">
@@ -161,17 +169,23 @@ export default function QuotePreview({
                   })
                 )}
 
-                {calc.difficultyFee > 0 && (
-                  <tr className="border-b border-gray-100 text-gray-600">
-                    <td className="py-1.5">ค่าความซับซ้อน</td>
+                {calc.difficultyBreakdown.map((x, i) => (
+                  <tr
+                    key={`diff-${i}`}
+                    className="border-b border-gray-100 text-gray-600"
+                  >
+                    <td className="py-1.5">{x.label}</td>
                     <td className="py-1.5 text-right tabular-nums">
                       {currencySymbol}
-                      {fmt(calc.difficultyFee)}
+                      {fmt(x.amount)}
                     </td>
                   </tr>
-                )}
+                ))}
                 {calc.extrasBreakdown.map((x, i) => (
-                  <tr key={i} className="border-b border-gray-100 text-gray-600">
+                  <tr
+                    key={`ex-${i}`}
+                    className="border-b border-gray-100 text-gray-600"
+                  >
                     <td className="py-1.5">{x.label}</td>
                     <td className="py-1.5 text-right tabular-nums">
                       {currencySymbol}
@@ -188,10 +202,10 @@ export default function QuotePreview({
                     </td>
                   </tr>
                 )}
-                {calc.revisionFeeTotal > 0 && (
+                {calc.revisionFeeTotal > 0 && revisionLabel && (
                   <tr className="border-b border-gray-100 text-gray-600">
                     <td className="py-1.5">
-                      ค่าแก้ไข ({data.revisions - 3} รอบ)
+                      ค่าแก้ไขเพิ่ม ({revisionLabel})
                     </td>
                     <td className="py-1.5 text-right tabular-nums">
                       {currencySymbol}
@@ -199,33 +213,46 @@ export default function QuotePreview({
                     </td>
                   </tr>
                 )}
-                {calc.discountValue > 0 && (
-                  <tr className="border-b border-gray-100 text-green-600">
-                    <td className="py-1.5">ส่วนลด</td>
-                    <td className="py-1.5 text-right tabular-nums">
-                      -{currencySymbol}
-                      {fmt(calc.discountValue)}
-                    </td>
-                  </tr>
-                )}
-                {calc.taxDeduction > 0 && (
-                  <tr className="border-b border-gray-100 text-gray-600">
-                    <td className="py-1.5">หัก ณ ที่จ่าย 3%</td>
-                    <td className="py-1.5 text-right tabular-nums">
-                      -{currencySymbol}
-                      {fmt(calc.taxDeduction)}
-                    </td>
-                  </tr>
-                )}
               </tbody>
             </table>
           </section>
 
-          <section className="space-y-1.5 pt-2">
-            <Row
-              label="ยอดรวม"
-              value={`${currencySymbol}${fmt(calc.subtotal)}`}
+          <section className="space-y-1 pt-1">
+            <SummaryRow
+              label="ยอดรวมก่อนภาษี"
+              value={`${currencySymbol}${fmt(calc.preDiscount)}`}
             />
+            {calc.discountValue > 0 && (
+              <SummaryRow
+                label={`ส่วนลด${
+                  data.discountUnit === "percent" ? ` (${data.discount}%)` : ""
+                }`}
+                value={`−${currencySymbol}${fmt(calc.discountValue)}`}
+                tone="discount"
+              />
+            )}
+            {calc.discountValue > 0 && (
+              <SummaryRow
+                label="ยอดหลังหักส่วนลด"
+                value={`${currencySymbol}${fmt(calc.afterDiscount)}`}
+              />
+            )}
+            {data.vat7 && (
+              <SummaryRow
+                label="VAT 7%"
+                value={`+${currencySymbol}${fmt(calc.vatAmount)}`}
+              />
+            )}
+            {data.tax3Percent && (
+              <SummaryRow
+                label="หัก ณ ที่จ่าย 3%"
+                value={`−${currencySymbol}${fmt(calc.taxDeduction)}`}
+                tone="discount"
+              />
+            )}
+          </section>
+
+          <section className="space-y-1.5 pt-1 border-t border-gray-100">
             <Row
               label="รวมทั้งสิ้น"
               value={`${currencySymbol}${fmt(calc.total)}`}
@@ -344,6 +371,27 @@ export default function QuotePreview({
         </button>
       </div>
     </aside>
+  );
+}
+
+function SummaryRow({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone?: "discount";
+}) {
+  return (
+    <div className="flex justify-between items-center text-[11px] text-gray-600">
+      <span>{label}</span>
+      <span
+        className={`tabular-nums ${tone === "discount" ? "text-green-600" : ""}`}
+      >
+        {value}
+      </span>
+    </div>
   );
 }
 

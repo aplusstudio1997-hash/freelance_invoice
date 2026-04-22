@@ -3,11 +3,16 @@ import { QuoteSettings } from "./types";
 export interface CalcResult {
   servicesSubtotal: number;
   difficultyFee: number;
+  difficultyBreakdown: { label: string; amount: number }[];
   extrasFee: number;
   extrasBreakdown: { label: string; amount: number }[];
   revisionFeeTotal: number;
   hiddenCostNum: number;
+  preDiscount: number;
   discountValue: number;
+  afterDiscount: number;
+  vatAmount: number;
+  beforeWithholding: number;
   taxDeduction: number;
   subtotal: number;
   total: number;
@@ -40,8 +45,17 @@ export function calculate(q: QuoteSettings): CalcResult {
   }, 0);
 
   let difficultyFee = 0;
-  if (q.difficultCommunication) difficultyFee += servicesSubtotal * 0.15;
-  if (q.frequentChanges) difficultyFee += servicesSubtotal * 0.1;
+  const difficultyBreakdown: { label: string; amount: number }[] = [];
+  (q.difficulties || []).forEach((x) => {
+    if (x.enabled && x.percent > 0) {
+      const amount = servicesSubtotal * (x.percent / 100);
+      difficultyFee += amount;
+      difficultyBreakdown.push({
+        label: `${x.label} (+${x.percent}%)`,
+        amount,
+      });
+    }
+  });
 
   let extrasFee = 0;
   const extrasBreakdown: { label: string; amount: number }[] = [];
@@ -58,7 +72,8 @@ export function calculate(q: QuoteSettings): CalcResult {
   const beforeRevision =
     servicesSubtotal + difficultyFee + extrasFee + hiddenCostNum;
 
-  const extraRevisions = Math.max(0, q.revisions - 3);
+  const billableFrom = Math.max(1, q.billableFromRevision || 4);
+  const extraRevisions = Math.max(0, q.revisions - (billableFrom - 1));
   const revisionFeeTotal =
     q.revisionFeeUnit === "baht"
       ? extraRevisions * (Number(q.revisionFee) || 0)
@@ -71,9 +86,14 @@ export function calculate(q: QuoteSettings): CalcResult {
       ? Number(q.discount) || 0
       : preDiscount * ((Number(q.discount) || 0) / 100);
 
-  const subtotal = Math.max(0, preDiscount - discountValue);
-  const taxDeduction = q.tax3Percent ? subtotal * 0.03 : 0;
-  const total = Math.max(0, subtotal - taxDeduction);
+  const afterDiscount = Math.max(0, preDiscount - discountValue);
+
+  const vatAmount = q.vat7 ? afterDiscount * 0.07 : 0;
+  const beforeWithholding = afterDiscount + vatAmount;
+
+  const taxDeduction = q.tax3Percent ? afterDiscount * 0.03 : 0;
+  const total = Math.max(0, beforeWithholding - taxDeduction);
+  const subtotal = afterDiscount;
 
   const termMap: Record<string, number> = {
     "30": 0.3,
@@ -90,11 +110,16 @@ export function calculate(q: QuoteSettings): CalcResult {
   return {
     servicesSubtotal,
     difficultyFee,
+    difficultyBreakdown,
     extrasFee,
     extrasBreakdown,
     revisionFeeTotal,
     hiddenCostNum,
+    preDiscount,
     discountValue,
+    afterDiscount,
+    vatAmount,
+    beforeWithholding,
     taxDeduction,
     subtotal,
     total,
@@ -135,7 +160,12 @@ export function buildMilestones(
   endDate: string,
   revisions: number,
   existing: { id: string; label: string; date: string; type: string }[]
-): { id: string; label: string; date: string; type: "deposit" | "draft" | "revision" | "final" }[] {
+): {
+  id: string;
+  label: string;
+  date: string;
+  type: "deposit" | "draft" | "revision" | "final";
+}[] {
   const findExisting = (id: string) => existing.find((m) => m.id === id);
   const revCount = Math.max(0, revisions);
   const totalPoints = 2 + 1 + revCount;
@@ -151,7 +181,12 @@ export function buildMilestones(
     return new Date(t).toISOString().slice(0, 10);
   };
 
-  const list: { id: string; label: string; date: string; type: "deposit" | "draft" | "revision" | "final" }[] = [];
+  const list: {
+    id: string;
+    label: string;
+    date: string;
+    type: "deposit" | "draft" | "revision" | "final";
+  }[] = [];
 
   const deposit = findExisting("deposit");
   list.push({

@@ -69,6 +69,11 @@ export default function PrintPage() {
   const hasPayment =
     pay.qrCode || pay.bankName || pay.accountName || pay.accountNumber;
 
+  const revisionLabel =
+    data.revisions >= data.billableFromRevision
+      ? `${data.revisions - (data.billableFromRevision - 1)} รอบ`
+      : "";
+
   return (
     <>
       <div className="print-toolbar no-print">
@@ -233,16 +238,22 @@ export default function PrintPage() {
                 })
               )}
 
-              {calc.difficultyFee > 0 && (
-                <tr className="border-b border-gray-100 text-gray-600">
-                  <td className="py-2 text-sm">ค่าความซับซ้อนของโครงการ</td>
+              {calc.difficultyBreakdown.map((x, i) => (
+                <tr
+                  key={`diff-${i}`}
+                  className="border-b border-gray-100 text-gray-600"
+                >
+                  <td className="py-2 text-sm">{x.label}</td>
                   <td className="py-2 text-right tabular-nums">
-                    {fmt(calc.difficultyFee)}
+                    {fmt(x.amount)}
                   </td>
                 </tr>
-              )}
+              ))}
               {calc.extrasBreakdown.map((x, i) => (
-                <tr key={i} className="border-b border-gray-100 text-gray-600">
+                <tr
+                  key={`ex-${i}`}
+                  className="border-b border-gray-100 text-gray-600"
+                >
                   <td className="py-2 text-sm">{x.label}</td>
                   <td className="py-2 text-right tabular-nums">
                     {fmt(x.amount)}
@@ -257,29 +268,13 @@ export default function PrintPage() {
                   </td>
                 </tr>
               )}
-              {calc.revisionFeeTotal > 0 && (
+              {calc.revisionFeeTotal > 0 && revisionLabel && (
                 <tr className="border-b border-gray-100 text-gray-600">
                   <td className="py-2 text-sm">
-                    ค่าแก้ไขส่วนเกิน ({data.revisions - 3} รอบ)
+                    ค่าแก้ไขเพิ่ม ({revisionLabel})
                   </td>
                   <td className="py-2 text-right tabular-nums">
                     {fmt(calc.revisionFeeTotal)}
-                  </td>
-                </tr>
-              )}
-              {calc.discountValue > 0 && (
-                <tr className="border-b border-gray-100 text-green-600">
-                  <td className="py-2 text-sm">ส่วนลด</td>
-                  <td className="py-2 text-right tabular-nums">
-                    −{fmt(calc.discountValue)}
-                  </td>
-                </tr>
-              )}
-              {calc.taxDeduction > 0 && (
-                <tr className="border-b border-gray-100 text-gray-600">
-                  <td className="py-2 text-sm">หัก ณ ที่จ่าย 3%</td>
-                  <td className="py-2 text-right tabular-nums">
-                    −{fmt(calc.taxDeduction)}
                   </td>
                 </tr>
               )}
@@ -287,14 +282,39 @@ export default function PrintPage() {
           </table>
         </section>
 
-        <section className="mb-6 ml-auto w-80">
-          <div className="flex justify-between py-2 text-sm text-gray-700 border-b border-gray-200">
-            <span>ยอดรวม</span>
-            <span className="tabular-nums">
-              {currencySymbol}
-              {fmt(calc.subtotal)}
-            </span>
-          </div>
+        <section className="mb-6 ml-auto w-80 space-y-1.5 text-sm">
+          <SummaryLine
+            label="ยอดรวมก่อนภาษี"
+            value={`${currencySymbol}${fmt(calc.preDiscount)}`}
+          />
+          {calc.discountValue > 0 && (
+            <SummaryLine
+              label={`ส่วนลด${
+                data.discountUnit === "percent" ? ` (${data.discount}%)` : ""
+              }`}
+              value={`−${currencySymbol}${fmt(calc.discountValue)}`}
+              discount
+            />
+          )}
+          {calc.discountValue > 0 && (
+            <SummaryLine
+              label="ยอดหลังหักส่วนลด"
+              value={`${currencySymbol}${fmt(calc.afterDiscount)}`}
+            />
+          )}
+          {data.vat7 && (
+            <SummaryLine
+              label="VAT 7%"
+              value={`+${currencySymbol}${fmt(calc.vatAmount)}`}
+            />
+          )}
+          {data.tax3Percent && (
+            <SummaryLine
+              label="หัก ณ ที่จ่าย 3%"
+              value={`−${currencySymbol}${fmt(calc.taxDeduction)}`}
+              discount
+            />
+          )}
           <div className="flex justify-between py-2.5 px-3 mt-2 bg-orange-50 rounded text-brand-600 font-semibold">
             <span>รวมทั้งสิ้น</span>
             <span className="tabular-nums">
@@ -302,7 +322,7 @@ export default function PrintPage() {
               {fmt(calc.total)}
             </span>
           </div>
-          <div className="flex justify-between py-2.5 px-3 mt-1 bg-orange-50 rounded text-brand-600 font-semibold">
+          <div className="flex justify-between py-2.5 px-3 bg-orange-50 rounded text-brand-600 font-semibold">
             <span>มัดจำที่ต้องชำระ</span>
             <span className="tabular-nums">
               {currencySymbol}
@@ -475,5 +495,26 @@ export default function PrintPage() {
         }
       `}</style>
     </>
+  );
+}
+
+function SummaryLine({
+  label,
+  value,
+  discount,
+}: {
+  label: string;
+  value: string;
+  discount?: boolean;
+}) {
+  return (
+    <div className="flex justify-between py-1.5 border-b border-gray-200 text-gray-700">
+      <span>{label}</span>
+      <span
+        className={`tabular-nums ${discount ? "text-green-600" : ""}`}
+      >
+        {value}
+      </span>
+    </div>
   );
 }

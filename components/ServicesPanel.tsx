@@ -1,6 +1,7 @@
 "use client";
 
 import { QuoteSettings, Service, ExtraOption } from "@/lib/types";
+import { CalcResult } from "@/lib/calc";
 import {
   Plus,
   Trash2,
@@ -13,6 +14,8 @@ import {
   ShoppingBasket,
   Sparkles,
   Tag,
+  Receipt,
+  Package,
 } from "lucide-react";
 import { useState } from "react";
 import ServiceEditModal from "./ServiceEditModal";
@@ -22,9 +25,15 @@ interface Props {
   data: QuoteSettings;
   update: (patch: Partial<QuoteSettings>) => void;
   currencySymbol: string;
+  calc: CalcResult;
 }
 
-export default function ServicesPanel({ data, update, currencySymbol }: Props) {
+export default function ServicesPanel({
+  data,
+  update,
+  currencySymbol,
+  calc,
+}: Props) {
   const [collapsed, setCollapsed] = useState(false);
   const [newName, setNewName] = useState("");
   const [newPrice, setNewPrice] = useState("");
@@ -126,7 +135,10 @@ export default function ServicesPanel({ data, update, currencySymbol }: Props) {
     <>
       <aside className="w-full lg:w-80 bg-white lg:border-r border-gray-200 flex flex-col h-full">
         <div className="hidden lg:flex items-center justify-between px-4 py-3 border-b border-gray-100">
-          <h2 className="text-sm font-semibold text-gray-700">จัดการบริการ</h2>
+          <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+            <Package size={14} className="text-brand-500" />
+            จัดการบริการ
+          </h2>
           <button
             onClick={() => setCollapsed(true)}
             className="text-gray-400 hover:text-gray-600"
@@ -312,33 +324,130 @@ export default function ServicesPanel({ data, update, currencySymbol }: Props) {
             </div>
           </section>
 
-          <section>
-            <label className="block font-medium text-gray-700 mb-2 flex items-center gap-1.5">
-              <Tag size={15} className="text-pink-500" /> ส่วนลด
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="number"
-                inputMode="decimal"
-                placeholder="0"
-                value={data.discount === 0 ? "" : data.discount}
-                onChange={(e) =>
-                  update({ discount: e.target.value === "" ? 0 : Number(e.target.value) })
-                }
-                className="flex-1 border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
-              />
-              <select
-                value={data.discountUnit}
-                onChange={(e) =>
-                  update({
-                    discountUnit: e.target.value as "baht" | "percent",
-                  })
-                }
-                className="border border-gray-200 rounded-md px-2 py-2.5 bg-white"
-              >
-                <option value="percent">%</option>
-                <option value="baht">{currencySymbol}</option>
-              </select>
+          <section className="pt-3 border-t border-gray-100">
+            <h3 className="font-medium text-gray-700 mb-2 flex items-center gap-1.5">
+              <Receipt size={15} className="text-brand-500" /> สรุปใบเสนอราคา
+            </h3>
+
+            <div className="bg-gray-50 rounded-lg p-3 space-y-2.5 text-sm">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600 text-xs">ยอดรวมก่อนภาษี</span>
+                <span className="font-semibold tabular-nums text-gray-800">
+                  {currencySymbol}
+                  {calc.preDiscount.toLocaleString("th-TH", {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+
+              <label className="flex items-center justify-between gap-2 cursor-pointer py-1 border-t border-gray-200 pt-2">
+                <span className="flex items-center gap-2.5 text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={data.vat7}
+                    onChange={(e) => update({ vat7: e.target.checked })}
+                    className="w-5 h-5 accent-brand-500 rounded"
+                  />
+                  VAT 7%
+                </span>
+                <span
+                  className={`text-xs tabular-nums ${
+                    data.vat7 ? "text-brand-600 font-medium" : "text-gray-400"
+                  }`}
+                >
+                  {data.vat7 ? "+" : ""}
+                  {currencySymbol}
+                  {calc.vatAmount.toLocaleString("th-TH", {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
+              </label>
+
+              <label className="flex items-center justify-between gap-2 cursor-pointer py-1">
+                <span className="flex items-center gap-2.5 text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={data.tax3Percent}
+                    onChange={(e) =>
+                      update({ tax3Percent: e.target.checked })
+                    }
+                    className="w-5 h-5 accent-brand-500 rounded"
+                  />
+                  หัก ณ ที่จ่าย 3%
+                </span>
+                <span
+                  className={`text-xs tabular-nums ${
+                    data.tax3Percent
+                      ? "text-red-500 font-medium"
+                      : "text-gray-400"
+                  }`}
+                >
+                  {data.tax3Percent ? "−" : ""}
+                  {currencySymbol}
+                  {calc.taxDeduction.toLocaleString("th-TH", {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
+              </label>
+
+              <div className="pt-2 border-t border-gray-200">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <Tag size={13} className="text-pink-500" />
+                  <span className="text-xs text-gray-600 font-medium">
+                    ส่วนลด
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    placeholder="0"
+                    value={data.discount === 0 ? "" : data.discount}
+                    onChange={(e) =>
+                      update({
+                        discount:
+                          e.target.value === "" ? 0 : Number(e.target.value),
+                      })
+                    }
+                    className="flex-1 border border-gray-200 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200 text-sm"
+                  />
+                  <select
+                    value={data.discountUnit}
+                    onChange={(e) =>
+                      update({
+                        discountUnit: e.target.value as "baht" | "percent",
+                      })
+                    }
+                    className="border border-gray-200 rounded-md px-2 py-2 bg-white text-sm"
+                  >
+                    <option value="percent">%</option>
+                    <option value="baht">{currencySymbol}</option>
+                  </select>
+                </div>
+                {calc.discountValue > 0 && (
+                  <div className="text-right text-xs text-green-600 mt-1 tabular-nums">
+                    −{currencySymbol}
+                    {calc.discountValue.toLocaleString("th-TH", {
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 2,
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-between items-center pt-2 border-t-2 border-brand-200 text-brand-600">
+                <span className="font-semibold text-sm">ยอดรวมสุทธิ</span>
+                <span className="font-bold text-base tabular-nums">
+                  {currencySymbol}
+                  {calc.total.toLocaleString("th-TH", {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
             </div>
           </section>
         </div>

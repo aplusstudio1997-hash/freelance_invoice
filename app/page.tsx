@@ -310,6 +310,7 @@ export default function Home() {
             data={data}
             update={update}
             currencySymbol={currencySymbol}
+            calc={calc}
           />
         </div>
         <div

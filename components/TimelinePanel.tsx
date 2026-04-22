@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Circle,
   CheckCircle2,
+  CalendarDays,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -77,7 +78,10 @@ export default function TimelinePanel({
   return (
     <section className="flex-1 min-w-0 bg-gray-50 lg:border-r border-gray-200 flex flex-col h-full">
       <div className="hidden lg:flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white">
-        <h2 className="text-sm font-semibold text-gray-700">ไทม์ไลน์</h2>
+        <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+          <CalendarDays size={14} className="text-indigo-500" />
+          ไทม์ไลน์
+        </h2>
         <button
           onClick={() => setCollapsed(true)}
           className="text-gray-400 hover:text-gray-600"
