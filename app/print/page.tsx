@@ -507,14 +507,14 @@ export default function PrintPage() {
           }
           .print-page {
             margin: 0;
-            padding: 0;
+            padding: 15mm;
             box-shadow: none;
             width: 100%;
             min-height: auto;
           }
           .milestones-page {
             margin-top: 0 !important;
-            padding-top: 0 !important;
+            padding-top: 15mm !important;
             border-top: 0 !important;
           }
           .milestones-page::before {
@@ -522,7 +522,7 @@ export default function PrintPage() {
           }
           @page {
             size: A4;
-            margin: 15mm;
+            margin: 0;
           }
         }
       `}</style>
