@@ -139,7 +139,7 @@ export default function PrintPage() {
           </div>
         </header>
 
-        <section className="grid grid-cols-2 gap-6 mt-6 mb-6">
+        <section className="grid grid-cols-2 gap-6 mt-4 mb-4">
           <div>
             <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">
               เรียน / สำหรับ
@@ -191,12 +191,12 @@ export default function PrintPage() {
           </div>
         </section>
 
-        <section className="mb-6">
+        <section className="mb-4">
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b-2 border-gray-200 text-xs text-gray-500 uppercase tracking-wide">
-                <th className="text-left py-2 font-medium">รายการ</th>
-                <th className="text-right py-2 font-medium w-36">
+                <th className="text-left py-1.5 font-medium">รายการ</th>
+                <th className="text-right py-1.5 font-medium w-36">
                   ราคา ({currencySymbol})
                 </th>
               </tr>
@@ -283,7 +283,7 @@ export default function PrintPage() {
           </table>
         </section>
 
-        <section className="mb-6 ml-auto w-80 space-y-1.5 text-sm">
+        <section className="mb-4 ml-auto w-80 space-y-1 text-sm">
           <SummaryLine
             label="ยอดรวมก่อนภาษี"
             value={`${currencySymbol}${fmt(calc.preDiscount)}`}
@@ -316,14 +316,14 @@ export default function PrintPage() {
               discount
             />
           )}
-          <div className="flex justify-between py-2.5 px-3 mt-2 bg-orange-50 rounded text-brand-600 font-semibold">
+          <div className="flex justify-between py-2 px-3 mt-1.5 bg-orange-50 rounded text-brand-600 font-semibold">
             <span>รวมทั้งสิ้น</span>
             <span className="tabular-nums">
               {currencySymbol}
               {fmt(calc.total)}
             </span>
           </div>
-          <div className="flex justify-between py-2.5 px-3 bg-orange-50 rounded text-brand-600 font-semibold">
+          <div className="flex justify-between py-2 px-3 bg-orange-50 rounded text-brand-600 font-semibold">
             <span>มัดจำที่ต้องชำระ</span>
             <span className="tabular-nums">
               {currencySymbol}
@@ -332,16 +332,16 @@ export default function PrintPage() {
           </div>
         </section>
 
-        <section className="bg-orange-50 border-l-4 border-brand-500 p-4 rounded mb-6">
-          <div className="text-xs text-gray-500 mb-1">เงื่อนไขการชำระ</div>
-          <div className="text-sm font-medium text-gray-800">
+        <section className="bg-orange-50 border-l-4 border-brand-500 px-3 py-2 rounded mb-4">
+          <div className="text-[10px] text-gray-500 mb-0.5">เงื่อนไขการชำระ</div>
+          <div className="text-xs font-medium text-gray-800">
             {data.paymentCondition} (มัดจำ {termLabel[data.paymentTerm]})
           </div>
         </section>
 
         {hasPayment && (
-          <section className="border border-gray-200 rounded-lg p-4 mb-6">
-            <div className="text-xs text-gray-500 uppercase tracking-wide mb-3">
+          <section className="border border-gray-200 rounded-lg p-3 mb-4">
+            <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-2">
               ช่องทางการชำระเงิน
             </div>
             <div className="flex items-start gap-4">
@@ -383,30 +383,30 @@ export default function PrintPage() {
           </section>
         )}
 
-        <section className="flex items-end justify-between mt-12 mb-6">
+        <section className="flex items-end justify-between mt-8 mb-4">
           <div>
-            <div className="text-xs text-gray-500 mb-1">เตรียมโดย</div>
-            <div className="font-semibold text-gray-800">
+            <div className="text-[10px] text-gray-500 mb-0.5">เตรียมโดย</div>
+            <div className="font-semibold text-gray-800 text-sm">
               {profile.ownerName || profile.studioName}
             </div>
             {profile.taxId && (
-              <div className="text-xs text-gray-500 mt-0.5">
+              <div className="text-[10px] text-gray-500 mt-0.5">
                 เลขประจำตัว: {profile.taxId}
               </div>
             )}
           </div>
           <div className="text-right">
             <div className="border-b border-gray-400 w-48 mb-1"></div>
-            <div className="text-xs text-gray-500">ลงนามผู้เสนอราคา</div>
+            <div className="text-[10px] text-gray-500">ลงนามผู้เสนอราคา</div>
           </div>
         </section>
 
         {termsLines.length > 0 && (
-          <section className="pt-4 border-t border-gray-200">
-            <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">
+          <section className="pt-3 border-t border-gray-200">
+            <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-1.5">
               หมายเหตุและเงื่อนไข
             </div>
-            <ul className="text-xs text-gray-600 space-y-1 list-disc list-inside leading-relaxed">
+            <ul className="text-[11px] text-gray-600 space-y-0.5 list-disc list-inside leading-relaxed">
               {termsLines.map((l, i) => (
                 <li key={i}>{l}</li>
               ))}
@@ -507,7 +507,7 @@ export default function PrintPage() {
           }
           .print-page {
             margin: 0;
-            padding: 15mm;
+            padding: 0;
             box-shadow: none;
             width: 100%;
             min-height: auto;
@@ -517,9 +517,12 @@ export default function PrintPage() {
             padding-top: 0 !important;
             border-top: 0 !important;
           }
+          .milestones-page::before {
+            display: none !important;
+          }
           @page {
             size: A4;
-            margin: 0;
+            margin: 15mm;
           }
         }
       `}</style>
