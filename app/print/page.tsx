@@ -383,8 +383,40 @@ export default function PrintPage() {
           </section>
         )}
 
+        <section className="flex items-end justify-between mt-12 mb-6">
+          <div>
+            <div className="text-xs text-gray-500 mb-1">เตรียมโดย</div>
+            <div className="font-semibold text-gray-800">
+              {profile.ownerName || profile.studioName}
+            </div>
+            {profile.taxId && (
+              <div className="text-xs text-gray-500 mt-0.5">
+                เลขประจำตัว: {profile.taxId}
+              </div>
+            )}
+          </div>
+          <div className="text-right">
+            <div className="border-b border-gray-400 w-48 mb-1"></div>
+            <div className="text-xs text-gray-500">ลงนามผู้เสนอราคา</div>
+          </div>
+        </section>
+
+        {termsLines.length > 0 && (
+          <section className="pt-4 border-t border-gray-200">
+            <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">
+              หมายเหตุและเงื่อนไข
+            </div>
+            <ul className="text-xs text-gray-600 space-y-1 list-disc list-inside leading-relaxed">
+              {termsLines.map((l, i) => (
+                <li key={i}>{l}</li>
+              ))}
+              <li>ราคานี้มีผลภายใน 30 วันนับจากวันที่เสนอ</li>
+            </ul>
+          </section>
+        )}
+
         {data.startDate && data.endDate && milestones.length > 0 && (
-          <section className="mb-6 milestones-page">
+          <section className="milestones-page">
             <div className="text-xs text-gray-500 uppercase tracking-wide mb-3">
               ลำดับงานและกำหนดส่ง
             </div>
@@ -419,38 +451,6 @@ export default function PrintPage() {
                 );
               })}
             </div>
-          </section>
-        )}
-
-        <section className="flex items-end justify-between mt-12 mb-6">
-          <div>
-            <div className="text-xs text-gray-500 mb-1">เตรียมโดย</div>
-            <div className="font-semibold text-gray-800">
-              {profile.ownerName || profile.studioName}
-            </div>
-            {profile.taxId && (
-              <div className="text-xs text-gray-500 mt-0.5">
-                เลขประจำตัว: {profile.taxId}
-              </div>
-            )}
-          </div>
-          <div className="text-right">
-            <div className="border-b border-gray-400 w-48 mb-1"></div>
-            <div className="text-xs text-gray-500">ลงนามผู้เสนอราคา</div>
-          </div>
-        </section>
-
-        {termsLines.length > 0 && (
-          <section className="pt-4 border-t border-gray-200">
-            <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">
-              หมายเหตุและเงื่อนไข
-            </div>
-            <ul className="text-xs text-gray-600 space-y-1 list-disc list-inside leading-relaxed">
-              {termsLines.map((l, i) => (
-                <li key={i}>{l}</li>
-              ))}
-              <li>ราคานี้มีผลภายใน 30 วันนับจากวันที่เสนอ</li>
-            </ul>
           </section>
         )}
       </div>
