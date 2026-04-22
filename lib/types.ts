@@ -30,6 +30,13 @@ export interface Milestone {
   type: "deposit" | "draft" | "revision" | "final";
 }
 
+export interface PaymentInfo {
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  qrCode: string;
+}
+
 export interface Profile {
   studioName: string;
   tagline: string;
@@ -41,6 +48,8 @@ export interface Profile {
   currency: string;
   terms: string;
   logo: string;
+  payment: PaymentInfo;
+  socialLink: string;
 }
 
 export interface QuoteSettings {
@@ -106,6 +115,13 @@ export const DEFAULT_EXTRAS: ExtraOption[] = [
   },
 ];
 
+export const DEFAULT_PAYMENT: PaymentInfo = {
+  bankName: "",
+  accountName: "",
+  accountNumber: "",
+  qrCode: "",
+};
+
 export const DEFAULT_PROFILE: Profile = {
   studioName: "FreelanceSolo",
   tagline: "โปรแกรมช่วยคำนวณราคาและทำใบเสนอราคาออนไลน์อย่างง่าย",
@@ -118,6 +134,8 @@ export const DEFAULT_PROFILE: Profile = {
   terms:
     "• ชำระมัดจำเพื่อเริ่มงาน\n• โอนลิขสิทธิ์เมื่อชำระเต็ม\n• แก้ไขเพิ่มเติม ฿500 ต่อรอบ",
   logo: "",
+  payment: DEFAULT_PAYMENT,
+  socialLink: "",
 };
 
 export const DEFAULT_QUOTE: QuoteSettings = {

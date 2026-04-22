@@ -1,7 +1,12 @@
 "use client";
 
-import { Profile, CURRENCIES, DEFAULT_PROFILE } from "@/lib/types";
-import { X } from "lucide-react";
+import {
+  Profile,
+  CURRENCIES,
+  DEFAULT_PROFILE,
+  PaymentInfo,
+} from "@/lib/types";
+import { X, Image as ImageIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 interface Props {
@@ -11,7 +16,7 @@ interface Props {
   onSave: (p: Profile) => void;
 }
 
-const MAX_LOGO_SIZE = 500 * 1024;
+const MAX_IMAGE_SIZE = 500 * 1024;
 
 export default function ProfileModal({
   open,
@@ -20,7 +25,8 @@ export default function ProfileModal({
   onSave,
 }: Props) {
   const [form, setForm] = useState<Profile>(profile);
-  const fileRef = useRef<HTMLInputElement>(null);
+  const logoRef = useRef<HTMLInputElement>(null);
+  const qrRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) setForm(profile);
@@ -29,16 +35,20 @@ export default function ProfileModal({
   if (!open) return null;
 
   const set = (patch: Partial<Profile>) => setForm((f) => ({ ...f, ...patch }));
+  const setPayment = (patch: Partial<PaymentInfo>) =>
+    setForm((f) => ({ ...f, payment: { ...f.payment, ...patch } }));
 
-  const handleLogoPick = (file: File | null) => {
+  const pickImage = (file: File | null, field: "logo" | "qr") => {
     if (!file) return;
-    if (file.size > MAX_LOGO_SIZE) {
-      alert(`ขนาดไฟล์ต้องไม่เกิน ${Math.round(MAX_LOGO_SIZE / 1024)}KB`);
+    if (file.size > MAX_IMAGE_SIZE) {
+      alert(`ขนาดไฟล์ต้องไม่เกิน ${Math.round(MAX_IMAGE_SIZE / 1024)}KB`);
       return;
     }
     const reader = new FileReader();
     reader.onload = () => {
-      set({ logo: String(reader.result || "") });
+      const dataUrl = String(reader.result || "");
+      if (field === "logo") set({ logo: dataUrl });
+      else setPayment({ qrCode: dataUrl });
     };
     reader.readAsDataURL(file);
   };
@@ -54,25 +64,78 @@ export default function ProfileModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/40 z-50 flex items-start sm:items-center justify-center p-0 sm:p-4 overflow-y-auto"
+      className="fixed inset-0 bg-black/40 z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-none sm:rounded-xl max-w-md w-full shadow-xl animate-fadeIn flex flex-col max-h-[100dvh] sm:max-h-[90vh]"
+        className="bg-white rounded-xl max-w-md w-full shadow-xl animate-fadeIn flex flex-col max-h-[calc(100dvh-1.5rem)] sm:max-h-[90vh] my-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <h3 className="font-semibold text-lg text-gray-800">ตั้งค่าส่วนตัว</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 p-1"
-            aria-label="ปิด"
-          >
-            <X size={20} />
-          </button>
+        <div className="px-5 py-4 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-lg text-gray-800">ตั้งค่าส่วนตัว</h3>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 p-1"
+              aria-label="ปิด"
+            >
+              <X size={20} />
+            </button>
+          </div>
+          <p className="text-xs text-gray-500 mt-1">
+            ตั้งค่าส่วนตัวเพื่อใช้เป็นข้อมูลในการทำใบเสนอราคา
+          </p>
         </div>
 
-        <div className="flex-1 overflow-y-auto scrollbar-thin p-5 space-y-3 text-sm">
+        <div className="flex-1 overflow-y-auto scrollbar-thin p-5 space-y-4 text-sm">
+          <section>
+            <label className="block text-xs font-medium text-gray-500 mb-2">
+              โลโก้ร้าน
+            </label>
+            <div className="flex items-center gap-3">
+              <div className="w-20 h-20 border border-gray-200 rounded-md flex items-center justify-center overflow-hidden bg-gray-50 shrink-0">
+                {form.logo ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={form.logo}
+                    alt="logo"
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <ImageIcon size={22} className="text-gray-300" />
+                )}
+              </div>
+              <div className="flex-1 flex gap-2">
+                <button
+                  onClick={() => logoRef.current?.click()}
+                  className="flex-1 border border-gray-200 rounded-md px-3 py-2.5 hover:bg-gray-50 text-gray-700 text-sm"
+                >
+                  เลือกรูป
+                </button>
+                {form.logo && (
+                  <button
+                    onClick={() => set({ logo: "" })}
+                    className="px-3 py-2.5 text-red-500 hover:bg-red-50 rounded-md text-sm"
+                  >
+                    ลบ
+                  </button>
+                )}
+              </div>
+              <input
+                ref={logoRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => pickImage(e.target.files?.[0] || null, "logo")}
+              />
+            </div>
+            <p className="text-xs text-gray-400 mt-1">
+              รูปสี่เหลี่ยมจัตุรัสสวยที่สุด · ไม่เกิน 500KB
+            </p>
+          </section>
+
+          <Divider />
+
           <Field label="ชื่อร้าน/สตูดิโอ">
             <input
               value={form.studioName}
@@ -149,6 +212,90 @@ export default function ProfileModal({
             </select>
           </Field>
 
+          <Divider label="ช่องทางการชำระเงิน" />
+
+          <Field label="ชื่อธนาคาร">
+            <input
+              value={form.payment.bankName}
+              onChange={(e) => setPayment({ bankName: e.target.value })}
+              placeholder="เช่น กสิกรไทย, PromptPay"
+              className="w-full border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200"
+            />
+          </Field>
+
+          <Field label="ชื่อบัญชี">
+            <input
+              value={form.payment.accountName}
+              onChange={(e) => setPayment({ accountName: e.target.value })}
+              placeholder="เช่น สมชาย ใจดี"
+              className="w-full border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200"
+            />
+          </Field>
+
+          <Field label="เลขบัญชี">
+            <input
+              value={form.payment.accountNumber}
+              onChange={(e) => setPayment({ accountNumber: e.target.value })}
+              placeholder="เช่น 123-4-56789-0"
+              className="w-full border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200"
+            />
+          </Field>
+
+          <Field label="QR Code สำหรับชำระเงิน">
+            <div className="flex items-center gap-3">
+              <div className="w-20 h-20 border border-gray-200 rounded-md flex items-center justify-center overflow-hidden bg-gray-50 shrink-0">
+                {form.payment.qrCode ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={form.payment.qrCode}
+                    alt="QR"
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <ImageIcon size={22} className="text-gray-300" />
+                )}
+              </div>
+              <div className="flex-1 flex gap-2">
+                <button
+                  onClick={() => qrRef.current?.click()}
+                  className="flex-1 border border-gray-200 rounded-md px-3 py-2.5 hover:bg-gray-50 text-gray-700 text-sm"
+                >
+                  อัปโหลด QR
+                </button>
+                {form.payment.qrCode && (
+                  <button
+                    onClick={() => setPayment({ qrCode: "" })}
+                    className="px-3 py-2.5 text-red-500 hover:bg-red-50 rounded-md text-sm"
+                  >
+                    ลบ
+                  </button>
+                )}
+              </div>
+              <input
+                ref={qrRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => pickImage(e.target.files?.[0] || null, "qr")}
+              />
+            </div>
+            <p className="text-xs text-gray-400 mt-1">
+              จะปรากฏในใบเสนอราคา · ไม่เกิน 500KB
+            </p>
+          </Field>
+
+          <Divider />
+
+          <Field label="Social / Portfolio (ลิงก์เดียว)">
+            <input
+              type="url"
+              value={form.socialLink}
+              onChange={(e) => set({ socialLink: e.target.value })}
+              placeholder="เช่น https://instagram.com/your_handle"
+              className="w-full border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200"
+            />
+          </Field>
+
           <Field label="เงื่อนไขการใช้บริการ">
             <textarea
               value={form.terms}
@@ -161,55 +308,12 @@ export default function ProfileModal({
               แต่ละบรรทัดจะเป็น bullet ในใบเสนอราคา
             </p>
           </Field>
-
-          <Field label="โลโก้ร้าน">
-            <div className="flex items-center gap-3">
-              <div className="w-16 h-16 border border-gray-200 rounded-md flex items-center justify-center overflow-hidden bg-gray-50 shrink-0">
-                {form.logo ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={form.logo}
-                    alt="logo"
-                    className="w-full h-full object-contain"
-                  />
-                ) : (
-                  <span className="text-xs text-gray-400">โลโก้</span>
-                )}
-              </div>
-              <div className="flex-1 flex gap-2">
-                <button
-                  onClick={() => fileRef.current?.click()}
-                  className="flex-1 border border-gray-200 rounded-md px-3 py-2.5 hover:bg-gray-50 text-gray-700 text-sm"
-                >
-                  เลือกรูป
-                </button>
-                {form.logo && (
-                  <button
-                    onClick={() => set({ logo: "" })}
-                    className="px-3 py-2.5 text-red-500 hover:bg-red-50 rounded-md text-sm"
-                  >
-                    ลบ
-                  </button>
-                )}
-              </div>
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => handleLogoPick(e.target.files?.[0] || null)}
-              />
-            </div>
-            <p className="text-xs text-gray-400 mt-1">
-              รูปสี่เหลี่ยมจัตุรัสสวยที่สุด · ไม่เกิน 500KB
-            </p>
-          </Field>
         </div>
 
-        <div className="px-5 py-4 border-t border-gray-100 bg-white flex gap-2 safe-bottom">
+        <div className="px-5 py-4 border-t border-gray-100 bg-white flex items-center gap-3 safe-bottom">
           <button
             onClick={reset}
-            className="text-sm text-gray-500 hover:text-gray-700 px-3"
+            className="text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 px-4 py-2.5 rounded-md transition shrink-0"
           >
             รีเซ็ต
           </button>
@@ -238,6 +342,20 @@ function Field({
         {label}
       </label>
       {children}
+    </div>
+  );
+}
+
+function Divider({ label }: { label?: string }) {
+  if (!label)
+    return <div className="border-t border-gray-100 my-2" />;
+  return (
+    <div className="flex items-center gap-2 pt-1">
+      <div className="h-px bg-gray-200 flex-1" />
+      <span className="text-[11px] text-gray-500 font-medium uppercase tracking-wide">
+        {label}
+      </span>
+      <div className="h-px bg-gray-200 flex-1" />
     </div>
   );
 }

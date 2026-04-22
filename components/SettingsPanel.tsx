@@ -1,15 +1,30 @@
 "use client";
 
 import { QuoteSettings } from "@/lib/types";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  Briefcase,
+  User,
+  AlertTriangle,
+  Coins,
+  RefreshCw,
+  Percent,
+  CreditCard,
+} from "lucide-react";
 import { useState } from "react";
 
 interface Props {
   data: QuoteSettings;
   update: (patch: Partial<QuoteSettings>) => void;
+  currencySymbol: string;
 }
 
-export default function SettingsPanel({ data, update }: Props) {
+export default function SettingsPanel({
+  data,
+  update,
+  currencySymbol,
+}: Props) {
   const [collapsed, setCollapsed] = useState(false);
   const [customerOpen, setCustomerOpen] = useState(true);
   const [difficultyOpen, setDifficultyOpen] = useState(true);
@@ -46,19 +61,24 @@ export default function SettingsPanel({ data, update }: Props) {
 
       <div className="flex-1 overflow-y-auto scrollbar-thin p-4 space-y-5 text-sm">
         <section>
-          <button
-            onClick={() => setCustomerOpen(!customerOpen)}
-            className="flex items-center justify-between w-full text-left mb-2"
-          >
-            <span className="font-medium text-gray-700">ลูกค้า</span>
-            <ChevronDown
-              size={16}
-              className={`text-gray-400 transition-transform ${
-                customerOpen ? "" : "-rotate-90"
-              }`}
-            />
-          </button>
+          <SectionHeader
+            icon={<Briefcase size={15} className="text-brand-500" />}
+            label="โครงการ"
+          />
+          <Input
+            placeholder="ชื่อโครงการ"
+            value={data.projectName}
+            onChange={(v) => update({ projectName: v })}
+          />
+        </section>
 
+        <section>
+          <SectionToggle
+            open={customerOpen}
+            onToggle={() => setCustomerOpen(!customerOpen)}
+            icon={<User size={15} className="text-blue-500" />}
+            label="ลูกค้า"
+          />
           {customerOpen && (
             <div className="space-y-2">
               <Input
@@ -110,28 +130,12 @@ export default function SettingsPanel({ data, update }: Props) {
         </section>
 
         <section>
-          <label className="block font-medium text-gray-700 mb-2">โครงการ</label>
-          <Input
-            placeholder="ชื่อโครงการ"
-            value={data.projectName}
-            onChange={(v) => update({ projectName: v })}
+          <SectionToggle
+            open={difficultyOpen}
+            onToggle={() => setDifficultyOpen(!difficultyOpen)}
+            icon={<AlertTriangle size={15} className="text-amber-500" />}
+            label="ความยากของลูกค้า"
           />
-        </section>
-
-        <section>
-          <button
-            onClick={() => setDifficultyOpen(!difficultyOpen)}
-            className="flex items-center justify-between w-full text-left mb-2"
-          >
-            <span className="font-medium text-gray-700">ความยากของลูกค้า</span>
-            <ChevronDown
-              size={16}
-              className={`text-gray-400 transition-transform ${
-                difficultyOpen ? "" : "-rotate-90"
-              }`}
-            />
-          </button>
-
           {difficultyOpen && (
             <div className="space-y-2">
               <Check
@@ -149,11 +153,12 @@ export default function SettingsPanel({ data, update }: Props) {
         </section>
 
         <section>
-          <label className="block font-medium text-gray-700 mb-2">
-            ต้นทุนแฝงอื่นๆ
-          </label>
+          <SectionHeader
+            icon={<Coins size={15} className="text-yellow-500" />}
+            label={`ค่าต้นทุนแฝงอื่นๆ (${currencySymbol})`}
+          />
           <Input
-            placeholder="เช่น ค่าโปรแกรม/ซอฟต์แวร์"
+            placeholder="0"
             type="number"
             value={data.hiddenCost}
             onChange={(v) => update({ hiddenCost: v })}
@@ -162,7 +167,10 @@ export default function SettingsPanel({ data, update }: Props) {
 
         <section>
           <div className="flex items-center justify-between mb-2">
-            <label className="font-medium text-gray-700">รอบการแก้ไข</label>
+            <div className="flex items-center gap-1.5">
+              <RefreshCw size={15} className="text-purple-500" />
+              <label className="font-medium text-gray-700">รอบการแก้ไข</label>
+            </div>
             <span className="text-brand-500 font-semibold">{data.revisions}</span>
           </div>
           <input
@@ -190,7 +198,7 @@ export default function SettingsPanel({ data, update }: Props) {
               }
               className="border border-gray-200 rounded-md px-2 py-2.5 bg-white"
             >
-              <option value="baht">฿</option>
+              <option value="baht">{currencySymbol}</option>
               <option value="percent">%</option>
             </select>
           </div>
@@ -198,7 +206,10 @@ export default function SettingsPanel({ data, update }: Props) {
         </section>
 
         <section>
-          <label className="block font-medium text-gray-700 mb-2">ภาษี</label>
+          <SectionHeader
+            icon={<Percent size={15} className="text-rose-500" />}
+            label="ภาษี"
+          />
           <Check
             label="หักภาษี 3%"
             checked={data.tax3Percent}
@@ -207,9 +218,10 @@ export default function SettingsPanel({ data, update }: Props) {
         </section>
 
         <section>
-          <label className="block font-medium text-gray-700 mb-2">
-            เงื่อนไขการชำระ
-          </label>
+          <SectionHeader
+            icon={<CreditCard size={15} className="text-emerald-500" />}
+            label="เงื่อนไขการชำระ"
+          />
           <div className="grid grid-cols-4 gap-1.5 mb-2">
             {(["30", "50", "70", "full"] as const).map((t) => (
               <button
@@ -246,6 +258,51 @@ export default function SettingsPanel({ data, update }: Props) {
         </section>
       </div>
     </aside>
+  );
+}
+
+function SectionHeader({
+  icon,
+  label,
+}: {
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <div className="flex items-center gap-1.5 mb-2">
+      {icon}
+      <label className="font-medium text-gray-700">{label}</label>
+    </div>
+  );
+}
+
+function SectionToggle({
+  open,
+  onToggle,
+  icon,
+  label,
+}: {
+  open: boolean;
+  onToggle: () => void;
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <button
+      onClick={onToggle}
+      className="flex items-center justify-between w-full text-left mb-2"
+    >
+      <span className="flex items-center gap-1.5 font-medium text-gray-700">
+        {icon}
+        {label}
+      </span>
+      <ChevronDown
+        size={16}
+        className={`text-gray-400 transition-transform ${
+          open ? "" : "-rotate-90"
+        }`}
+      />
+    </button>
   );
 }
 

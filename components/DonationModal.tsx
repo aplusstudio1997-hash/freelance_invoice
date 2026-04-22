@@ -39,18 +39,20 @@ export default function DonationModal({ open, onClose }: Props) {
           ขอบคุณที่สนับสนุน!
         </p>
 
-        <div className="bg-gray-100 rounded-lg aspect-square flex items-center justify-center mb-4">
-          <div className="text-center text-gray-400">
-            <div className="text-2xl font-medium mb-1">QR Code</div>
-            <div className="text-xs">(ใส่ภาพ QR PromptPay ที่นี่)</div>
-          </div>
+        <div className="bg-white border border-gray-200 rounded-lg p-3 mb-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/promptpay-qr.jpg"
+            alt="PromptPay QR Code"
+            className="w-full h-auto rounded"
+          />
         </div>
 
         <div className="border border-gray-200 rounded-lg p-4 mb-4 text-center">
           <div className="text-xs text-gray-500 mb-1">ชื่อบัญชี</div>
           <div className="text-brand-600 font-bold mb-3">PromptPay</div>
           <div className="text-xs text-gray-500 mb-1">เบอร์โทร</div>
-          <div className="font-bold text-lg tracking-wider">0866259407</div>
+          <div className="font-bold text-lg tracking-wider">086-625-9407</div>
         </div>
 
         <p className="text-xs text-gray-500 text-center mb-4 flex items-center justify-center gap-1">

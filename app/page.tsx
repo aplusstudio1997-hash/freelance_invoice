@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { QuoteSettings, DEFAULT_QUOTE, Profile, getCurrencySymbol } from "@/lib/types";
+import {
+  QuoteSettings,
+  DEFAULT_QUOTE,
+  Profile,
+  DEFAULT_PROFILE,
+  getCurrencySymbol,
+} from "@/lib/types";
 import {
   loadDraft,
   saveDraft,
@@ -41,18 +47,7 @@ type Tab = "settings" | "services" | "timeline" | "preview";
 
 export default function Home() {
   const [data, setData] = useState<QuoteSettings>(DEFAULT_QUOTE);
-  const [profile, setProfile] = useState<Profile>(() => ({
-    studioName: "FreelanceSolo",
-    tagline: "โปรแกรมช่วยคำนวณราคาและทำใบเสนอราคาออนไลน์อย่างง่าย",
-    ownerName: "FreelanceSolo",
-    phone: "",
-    email: "",
-    address: "",
-    taxId: "",
-    currency: "THB",
-    terms: "",
-    logo: "",
-  }));
+  const [profile, setProfile] = useState<Profile>(DEFAULT_PROFILE);
   const [hydrated, setHydrated] = useState(false);
 
   const [promptOpen, setPromptOpen] = useState(false);
@@ -125,7 +120,7 @@ export default function Home() {
 
   return (
     <div className="h-[100dvh] flex flex-col bg-gray-50 overflow-hidden">
-      <header className="bg-white border-b border-gray-200 px-3 sm:px-4 py-3 flex items-center justify-between no-print safe-top">
+      <header className="bg-white border-b border-gray-200 px-3 sm:px-4 py-3 flex items-center justify-between no-print safe-top gap-2">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-brand-500 text-white flex items-center justify-center font-bold shrink-0">
             {profile.logo ? (
@@ -161,6 +156,14 @@ export default function Home() {
               {saveStatus === "saving" ? "กำลังบันทึก..." : "บันทึกแล้ว"}
             </span>
           )}
+          <button
+            onClick={resetAll}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-full text-sm transition"
+            title="ล้างข้อมูลทั้งหมด"
+          >
+            <RotateCcw size={14} />
+            <span className="hidden xl:inline">Reset All</span>
+          </button>
           <HeaderBtn
             icon={<Dice5 size={14} />}
             label="สุ่มโจทย์"
@@ -192,13 +195,6 @@ export default function Home() {
             label="ตั้งค่าส่วนตัว"
             onClick={() => setProfileOpen(true)}
           />
-          <button
-            onClick={resetAll}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full text-sm transition ml-1"
-            title="เริ่มใหม่"
-          >
-            <RotateCcw size={14} />
-          </button>
         </div>
 
         <button
@@ -240,6 +236,12 @@ export default function Home() {
               />
               <div className="h-px bg-gray-100 my-1.5" />
               <MenuItem
+                icon={<RotateCcw size={18} />}
+                label="Reset All — ล้างข้อมูลและเริ่มใหม่"
+                onClick={resetAll}
+                danger
+              />
+              <MenuItem
                 icon={<Dice5 size={18} />}
                 label="สุ่มโจทย์ฝึกคิดราคา"
                 onClick={() => {
@@ -280,13 +282,6 @@ export default function Home() {
                   setMenuOpen(false);
                 }}
               />
-              <div className="h-px bg-gray-100 my-1.5" />
-              <MenuItem
-                icon={<RotateCcw size={18} />}
-                label="ล้างข้อมูลและเริ่มใหม่"
-                onClick={resetAll}
-                danger
-              />
             </div>
             {saveStatus && (
               <div className="px-4 py-2 text-xs text-gray-400 flex items-center gap-1.5 border-t border-gray-100">
@@ -302,7 +297,11 @@ export default function Home() {
         <div
           className={`${mobileTab === "settings" ? "flex" : "hidden"} lg:flex flex-1 lg:flex-none min-h-0`}
         >
-          <SettingsPanel data={data} update={update} />
+          <SettingsPanel
+            data={data}
+            update={update}
+            currencySymbol={currencySymbol}
+          />
         </div>
         <div
           className={`${mobileTab === "services" ? "flex" : "hidden"} lg:flex flex-1 lg:flex-none min-h-0`}
@@ -362,13 +361,19 @@ export default function Home() {
             active={mobileTab === "preview"}
             onClick={() => setMobileTab("preview")}
             icon={<FileText size={19} />}
-            label={calc.total > 0 ? `${currencySymbol}${fmt(calc.total)}` : "ใบเสนอ"}
+            label={
+              calc.total > 0 ? `${currencySymbol}${fmt(calc.total)}` : "ใบเสนอ"
+            }
             highlight={calc.total > 0}
           />
         </div>
       </nav>
 
-      <RandomPromptModal open={promptOpen} onClose={() => setPromptOpen(false)} />
+      <RandomPromptModal
+        open={promptOpen}
+        onClose={() => setPromptOpen(false)}
+        onOpenShare={() => setShareOpen(true)}
+      />
       <StressReliefModal open={reliefOpen} onClose={() => setReliefOpen(false)} />
       <FeedbackModal
         open={feedbackOpen}

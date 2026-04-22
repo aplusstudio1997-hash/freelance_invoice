@@ -4,6 +4,7 @@ import {
   DEFAULT_EXTRAS,
   Profile,
   DEFAULT_PROFILE,
+  DEFAULT_PAYMENT,
 } from "./types";
 
 const STORAGE_KEY = "freelance-solo-draft";
@@ -78,7 +79,11 @@ export function loadProfile(): Profile {
   try {
     const raw = localStorage.getItem(PROFILE_KEY);
     if (!raw) return DEFAULT_PROFILE;
-    return { ...DEFAULT_PROFILE, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    const merged: Profile = { ...DEFAULT_PROFILE, ...parsed };
+    merged.payment = { ...DEFAULT_PAYMENT, ...(parsed.payment || {}) };
+    if (typeof merged.socialLink !== "string") merged.socialLink = "";
+    return merged;
   } catch {
     return DEFAULT_PROFILE;
   }

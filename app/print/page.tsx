@@ -5,6 +5,7 @@ import {
   QuoteSettings,
   DEFAULT_QUOTE,
   Profile,
+  DEFAULT_PROFILE,
   getCurrencySymbol,
 } from "@/lib/types";
 import { loadDraft, loadProfile } from "@/lib/storage";
@@ -12,18 +13,7 @@ import { calculate, fmt, fmtDate, buildMilestones } from "@/lib/calc";
 
 export default function PrintPage() {
   const [data, setData] = useState<QuoteSettings>(DEFAULT_QUOTE);
-  const [profile, setProfile] = useState<Profile>({
-    studioName: "FreelanceSolo",
-    tagline: "โปรแกรมช่วยคำนวณราคาและทำใบเสนอราคาออนไลน์อย่างง่าย",
-    ownerName: "FreelanceSolo",
-    phone: "",
-    email: "",
-    address: "",
-    taxId: "",
-    currency: "THB",
-    terms: "",
-    logo: "",
-  });
+  const [profile, setProfile] = useState<Profile>(DEFAULT_PROFILE);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -75,6 +65,10 @@ export default function PrintPage() {
     .map((l) => l.replace(/^[•\-\*]\s*/, "").trim())
     .filter(Boolean);
 
+  const pay = profile.payment;
+  const hasPayment =
+    pay.qrCode || pay.bankName || pay.accountName || pay.accountNumber;
+
   return (
     <>
       <div className="print-toolbar no-print">
@@ -123,6 +117,11 @@ export default function PrintPage() {
                   {profile.phone && <>โทร. {profile.phone}</>}
                   {profile.phone && profile.email && " · "}
                   {profile.email}
+                </p>
+              )}
+              {profile.socialLink && (
+                <p className="text-[11px] text-brand-600 mt-0.5">
+                  {profile.socialLink.replace(/^https?:\/\//, "")}
                 </p>
               )}
             </div>
@@ -318,6 +317,50 @@ export default function PrintPage() {
             {data.paymentCondition} (มัดจำ {termLabel[data.paymentTerm]})
           </div>
         </section>
+
+        {hasPayment && (
+          <section className="border border-gray-200 rounded-lg p-4 mb-6">
+            <div className="text-xs text-gray-500 uppercase tracking-wide mb-3">
+              ช่องทางการชำระเงิน
+            </div>
+            <div className="flex items-start gap-4">
+              {pay.qrCode && (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={pay.qrCode}
+                  alt="Payment QR"
+                  className="w-28 h-28 rounded border border-gray-200 object-contain bg-white shrink-0"
+                />
+              )}
+              <div className="flex-1 min-w-0 space-y-1 text-sm pt-1">
+                {pay.bankName && (
+                  <div>
+                    <span className="text-gray-500 text-xs">ธนาคาร: </span>
+                    <span className="font-medium text-gray-800">
+                      {pay.bankName}
+                    </span>
+                  </div>
+                )}
+                {pay.accountName && (
+                  <div>
+                    <span className="text-gray-500 text-xs">ชื่อบัญชี: </span>
+                    <span className="font-medium text-gray-800">
+                      {pay.accountName}
+                    </span>
+                  </div>
+                )}
+                {pay.accountNumber && (
+                  <div>
+                    <span className="text-gray-500 text-xs">เลขบัญชี: </span>
+                    <span className="font-bold text-brand-600 tracking-wider">
+                      {pay.accountNumber}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
 
         {data.startDate && data.endDate && milestones.length > 0 && (
           <section className="mb-6">

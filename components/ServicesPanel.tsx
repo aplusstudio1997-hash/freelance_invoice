@@ -9,6 +9,10 @@ import {
   Pencil,
   Gift,
   Settings2,
+  PackagePlus,
+  ShoppingBasket,
+  Sparkles,
+  Tag,
 } from "lucide-react";
 import { useState } from "react";
 import ServiceEditModal from "./ServiceEditModal";
@@ -134,7 +138,9 @@ export default function ServicesPanel({ data, update, currencySymbol }: Props) {
 
         <div className="flex-1 overflow-y-auto scrollbar-thin p-4 space-y-5 text-sm">
           <section>
-            <h3 className="font-medium text-gray-700 mb-2">เพิ่มใหม่</h3>
+            <h3 className="font-medium text-gray-700 mb-2 flex items-center gap-1.5">
+              <PackagePlus size={15} className="text-brand-500" /> เพิ่มใหม่
+            </h3>
             <div className="bg-orange-50/60 border border-orange-100 rounded-lg p-3 space-y-2">
               <input
                 placeholder="ชื่อบริการ"
@@ -180,7 +186,9 @@ export default function ServicesPanel({ data, update, currencySymbol }: Props) {
           </section>
 
           <section>
-            <h3 className="font-medium text-gray-700 mb-2">บริการของคุณ</h3>
+            <h3 className="font-medium text-gray-700 mb-2 flex items-center gap-1.5">
+              <ShoppingBasket size={15} className="text-blue-500" /> บริการของคุณ
+            </h3>
             {data.services.length === 0 ? (
               <p className="text-center text-gray-400 py-6 text-sm">
                 ยังไม่มีบริการ
@@ -262,7 +270,9 @@ export default function ServicesPanel({ data, update, currencySymbol }: Props) {
 
           <section className="pt-2 border-t border-gray-100">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="font-medium text-gray-700">เพิ่มเติม</h3>
+              <h3 className="font-medium text-gray-700 flex items-center gap-1.5">
+                <Sparkles size={15} className="text-purple-500" /> เพิ่มเติม
+              </h3>
               <button
                 onClick={openNewExtra}
                 className="text-xs text-brand-600 hover:text-brand-700 flex items-center gap-1"
@@ -303,13 +313,18 @@ export default function ServicesPanel({ data, update, currencySymbol }: Props) {
           </section>
 
           <section>
-            <label className="block font-medium text-gray-700 mb-2">ส่วนลด</label>
+            <label className="block font-medium text-gray-700 mb-2 flex items-center gap-1.5">
+              <Tag size={15} className="text-pink-500" /> ส่วนลด
+            </label>
             <div className="flex gap-2">
               <input
                 type="number"
                 inputMode="decimal"
-                value={data.discount}
-                onChange={(e) => update({ discount: Number(e.target.value) })}
+                placeholder="0"
+                value={data.discount === 0 ? "" : data.discount}
+                onChange={(e) =>
+                  update({ discount: e.target.value === "" ? 0 : Number(e.target.value) })
+                }
                 className="flex-1 border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
               />
               <select

@@ -2,7 +2,7 @@
 
 import { QuoteSettings, Profile } from "@/lib/types";
 import { CalcResult, fmt, fmtDate } from "@/lib/calc";
-import { Download, FileText } from "lucide-react";
+import { Download, FileText, Link2 } from "lucide-react";
 
 interface Props {
   data: QuoteSettings;
@@ -38,6 +38,10 @@ export default function QuotePreview({
     .split("\n")
     .map((l) => l.replace(/^[•\-\*]\s*/, "").trim())
     .filter(Boolean);
+
+  const pay = profile.payment;
+  const hasPayment =
+    pay.qrCode || pay.bankName || pay.accountName || pay.accountNumber;
 
   return (
     <aside className="w-full lg:w-96 bg-gray-50 flex flex-col h-full">
@@ -241,12 +245,64 @@ export default function QuotePreview({
             </div>
           </section>
 
+          {hasPayment && (
+            <section className="border border-gray-200 rounded-lg p-3">
+              <div className="text-[10px] text-gray-500 mb-2 font-medium uppercase tracking-wide">
+                ช่องทางการชำระเงิน
+              </div>
+              <div className="flex items-start gap-3">
+                {pay.qrCode && (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={pay.qrCode}
+                    alt="Payment QR"
+                    className="w-20 h-20 rounded border border-gray-200 object-contain bg-white shrink-0"
+                  />
+                )}
+                <div className="flex-1 min-w-0 space-y-0.5 text-[11px]">
+                  {pay.bankName && (
+                    <div>
+                      <span className="text-gray-500">ธนาคาร: </span>
+                      <span className="font-medium text-gray-800">
+                        {pay.bankName}
+                      </span>
+                    </div>
+                  )}
+                  {pay.accountName && (
+                    <div>
+                      <span className="text-gray-500">ชื่อบัญชี: </span>
+                      <span className="font-medium text-gray-800">
+                        {pay.accountName}
+                      </span>
+                    </div>
+                  )}
+                  {pay.accountNumber && (
+                    <div>
+                      <span className="text-gray-500">เลขบัญชี: </span>
+                      <span className="font-bold text-brand-600 tracking-wider">
+                        {pay.accountNumber}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </section>
+          )}
+
           <section className="flex items-end justify-between pt-6">
             <div className="min-w-0">
               <div className="text-[10px] text-gray-500">เตรียมโดย</div>
               <div className="font-semibold text-sm truncate">
                 {profile.ownerName || profile.studioName}
               </div>
+              {profile.socialLink && (
+                <div className="flex items-center gap-1 mt-0.5 text-[10px] text-brand-600 truncate">
+                  <Link2 size={10} />
+                  <span className="truncate">
+                    {profile.socialLink.replace(/^https?:\/\//, "")}
+                  </span>
+                </div>
+              )}
             </div>
             <div className="text-right shrink-0">
               <div className="border-b border-gray-400 w-24 sm:w-28 mb-1"></div>

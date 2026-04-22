@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageSquare, Send, X, Coffee } from "lucide-react";
+import { MessageSquare, Send, X, Coffee, Star } from "lucide-react";
 import { useState } from "react";
 
 interface Props {
@@ -16,6 +16,8 @@ export default function FeedbackModal({
 }: Props) {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [rating, setRating] = useState(0);
+  const [hover, setHover] = useState(0);
 
   if (!open) return null;
 
@@ -25,30 +27,43 @@ export default function FeedbackModal({
       alert("กรุณากรอกข้อเสนอแนะ");
       return;
     }
-    const subject = encodeURIComponent("FreelanceSolo — Feedback");
+    const subject = encodeURIComponent(
+      `FreelanceSolo — Feedback${rating > 0 ? ` (${rating}★)` : ""}`
+    );
     const bodyLines = [
+      rating > 0 ? `Rating: ${"★".repeat(rating)}${"☆".repeat(5 - rating)} (${rating}/5)` : "",
+      rating > 0 ? "" : null,
       trimmed,
       "",
       "---",
       email.trim() ? `From: ${email.trim()}` : "From: (ไม่ระบุอีเมล)",
       `Sent: ${new Date().toLocaleString("th-TH")}`,
-    ];
+    ].filter((l) => l !== null);
     const body = encodeURIComponent(bodyLines.join("\n"));
     window.location.href = `mailto:wongchapat.james@gmail.com?subject=${subject}&body=${body}`;
     setTimeout(() => {
       setMessage("");
       setEmail("");
+      setRating(0);
       onClose();
     }, 500);
   };
 
+  const ratingLabel: Record<number, string> = {
+    1: "แย่มาก",
+    2: "ไม่ค่อยดี",
+    3: "พอใช้",
+    4: "ดี",
+    5: "ยอดเยี่ยม!",
+  };
+
   return (
     <div
-      className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/40 z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl max-w-md w-full p-6 animate-fadeIn shadow-xl"
+        className="bg-white rounded-xl max-w-md w-full p-6 animate-fadeIn shadow-xl my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
@@ -66,6 +81,43 @@ export default function FeedbackModal({
         </div>
 
         <div className="space-y-3">
+          <div className="bg-orange-50/60 border border-orange-100 rounded-lg p-3 text-center">
+            <div className="text-xs text-gray-600 mb-2">
+              ให้คะแนน FreelanceSolo
+            </div>
+            <div className="flex items-center justify-center gap-1 mb-1">
+              {[1, 2, 3, 4, 5].map((n) => {
+                const filled = (hover || rating) >= n;
+                return (
+                  <button
+                    key={n}
+                    onMouseEnter={() => setHover(n)}
+                    onMouseLeave={() => setHover(0)}
+                    onClick={() => setRating(n)}
+                    className="p-1 transition hover:scale-110"
+                    aria-label={`${n} ดาว`}
+                  >
+                    <Star
+                      size={30}
+                      className={
+                        filled
+                          ? "fill-yellow-400 text-yellow-400"
+                          : "text-gray-300"
+                      }
+                    />
+                  </button>
+                );
+              })}
+            </div>
+            <div className="text-xs text-brand-600 font-medium h-4">
+              {hover
+                ? ratingLabel[hover]
+                : rating
+                ? ratingLabel[rating]
+                : "\u00a0"}
+            </div>
+          </div>
+
           <div>
             <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
               EMAIL (ไม่จำเป็น)
@@ -85,7 +137,7 @@ export default function FeedbackModal({
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              rows={5}
+              rows={4}
               placeholder="อยากเห็นฟีเจอร์อะไรเพิ่ม? พบบั๊กมั้ย? อยากชม?"
               className="w-full border border-brand-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200 resize-none"
             />
