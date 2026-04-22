@@ -145,21 +145,22 @@ export default function QuotePreview({
                     const lineTotal = s.free ? 0 : s.price * qty;
                     return (
                       <tr key={s.id} className="border-b border-gray-100">
-                        <td className="py-1.5 pr-2">
-                          <div className="break-words">
-                            {s.name}
-                            {s.free && (
-                              <span className="ml-1.5 text-[9px] bg-green-100 text-green-700 px-1 py-0.5 rounded whitespace-nowrap">
+                        <td className="py-1.5 pr-2 align-top">
+                          <div className="flex items-baseline gap-1.5 flex-wrap">
+                            <span className="break-words">{s.name}</span>
+                            {s.free ? (
+                              <span className="text-[9px] bg-green-100 text-green-700 px-1 py-0.5 rounded whitespace-nowrap">
                                 ฟรี
                               </span>
+                            ) : (
+                              qty > 1 && (
+                                <span className="text-[10px] text-gray-400 whitespace-nowrap">
+                                  @ {currencySymbol}
+                                  {fmt(s.price)} × {qty}
+                                </span>
+                              )
                             )}
                           </div>
-                          {!s.free && qty > 1 && (
-                            <div className="text-[9px] text-gray-400 mt-0.5">
-                              @ {currencySymbol}
-                              {fmt(s.price)} × {qty}
-                            </div>
-                          )}
                         </td>
                         <td className="py-1.5 text-right tabular-nums whitespace-nowrap align-top">
                           {s.free ? "—" : `${currencySymbol}${fmt(lineTotal)}`}

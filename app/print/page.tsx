@@ -214,23 +214,24 @@ export default function PrintPage() {
                   const lineTotal = s.free ? 0 : s.price * qty;
                   return (
                     <tr key={s.id} className="border-b border-gray-100">
-                      <td className="py-2.5 align-top">
-                        <div>
-                          {s.name}
-                          {s.free && (
-                            <span className="ml-2 text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded">
+                      <td className="py-1.5 align-top">
+                        <div className="flex items-baseline gap-2 flex-wrap">
+                          <span className="font-medium">{s.name}</span>
+                          {s.free ? (
+                            <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded">
                               แถมฟรี
                             </span>
+                          ) : (
+                            qty > 1 && (
+                              <span className="text-[11px] text-gray-400 whitespace-nowrap">
+                                @ {currencySymbol}
+                                {fmt(s.price)} × {qty}
+                              </span>
+                            )
                           )}
                         </div>
-                        {!s.free && qty > 1 && (
-                          <div className="text-[10px] text-gray-400 mt-0.5">
-                            @ {currencySymbol}
-                            {fmt(s.price)} × {qty}
-                          </div>
-                        )}
                       </td>
-                      <td className="py-2.5 text-right tabular-nums align-top">
+                      <td className="py-1.5 text-right tabular-nums align-top whitespace-nowrap">
                         {s.free ? "—" : fmt(lineTotal)}
                       </td>
                     </tr>
@@ -243,8 +244,8 @@ export default function PrintPage() {
                   key={`diff-${i}`}
                   className="border-b border-gray-100 text-gray-600"
                 >
-                  <td className="py-2 text-sm">{x.label}</td>
-                  <td className="py-2 text-right tabular-nums">
+                  <td className="py-1.5 text-sm">{x.label}</td>
+                  <td className="py-1.5 text-right tabular-nums">
                     {fmt(x.amount)}
                   </td>
                 </tr>
@@ -254,26 +255,26 @@ export default function PrintPage() {
                   key={`ex-${i}`}
                   className="border-b border-gray-100 text-gray-600"
                 >
-                  <td className="py-2 text-sm">{x.label}</td>
-                  <td className="py-2 text-right tabular-nums">
+                  <td className="py-1.5 text-sm">{x.label}</td>
+                  <td className="py-1.5 text-right tabular-nums">
                     {fmt(x.amount)}
                   </td>
                 </tr>
               ))}
               {calc.hiddenCostNum > 0 && (
                 <tr className="border-b border-gray-100 text-gray-600">
-                  <td className="py-2 text-sm">ต้นทุนแฝงอื่นๆ</td>
-                  <td className="py-2 text-right tabular-nums">
+                  <td className="py-1.5 text-sm">ต้นทุนแฝงอื่นๆ</td>
+                  <td className="py-1.5 text-right tabular-nums">
                     {fmt(calc.hiddenCostNum)}
                   </td>
                 </tr>
               )}
               {calc.revisionFeeTotal > 0 && revisionLabel && (
                 <tr className="border-b border-gray-100 text-gray-600">
-                  <td className="py-2 text-sm">
+                  <td className="py-1.5 text-sm">
                     ค่าแก้ไขเพิ่ม ({revisionLabel})
                   </td>
-                  <td className="py-2 text-right tabular-nums">
+                  <td className="py-1.5 text-right tabular-nums">
                     {fmt(calc.revisionFeeTotal)}
                   </td>
                 </tr>
@@ -383,7 +384,7 @@ export default function PrintPage() {
         )}
 
         {data.startDate && data.endDate && milestones.length > 0 && (
-          <section className="mb-6">
+          <section className="mb-6 milestones-page">
             <div className="text-xs text-gray-500 uppercase tracking-wide mb-3">
               ลำดับงานและกำหนดส่ง
             </div>
@@ -474,6 +475,29 @@ export default function PrintPage() {
           box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
           color: #1f2937;
         }
+        .milestones-page {
+          page-break-before: always;
+          break-before: page;
+        }
+        @media screen {
+          .milestones-page {
+            margin-top: 30mm;
+            padding-top: 20mm;
+            border-top: 2px dashed #e5e7eb;
+            position: relative;
+          }
+          .milestones-page::before {
+            content: "— หน้า 2 —";
+            position: absolute;
+            top: 6mm;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: #9ca3af;
+            background: white;
+            padding: 0 8px;
+          }
+        }
         @media print {
           body {
             background: white;
@@ -487,6 +511,11 @@ export default function PrintPage() {
             box-shadow: none;
             width: 100%;
             min-height: auto;
+          }
+          .milestones-page {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+            border-top: 0 !important;
           }
           @page {
             size: A4;
