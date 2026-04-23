@@ -1,6 +1,6 @@
 "use client";
 
-import { QuoteSettings, ExtraOption } from "@/lib/types";
+import { QuoteSettings, ExtraOption, generateQuoteNumber } from "@/lib/types";
 import {
   ChevronDown,
   ChevronRight,
@@ -8,16 +8,15 @@ import {
   User,
   AlertTriangle,
   Coins,
-  RefreshCw,
   CreditCard,
   Plus,
   Settings2,
   Sliders,
-  SlidersHorizontal,
+  Hash,
+  Wand2,
 } from "lucide-react";
 import { useState } from "react";
 import ExtraEditModal from "./ExtraEditModal";
-import BillableRevisionModal from "./BillableRevisionModal";
 
 interface Props {
   data: QuoteSettings;
@@ -34,7 +33,6 @@ export default function SettingsPanel({
   const [customerOpen, setCustomerOpen] = useState(true);
   const [difficultyOpen, setDifficultyOpen] = useState(true);
   const [editingDifficulty, setEditingDifficulty] = useState<ExtraOption | null>(null);
-  const [billableOpen, setBillableOpen] = useState(false);
 
   const toggleDifficulty = (id: string) => {
     update({
@@ -121,6 +119,28 @@ export default function SettingsPanel({
               value={data.projectName}
               onChange={(v) => update({ projectName: v })}
             />
+          </section>
+
+          <section>
+            <SectionHeader
+              icon={<Hash size={15} className="text-cyan-500" />}
+              label="เลขที่ใบเสนอราคา"
+            />
+            <div className="flex gap-2">
+              <input
+                placeholder="QT-2025-001"
+                value={data.quoteNumber}
+                onChange={(e) => update({ quoteNumber: e.target.value })}
+                className="flex-1 border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200"
+              />
+              <button
+                onClick={() => update({ quoteNumber: generateQuoteNumber() })}
+                className="px-3 py-2.5 border border-brand-200 text-brand-600 rounded-md hover:bg-brand-50 transition flex items-center gap-1 text-xs whitespace-nowrap"
+                title="สร้างเลขที่อัตโนมัติ"
+              >
+                <Wand2 size={13} /> Auto
+              </button>
+            </div>
           </section>
 
           <section>
@@ -253,61 +273,6 @@ export default function SettingsPanel({
           </section>
 
           <section>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5">
-                <RefreshCw size={15} className="text-purple-500" />
-                <label className="font-medium text-gray-700">รอบการแก้ไข</label>
-              </div>
-              <span className="text-brand-500 font-semibold">
-                {data.revisions}
-              </span>
-            </div>
-            <input
-              type="range"
-              min={1}
-              max={10}
-              value={data.revisions}
-              onChange={(e) => update({ revisions: Number(e.target.value) })}
-              className="w-full accent-brand-500"
-            />
-            <div className="flex gap-2 mt-2">
-              <input
-                type="number"
-                inputMode="numeric"
-                value={data.revisionFee}
-                onChange={(e) =>
-                  update({ revisionFee: Number(e.target.value) })
-                }
-                className="flex-1 border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200"
-              />
-              <select
-                value={data.revisionFeeUnit}
-                onChange={(e) =>
-                  update({
-                    revisionFeeUnit: e.target.value as "baht" | "percent",
-                  })
-                }
-                className="border border-gray-200 rounded-md px-2 py-2.5 bg-white"
-              >
-                <option value="baht">{currencySymbol}</option>
-                <option value="percent">%</option>
-              </select>
-            </div>
-            <div className="flex items-center justify-between mt-1">
-              <p className="text-xs text-gray-400">
-                รอบที่ {data.billableFromRevision}+ เป็นต้นไป
-              </p>
-              <button
-                onClick={() => setBillableOpen(true)}
-                className="text-xs text-brand-600 hover:text-brand-700 flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-brand-50"
-                title="ตั้งค่ารอบคิดเงิน"
-              >
-                <SlidersHorizontal size={12} /> ตั้งค่า
-              </button>
-            </div>
-          </section>
-
-          <section>
             <SectionHeader
               icon={<CreditCard size={15} className="text-emerald-500" />}
               label="เงื่อนไขการชำระ"
@@ -357,12 +322,6 @@ export default function SettingsPanel({
         onClose={() => setEditingDifficulty(null)}
         onSave={saveDifficulty}
         onDelete={deleteDifficulty}
-      />
-      <BillableRevisionModal
-        open={billableOpen}
-        current={data.billableFromRevision}
-        onClose={() => setBillableOpen(false)}
-        onSave={(n) => update({ billableFromRevision: n })}
       />
     </>
   );

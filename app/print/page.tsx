@@ -56,7 +56,6 @@ export default function PrintPage() {
   const milestones = buildMilestones(
     data.startDate,
     data.endDate,
-    data.revisions,
     data.milestones
   );
 
@@ -69,10 +68,13 @@ export default function PrintPage() {
   const hasPayment =
     pay.qrCode || pay.bankName || pay.accountName || pay.accountNumber;
 
-  const revisionLabel =
-    data.revisions >= data.billableFromRevision
-      ? `${data.revisions - (data.billableFromRevision - 1)} รอบ`
-      : "";
+  const Watermark = () => (
+    <div className="page-watermark">
+      <span>Free to Create, Easy to Manage by</span>
+      <div className="watermark-logo">FS</div>
+      <span className="font-semibold">FreelanceSolo</span>
+    </div>
+  );
 
   return (
     <>
@@ -101,7 +103,7 @@ export default function PrintPage() {
         </div>
       </div>
 
-      <div className="print-page">
+      <div className="print-page page-1">
         <header className="flex items-start justify-between pb-4 border-b-[3px] border-brand-500">
           <div className="flex items-start gap-3 flex-1 pr-4">
             {profile.logo && (
@@ -135,7 +137,24 @@ export default function PrintPage() {
             <div className="inline-block bg-brand-500 text-white px-4 py-1.5 rounded font-semibold text-sm mb-2">
               ใบเสนอราคา
             </div>
-            <div className="text-xs text-gray-500">{today}</div>
+            <div className="text-xs text-gray-700 space-y-0.5">
+              {data.quoteNumber && (
+                <div>
+                  <span className="text-gray-400">เลขที่: </span>
+                  <span className="font-medium">{data.quoteNumber}</span>
+                </div>
+              )}
+              <div>
+                <span className="text-gray-400">วันที่: </span>
+                <span className="font-medium">{today}</span>
+              </div>
+              {profile.ownerName && (
+                <div>
+                  <span className="text-gray-400">ชื่อ: </span>
+                  <span className="font-medium">{profile.ownerName}</span>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
@@ -230,6 +249,11 @@ export default function PrintPage() {
                             )
                           )}
                         </div>
+                        {s.description && (
+                          <div className="text-[11px] text-gray-500 italic mt-0.5">
+                            {s.description}
+                          </div>
+                        )}
                       </td>
                       <td className="py-1.5 text-right tabular-nums align-top whitespace-nowrap">
                         {s.free ? "—" : fmt(lineTotal)}
@@ -266,16 +290,6 @@ export default function PrintPage() {
                   <td className="py-1.5 text-sm">ต้นทุนแฝงอื่นๆ</td>
                   <td className="py-1.5 text-right tabular-nums">
                     {fmt(calc.hiddenCostNum)}
-                  </td>
-                </tr>
-              )}
-              {calc.revisionFeeTotal > 0 && revisionLabel && (
-                <tr className="border-b border-gray-100 text-gray-600">
-                  <td className="py-1.5 text-sm">
-                    ค่าแก้ไขเพิ่ม ({revisionLabel})
-                  </td>
-                  <td className="py-1.5 text-right tabular-nums">
-                    {fmt(calc.revisionFeeTotal)}
                   </td>
                 </tr>
               )}
@@ -415,8 +429,12 @@ export default function PrintPage() {
           </section>
         )}
 
-        {data.startDate && data.endDate && milestones.length > 0 && (
-          <section className="milestones-page">
+        <Watermark />
+      </div>
+
+      {data.startDate && data.endDate && milestones.length > 0 && (
+        <div className="print-page milestones-page">
+          <section>
             <div className="text-xs text-gray-500 uppercase tracking-wide mb-3">
               ลำดับงานและกำหนดส่ง
             </div>
@@ -452,8 +470,10 @@ export default function PrintPage() {
               })}
             </div>
           </section>
-        )}
-      </div>
+
+          <Watermark />
+        </div>
+      )}
 
       <style jsx global>{`
         body {
@@ -469,34 +489,34 @@ export default function PrintPage() {
         .print-page {
           width: 210mm;
           min-height: 297mm;
-          padding: 20mm;
+          padding: 15mm 15mm 22mm 15mm;
           margin: 20px auto;
           background: white;
           box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
           color: #1f2937;
+          position: relative;
         }
-        .milestones-page {
-          page-break-before: always;
-          break-before: page;
+        .page-watermark {
+          position: absolute;
+          right: 15mm;
+          bottom: 8mm;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 9px;
+          color: #6b7280;
         }
-        @media screen {
-          .milestones-page {
-            margin-top: 30mm;
-            padding-top: 20mm;
-            border-top: 2px dashed #e5e7eb;
-            position: relative;
-          }
-          .milestones-page::before {
-            content: "— หน้า 2 —";
-            position: absolute;
-            top: 6mm;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 10px;
-            color: #9ca3af;
-            background: white;
-            padding: 0 8px;
-          }
+        .watermark-logo {
+          width: 16px;
+          height: 16px;
+          border-radius: 3px;
+          background: #f97316;
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          font-size: 8px;
         }
         @media print {
           body {
@@ -507,18 +527,14 @@ export default function PrintPage() {
           }
           .print-page {
             margin: 0;
-            padding: 15mm;
+            padding: 15mm 15mm 22mm 15mm;
             box-shadow: none;
             width: 100%;
             min-height: auto;
           }
           .milestones-page {
-            margin-top: 0 !important;
-            padding-top: 15mm !important;
-            border-top: 0 !important;
-          }
-          .milestones-page::before {
-            display: none !important;
+            page-break-before: always;
+            break-before: page;
           }
           @page {
             size: A4;
@@ -542,9 +558,7 @@ function SummaryLine({
   return (
     <div className="flex justify-between py-1.5 border-b border-gray-200 text-gray-700">
       <span>{label}</span>
-      <span
-        className={`tabular-nums ${discount ? "text-green-600" : ""}`}
-      >
+      <span className={`tabular-nums ${discount ? "text-green-600" : ""}`}>
         {value}
       </span>
     </div>

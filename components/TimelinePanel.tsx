@@ -28,14 +28,8 @@ export default function TimelinePanel({
   const [collapsed, setCollapsed] = useState(false);
 
   const computedMilestones = useMemo(
-    () =>
-      buildMilestones(
-        data.startDate,
-        data.endDate,
-        data.revisions,
-        data.milestones
-      ),
-    [data.startDate, data.endDate, data.revisions, data.milestones]
+    () => buildMilestones(data.startDate, data.endDate, data.milestones),
+    [data.startDate, data.endDate, data.milestones]
   );
 
   useEffect(() => {
@@ -168,11 +162,6 @@ export default function TimelinePanel({
                           {m.type === "draft" && (
                             <div className="text-xs text-gray-500 mt-0.5">
                               การสำรวจหลักการ
-                            </div>
-                          )}
-                          {m.type === "revision" && (
-                            <div className="text-xs text-gray-500 mt-0.5">
-                              รวมแล้ว
                             </div>
                           )}
                         </div>

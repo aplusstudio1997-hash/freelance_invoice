@@ -10,6 +10,7 @@ export interface Customer {
 export interface Service {
   id: string;
   name: string;
+  description: string;
   price: number;
   quantity: number;
   free: boolean;
@@ -27,7 +28,7 @@ export interface Milestone {
   id: string;
   label: string;
   date: string;
-  type: "deposit" | "draft" | "revision" | "final";
+  type: "deposit" | "draft" | "final";
 }
 
 export interface PaymentInfo {
@@ -55,12 +56,9 @@ export interface Profile {
 export interface QuoteSettings {
   customer: Customer;
   projectName: string;
+  quoteNumber: string;
   difficulties: ExtraOption[];
   hiddenCost: string;
-  revisions: number;
-  billableFromRevision: number;
-  revisionFee: number;
-  revisionFeeUnit: "baht" | "percent";
   vat7: boolean;
   tax3Percent: boolean;
   services: Service[];
@@ -166,12 +164,9 @@ export const DEFAULT_QUOTE: QuoteSettings = {
     taxId: "",
   },
   projectName: "",
+  quoteNumber: "",
   difficulties: DEFAULT_DIFFICULTIES,
   hiddenCost: "",
-  revisions: 3,
-  billableFromRevision: 4,
-  revisionFee: 500,
-  revisionFeeUnit: "baht",
   vat7: false,
   tax3Percent: false,
   services: [],
@@ -185,3 +180,11 @@ export const DEFAULT_QUOTE: QuoteSettings = {
   paymentCondition: "ชำระมัดจำก่อนเริ่มงาน",
   preparedBy: "FreelanceSolo",
 };
+
+export function generateQuoteNumber(): string {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const random = Math.floor(Math.random() * 900 + 100);
+  return `QT-${yyyy}${mm}-${random}`;
+}

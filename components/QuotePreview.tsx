@@ -43,11 +43,6 @@ export default function QuotePreview({
   const hasPayment =
     pay.qrCode || pay.bankName || pay.accountName || pay.accountNumber;
 
-  const revisionLabel =
-    data.revisions >= data.billableFromRevision
-      ? `${data.revisions - (data.billableFromRevision - 1)} รอบ`
-      : "";
-
   return (
     <aside className="w-full lg:w-96 bg-gray-50 flex flex-col h-full">
       <div className="hidden lg:flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white no-print">
@@ -83,7 +78,24 @@ export default function QuotePreview({
                 <div className="inline-block bg-brand-500 text-white px-2 py-1 rounded text-[10px] font-semibold whitespace-nowrap">
                   ใบเสนอราคา
                 </div>
-                <div className="text-[10px] text-gray-500 mt-1">{today}</div>
+                <div className="text-[10px] text-gray-700 mt-1.5 space-y-0.5">
+                  {data.quoteNumber && (
+                    <div>
+                      <span className="text-gray-400">เลขที่: </span>
+                      <span className="font-medium">{data.quoteNumber}</span>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-gray-400">วันที่: </span>
+                    <span className="font-medium">{today}</span>
+                  </div>
+                  {profile.ownerName && (
+                    <div>
+                      <span className="text-gray-400">ชื่อ: </span>
+                      <span className="font-medium">{profile.ownerName}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </header>
@@ -161,6 +173,11 @@ export default function QuotePreview({
                               )
                             )}
                           </div>
+                          {s.description && (
+                            <div className="text-[10px] text-gray-500 italic mt-0.5">
+                              {s.description}
+                            </div>
+                          )}
                         </td>
                         <td className="py-1.5 text-right tabular-nums whitespace-nowrap align-top">
                           {s.free ? "—" : `${currencySymbol}${fmt(lineTotal)}`}
@@ -200,17 +217,6 @@ export default function QuotePreview({
                     <td className="py-1.5 text-right tabular-nums">
                       {currencySymbol}
                       {fmt(calc.hiddenCostNum)}
-                    </td>
-                  </tr>
-                )}
-                {calc.revisionFeeTotal > 0 && revisionLabel && (
-                  <tr className="border-b border-gray-100 text-gray-600">
-                    <td className="py-1.5">
-                      ค่าแก้ไขเพิ่ม ({revisionLabel})
-                    </td>
-                    <td className="py-1.5 text-right tabular-nums">
-                      {currencySymbol}
-                      {fmt(calc.revisionFeeTotal)}
                     </td>
                   </tr>
                 )}
@@ -266,7 +272,7 @@ export default function QuotePreview({
             />
           </section>
 
-          <section className="bg-orange-50 border-l-4 border-brand-500 p-3 rounded">
+          <section className="bg-orange-50 border-l-4 border-brand-500 px-3 py-2 rounded">
             <div className="text-[10px] text-gray-500 mb-0.5">เงื่อนไขการชำระ</div>
             <div className="text-[11px] font-medium">
               {data.paymentCondition} (มัดจำ {termLabel[data.paymentTerm]})
@@ -350,6 +356,14 @@ export default function QuotePreview({
               </ul>
             </section>
           )}
+
+          <div className="flex items-center justify-end gap-1.5 pt-3 border-t border-gray-100 text-[9px] text-gray-500">
+            <span>Free to Create, Easy to Manage by</span>
+            <div className="w-4 h-4 rounded bg-brand-500 text-white flex items-center justify-center font-bold text-[8px]">
+              FS
+            </div>
+            <span className="font-semibold text-gray-700">FreelanceSolo</span>
+          </div>
         </div>
       </div>
 

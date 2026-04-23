@@ -36,6 +36,7 @@ export default function ServicesPanel({
 }: Props) {
   const [collapsed, setCollapsed] = useState(false);
   const [newName, setNewName] = useState("");
+  const [newDescription, setNewDescription] = useState("");
   const [newPrice, setNewPrice] = useState("");
   const [newQuantity, setNewQuantity] = useState("1");
 
@@ -48,12 +49,14 @@ export default function ServicesPanel({
     const service: Service = {
       id: `s_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
       name,
+      description: newDescription.trim(),
       price: Number(newPrice) || 0,
       quantity: Math.max(1, Number(newQuantity) || 1),
       free: false,
     };
     update({ services: [...data.services, service] });
     setNewName("");
+    setNewDescription("");
     setNewPrice("");
     setNewQuantity("1");
   };
@@ -160,6 +163,12 @@ export default function ServicesPanel({
                 onChange={(e) => setNewName(e.target.value)}
                 className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
               />
+              <input
+                placeholder="รายละเอียดงาน (ไม่บังคับ)"
+                value={newDescription}
+                onChange={(e) => setNewDescription(e.target.value)}
+                className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200 text-xs"
+              />
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-[10px] text-gray-500 block mb-1">
@@ -227,6 +236,11 @@ export default function ServicesPanel({
                               </span>
                             )}
                           </div>
+                          {s.description && (
+                            <div className="text-[11px] text-gray-500 italic mt-0.5 line-clamp-2">
+                              {s.description}
+                            </div>
+                          )}
                           <div className="text-xs text-gray-500 mt-0.5">
                             {s.free ? (
                               "—"

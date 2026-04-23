@@ -16,6 +16,7 @@ import {
   saveProfile,
 } from "@/lib/storage";
 import { calculate, fmt } from "@/lib/calc";
+import { sendQuote } from "@/lib/api";
 import SettingsPanel from "@/components/SettingsPanel";
 import ServicesPanel from "@/components/ServicesPanel";
 import TimelinePanel from "@/components/TimelinePanel";
@@ -100,10 +101,15 @@ export default function Home() {
     }
   };
 
-  const downloadPDF = () => {
+  const downloadPDF = async () => {
     setDownloading(true);
     saveDraft(data);
     saveProfile(profile);
+    try {
+      await sendQuote(data, calc, profile);
+    } catch (e) {
+      console.error("sendQuote failed", e);
+    }
     setTimeout(() => {
       window.open("/print", "_blank");
       setDownloading(false);
@@ -243,7 +249,7 @@ export default function Home() {
               />
               <MenuItem
                 icon={<Dice5 size={18} />}
-                label="สุ่มโจทย์ฝึกคิดราคา"
+                label="สุ่มโจทย์ออกแบบ"
                 onClick={() => {
                   setPromptOpen(true);
                   setMenuOpen(false);
@@ -389,6 +395,18 @@ export default function Home() {
         onClose={() => setProfileOpen(false)}
         onSave={updateProfile}
       />
+
+      {downloading && (
+        <div className="fixed inset-0 bg-black/40 z-[100] flex items-center justify-center backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-xl px-8 py-6 shadow-2xl flex flex-col items-center gap-3">
+            <div className="w-12 h-12 border-4 border-brand-100 border-t-brand-500 rounded-full animate-spin" />
+            <div className="text-sm text-gray-700 font-medium">
+              กำลังเตรียมเอกสาร...
+            </div>
+            <div className="text-xs text-gray-400">บันทึกข้อมูลและสร้าง PDF</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

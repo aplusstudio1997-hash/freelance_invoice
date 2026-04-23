@@ -49,8 +49,15 @@ export function loadDraft(): QuoteSettings {
     if (!Array.isArray(merged.extras) || merged.extras.length === 0) {
       merged.extras = DEFAULT_EXTRAS;
     }
-    if (!Array.isArray((merged as QuoteSettings & { difficulties?: ExtraOption[] }).difficulties)) {
-      const legacy = d as { difficultCommunication?: boolean; frequentChanges?: boolean };
+    if (
+      !Array.isArray(
+        (merged as QuoteSettings & { difficulties?: ExtraOption[] }).difficulties
+      )
+    ) {
+      const legacy = d as {
+        difficultCommunication?: boolean;
+        frequentChanges?: boolean;
+      };
       merged.difficulties = DEFAULT_DIFFICULTIES.map((x) => {
         if (x.id === "difficult_communication")
           return { ...x, enabled: !!legacy.difficultCommunication };
@@ -59,16 +66,13 @@ export function loadDraft(): QuoteSettings {
         return x;
       });
     }
-    if (!Array.isArray(merged.milestones)) {
-      merged.milestones = [];
-    }
-    if (typeof merged.billableFromRevision !== "number" || merged.billableFromRevision < 1) {
-      merged.billableFromRevision = 4;
-    }
+    if (!Array.isArray(merged.milestones)) merged.milestones = [];
     if (typeof merged.vat7 !== "boolean") merged.vat7 = false;
     if (typeof merged.tax3Percent !== "boolean") merged.tax3Percent = false;
+    if (typeof merged.quoteNumber !== "string") merged.quoteNumber = "";
     merged.services = (merged.services || []).map((s) => ({
       ...s,
+      description: typeof s.description === "string" ? s.description : "",
       quantity: s.quantity && s.quantity > 0 ? s.quantity : 1,
     }));
     return merged;

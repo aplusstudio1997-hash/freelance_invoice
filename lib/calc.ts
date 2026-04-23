@@ -6,7 +6,6 @@ export interface CalcResult {
   difficultyBreakdown: { label: string; amount: number }[];
   extrasFee: number;
   extrasBreakdown: { label: string; amount: number }[];
-  revisionFeeTotal: number;
   hiddenCostNum: number;
   preDiscount: number;
   discountValue: number;
@@ -69,17 +68,8 @@ export function calculate(q: QuoteSettings): CalcResult {
 
   const hiddenCostNum = Number(q.hiddenCost) || 0;
 
-  const beforeRevision =
+  const preDiscount =
     servicesSubtotal + difficultyFee + extrasFee + hiddenCostNum;
-
-  const billableFrom = Math.max(1, q.billableFromRevision || 4);
-  const extraRevisions = Math.max(0, q.revisions - (billableFrom - 1));
-  const revisionFeeTotal =
-    q.revisionFeeUnit === "baht"
-      ? extraRevisions * (Number(q.revisionFee) || 0)
-      : extraRevisions * beforeRevision * ((Number(q.revisionFee) || 0) / 100);
-
-  const preDiscount = beforeRevision + revisionFeeTotal;
 
   const discountValue =
     q.discountUnit === "baht"
@@ -113,7 +103,6 @@ export function calculate(q: QuoteSettings): CalcResult {
     difficultyBreakdown,
     extrasFee,
     extrasBreakdown,
-    revisionFeeTotal,
     hiddenCostNum,
     preDiscount,
     discountValue,
@@ -158,70 +147,50 @@ export function fmtDateShort(iso: string): string {
 export function buildMilestones(
   startDate: string,
   endDate: string,
-  revisions: number,
   existing: { id: string; label: string; date: string; type: string }[]
 ): {
   id: string;
   label: string;
   date: string;
-  type: "deposit" | "draft" | "revision" | "final";
+  type: "deposit" | "draft" | "final";
 }[] {
   const findExisting = (id: string) => existing.find((m) => m.id === id);
-  const revCount = Math.max(0, revisions);
-  const totalPoints = 2 + 1 + revCount;
 
-  const getAutoDate = (idx: number): string => {
+  const getAutoDate = (idx: number, total: number): string => {
     if (!startDate || !endDate) return "";
     const s = new Date(startDate);
     const e = new Date(endDate);
     if (isNaN(s.getTime()) || isNaN(e.getTime()) || e < s) return "";
-    if (totalPoints <= 1) return startDate;
-    const ratio = idx / (totalPoints - 1);
+    if (total <= 1) return startDate;
+    const ratio = idx / (total - 1);
     const t = s.getTime() + (e.getTime() - s.getTime()) * ratio;
     return new Date(t).toISOString().slice(0, 10);
   };
 
-  const list: {
-    id: string;
-    label: string;
-    date: string;
-    type: "deposit" | "draft" | "revision" | "final";
-  }[] = [];
+  const total = 3;
 
   const deposit = findExisting("deposit");
-  list.push({
-    id: "deposit",
-    label: "มัดจำ / เริ่มงาน",
-    date: deposit?.date || startDate || getAutoDate(0),
-    type: "deposit",
-  });
-
   const draft = findExisting("draft");
-  list.push({
-    id: "draft",
-    label: "ส่งร่างเบื้องต้น",
-    date: draft?.date || getAutoDate(1),
-    type: "draft",
-  });
-
-  for (let i = 1; i <= revCount; i++) {
-    const id = `revision_${i}`;
-    const found = findExisting(id);
-    list.push({
-      id,
-      label: `แก้ไขรอบที่ ${i}`,
-      date: found?.date || getAutoDate(1 + i),
-      type: "revision",
-    });
-  }
-
   const final = findExisting("final");
-  list.push({
-    id: "final",
-    label: "ส่งมอบสุดท้าย",
-    date: final?.date || endDate || getAutoDate(totalPoints - 1),
-    type: "final",
-  });
 
-  return list;
+  return [
+    {
+      id: "deposit",
+      label: "มัดจำ / เริ่มงาน",
+      date: deposit?.date || startDate || getAutoDate(0, total),
+      type: "deposit",
+    },
+    {
+      id: "draft",
+      label: "ส่งร่างเบื้องต้น",
+      date: draft?.date || getAutoDate(1, total),
+      type: "draft",
+    },
+    {
+      id: "final",
+      label: "ส่งมอบสุดท้าย",
+      date: final?.date || endDate || getAutoDate(total - 1, total),
+      type: "final",
+    },
+  ];
 }
