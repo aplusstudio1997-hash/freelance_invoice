@@ -182,12 +182,14 @@ export default function SettingsPanel({
                     update({ customer: { ...data.customer, email: v } })
                   }
                 />
-                <Input
+                <textarea
                   placeholder="ที่อยู่"
                   value={data.customer.address}
-                  onChange={(v) =>
-                    update({ customer: { ...data.customer, address: v } })
+                  onChange={(e) =>
+                    update({ customer: { ...data.customer, address: e.target.value } })
                   }
+                  rows={3}
+                  className="w-full border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-300 resize-none"
                 />
                 <Input
                   placeholder="เลขประชาชน/นิติบุคคล"

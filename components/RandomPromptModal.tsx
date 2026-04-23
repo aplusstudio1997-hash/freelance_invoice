@@ -124,12 +124,10 @@ export default function RandomPromptModal({
   return (
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto"
-      onClick={onClose}
     >
       <div
         className="bg-white rounded-xl max-w-lg w-full p-5 sm:p-6 animate-fadeIn shadow-xl my-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
+              >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2 text-brand-600">
             <Lightbulb size={20} className="fill-yellow-300 text-yellow-500" />

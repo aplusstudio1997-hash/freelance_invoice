@@ -51,12 +51,10 @@ export default function ServiceEditModal({
   return (
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
-      onClick={onClose}
     >
       <div
         className="bg-white rounded-xl max-w-md w-full p-6 animate-fadeIn shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
+              >
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-lg text-gray-800">แก้ไขบริการ</h3>
           <button

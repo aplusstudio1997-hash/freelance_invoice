@@ -119,18 +119,6 @@ export default function PrintPage() {
                 {profile.studioName || "FreelanceSolo"}
               </h1>
               <p className="text-xs text-gray-500">{profile.tagline}</p>
-              {(profile.phone || profile.email) && (
-                <p className="text-[11px] text-gray-500 mt-1">
-                  {profile.phone && <>โทร. {profile.phone}</>}
-                  {profile.phone && profile.email && " · "}
-                  {profile.email}
-                </p>
-              )}
-              {profile.socialLink && (
-                <p className="text-[11px] text-brand-600 mt-0.5">
-                  {profile.socialLink.replace(/^https?:\/\//, "")}
-                </p>
-              )}
             </div>
           </div>
           <div className="text-right shrink-0">
@@ -148,17 +136,40 @@ export default function PrintPage() {
                 <span className="text-gray-400">วันที่: </span>
                 <span className="font-medium">{today}</span>
               </div>
-              {profile.ownerName && (
-                <div>
-                  <span className="text-gray-400">ชื่อ: </span>
-                  <span className="font-medium">{profile.ownerName}</span>
-                </div>
-              )}
             </div>
           </div>
         </header>
 
-        <section className="grid grid-cols-2 gap-6 mt-4 mb-4">
+        <section className="grid grid-cols-2 gap-6 mt-4 mb-3">
+          <div>
+            <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">
+              จาก / From
+            </div>
+            <div className="font-semibold text-gray-800 mb-0.5">
+              {profile.ownerName || profile.studioName || "—"}
+            </div>
+            {profile.phone && (
+              <div className="text-xs text-gray-600">โทร. {profile.phone}</div>
+            )}
+            {profile.email && (
+              <div className="text-xs text-gray-600">{profile.email}</div>
+            )}
+            {profile.address && (
+              <div className="text-xs text-gray-600 mt-1 whitespace-pre-line">
+                {profile.address}
+              </div>
+            )}
+            {profile.taxId && (
+              <div className="text-xs text-gray-600 mt-1">
+                เลขประจำตัว: {profile.taxId}
+              </div>
+            )}
+            {profile.socialLink && (
+              <div className="text-xs text-brand-600 mt-1">
+                {profile.socialLink.replace(/^https?:\/\//, "")}
+              </div>
+            )}
+          </div>
           <div>
             <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">
               เรียน / สำหรับ
@@ -190,24 +201,32 @@ export default function PrintPage() {
               </div>
             )}
           </div>
-          <div className="text-right">
+        </section>
+
+        <section className="flex items-start justify-between gap-4 pt-3 pb-3 mb-3 border-t border-gray-100">
+          <div className="min-w-0">
             <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">
               โครงการ
             </div>
-            <div className="font-semibold text-gray-800 mb-0.5">
+            <div className="font-semibold text-gray-800">
               {data.projectName || "—"}
             </div>
-            {data.startDate && (
-              <div className="text-xs text-gray-600 mt-1">
+          </div>
+          {data.startDate && (
+            <div className="text-right shrink-0">
+              <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">
+                ระยะเวลา
+              </div>
+              <div className="text-xs text-gray-700">
                 {fmtDate(data.startDate)} — {fmtDate(data.endDate)}
               </div>
-            )}
-            {calc.workingDays > 0 && (
-              <div className="text-xs text-gray-600">
-                รวม {calc.workingDays} วันทำงาน
-              </div>
-            )}
-          </div>
+              {calc.workingDays > 0 && (
+                <div className="text-[11px] text-gray-500">
+                  รวม {calc.workingDays} วันทำงาน
+                </div>
+              )}
+            </div>
+          )}
         </section>
 
         <section className="mb-4">
@@ -495,6 +514,22 @@ export default function PrintPage() {
           box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
           color: #1f2937;
           position: relative;
+          box-sizing: border-box;
+        }
+        .print-page section {
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+        .print-page table {
+          page-break-inside: auto;
+          break-inside: auto;
+        }
+        .print-page thead {
+          display: table-header-group;
+        }
+        .print-page tr {
+          page-break-inside: avoid;
+          break-inside: avoid;
         }
         .page-watermark {
           position: absolute;
@@ -519,8 +554,10 @@ export default function PrintPage() {
           font-size: 8px;
         }
         @media print {
-          body {
+          html, body {
             background: white;
+            margin: 0;
+            padding: 0;
           }
           .print-toolbar {
             display: none !important;
@@ -529,8 +566,14 @@ export default function PrintPage() {
             margin: 0;
             padding: 15mm 15mm 22mm 15mm;
             box-shadow: none;
-            width: 100%;
-            min-height: auto;
+            width: 210mm;
+            min-height: 297mm;
+            page-break-after: always;
+            break-after: page;
+          }
+          .print-page:last-child {
+            page-break-after: auto;
+            break-after: auto;
           }
           .milestones-page {
             page-break-before: always;

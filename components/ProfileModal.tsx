@@ -64,12 +64,10 @@ export default function ProfileModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/40 z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto"
-      onClick={onClose}
+      className="fixed inset-0 bg-black/40 z-50 flex items-start sm:items-center justify-center px-3 pt-3 pb-6 sm:p-4 overflow-y-auto"
     >
       <div
-        className="bg-white rounded-xl max-w-md w-full shadow-xl animate-fadeIn flex flex-col max-h-[calc(100dvh-1.5rem)] sm:max-h-[90vh] my-auto"
-        onClick={(e) => e.stopPropagation()}
+        className="bg-white rounded-xl max-w-md w-full shadow-xl animate-fadeIn flex flex-col max-h-[calc(100dvh-2.25rem)] sm:max-h-[90vh] my-auto"
       >
         <div className="px-5 py-4 border-b border-gray-100">
           <div className="flex items-center justify-between">
@@ -181,11 +179,12 @@ export default function ProfileModal({
           </Field>
 
           <Field label="ที่อยู่">
-            <input
+            <textarea
               value={form.address}
               onChange={(e) => set({ address: e.target.value })}
-              placeholder="เช่น Bangkok, Thailand"
-              className="w-full border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200"
+              placeholder="เช่น 123/4 ถ.สุขุมวิท แขวงคลองตัน เขตวัฒนา กรุงเทพฯ 10110"
+              rows={3}
+              className="w-full border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200 resize-none"
             />
           </Field>
 
@@ -310,7 +309,7 @@ export default function ProfileModal({
           </Field>
         </div>
 
-        <div className="px-5 py-4 border-t border-gray-100 bg-white flex items-center gap-3 safe-bottom">
+        <div className="px-5 py-4 border-t border-gray-100 bg-white flex items-center gap-3 safe-bottom rounded-b-xl">
           <button
             onClick={reset}
             className="text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 px-4 py-2.5 rounded-md transition shrink-0"

@@ -70,8 +70,7 @@ export default function FeedbackModal({
     >
       <div
         className="bg-white rounded-xl max-w-md w-full p-6 animate-fadeIn shadow-xl my-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
+              >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2 text-brand-600">
             <MessageSquare size={20} />

@@ -102,6 +102,37 @@ export default function QuotePreview({
 
           <section className="grid grid-cols-2 gap-3">
             <div className="min-w-0">
+              <div className="text-[10px] text-gray-500 mb-0.5">จาก</div>
+              <div className="font-medium truncate">
+                {profile.ownerName || profile.studioName || "—"}
+              </div>
+              {profile.phone && (
+                <div className="text-gray-600 text-[11px] truncate">
+                  โทร. {profile.phone}
+                </div>
+              )}
+              {profile.email && (
+                <div className="text-gray-600 text-[11px] truncate">
+                  {profile.email}
+                </div>
+              )}
+              {profile.address && (
+                <div className="text-gray-600 text-[11px] mt-1 whitespace-pre-line">
+                  {profile.address}
+                </div>
+              )}
+              {profile.taxId && (
+                <div className="text-gray-600 text-[11px] mt-1">
+                  เลขประจำตัว: {profile.taxId}
+                </div>
+              )}
+              {profile.socialLink && (
+                <div className="text-brand-600 text-[11px] mt-1 truncate">
+                  {profile.socialLink.replace(/^https?:\/\//, "")}
+                </div>
+              )}
+            </div>
+            <div className="min-w-0">
               <div className="text-[10px] text-gray-500 mb-0.5">เรียน/สำหรับ</div>
               <div className="font-medium truncate">
                 {data.customer.name || "—"}
@@ -116,24 +147,34 @@ export default function QuotePreview({
                   {data.customer.email}
                 </div>
               )}
+              {data.customer.lineId && (
+                <div className="text-gray-600 text-[11px] truncate">
+                  Line: {data.customer.lineId}
+                </div>
+              )}
               {data.customer.address && (
-                <div className="text-gray-600 text-[11px] mt-1 line-clamp-2">
+                <div className="text-gray-600 text-[11px] mt-1 whitespace-pre-line">
                   {data.customer.address}
                 </div>
               )}
-            </div>
-            <div className="text-right min-w-0">
-              <div className="text-[10px] text-gray-500 mb-0.5">โครงการ</div>
-              <div className="font-medium break-words">
-                {data.projectName || "—"}
-              </div>
-              {data.startDate && (
+              {data.customer.taxId && (
                 <div className="text-gray-600 text-[11px] mt-1">
-                  {fmtDate(data.startDate)}
-                  <br />— {fmtDate(data.endDate)}
+                  เลขประจำตัว: {data.customer.taxId}
                 </div>
               )}
             </div>
+          </section>
+
+          <section className="pt-2 border-t border-gray-100">
+            <div className="text-[10px] text-gray-500 mb-0.5">โครงการ</div>
+            <div className="font-medium break-words">
+              {data.projectName || "—"}
+            </div>
+            {data.startDate && (
+              <div className="text-gray-600 text-[11px] mt-1">
+                {fmtDate(data.startDate)} — {fmtDate(data.endDate)}
+              </div>
+            )}
           </section>
 
           <section>
