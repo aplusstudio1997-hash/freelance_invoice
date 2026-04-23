@@ -78,6 +78,12 @@ export default function PrintPage() {
 
   return (
     <>
+      <div className="print-footer-watermark">
+        <span>Free to Create, Easy to Manage by</span>
+        <div className="watermark-logo">FS</div>
+        <span style={{ fontWeight: 600 }}>FreelanceSolo</span>
+      </div>
+
       <div className="print-toolbar no-print">
         <div className="max-w-[210mm] mx-auto flex items-center justify-between py-3 px-4">
           <div className="text-sm text-gray-600">
@@ -564,16 +570,28 @@ export default function PrintPage() {
           }
           .print-page {
             margin: 0;
-            padding: 15mm 15mm 22mm 15mm;
+            padding: 0;
             box-shadow: none;
-            width: 210mm;
-            min-height: 297mm;
-            page-break-after: always;
-            break-after: page;
+            width: auto;
+            min-height: auto;
+            background: transparent;
           }
-          .print-page:last-child {
-            page-break-after: auto;
-            break-after: auto;
+          .print-page .page-watermark {
+            display: none;
+          }
+          .print-footer-watermark {
+            position: fixed;
+            bottom: 4mm;
+            right: 0;
+            left: 0;
+            text-align: right;
+            padding-right: 15mm;
+            display: flex !important;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+            font-size: 9px;
+            color: #6b7280;
           }
           .milestones-page {
             page-break-before: always;
@@ -581,8 +599,11 @@ export default function PrintPage() {
           }
           @page {
             size: A4;
-            margin: 0;
+            margin: 15mm 15mm 22mm 15mm;
           }
+        }
+        .print-footer-watermark {
+          display: none;
         }
       `}</style>
     </>

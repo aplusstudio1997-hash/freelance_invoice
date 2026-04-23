@@ -68,7 +68,7 @@ export default function ProfileModal({
     >
       <div
         className="bg-white rounded-xl max-w-md w-full shadow-xl animate-fadeIn flex flex-col max-h-[calc(100dvh-2.25rem)] sm:max-h-[90vh] my-auto"
-      >
+              >
         <div className="px-5 py-4 border-b border-gray-100">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-lg text-gray-800">ตั้งค่าส่วนตัว</h3>
