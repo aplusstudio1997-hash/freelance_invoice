@@ -16,7 +16,7 @@ import {
   saveProfile,
 } from "@/lib/storage";
 import { calculate, fmt } from "@/lib/calc";
-import { sendQuote } from "@/lib/api";
+import { sendQuote, fetchStats, pingActive } from "@/lib/api";
 import SettingsPanel from "@/components/SettingsPanel";
 import ServicesPanel from "@/components/ServicesPanel";
 import TimelinePanel from "@/components/TimelinePanel";
@@ -27,6 +27,8 @@ import FeedbackModal from "@/components/FeedbackModal";
 import DonationModal from "@/components/DonationModal";
 import ShareModal from "@/components/ShareModal";
 import ProfileModal from "@/components/ProfileModal";
+import SuccessModal from "@/components/SuccessModal";
+import StatsBadge from "@/components/StatsBadge";
 import {
   Dice5,
   Smile,
@@ -57,6 +59,11 @@ export default function Home() {
   const [donationOpen, setDonationOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [successOpen, setSuccessOpen] = useState(false);
+  const [stats, setStats] = useState<{ totalQuotes: number | null; activeUsers: number | null }>({
+    totalQuotes: null,
+    activeUsers: null,
+  });
   const [menuOpen, setMenuOpen] = useState(false);
 
   const [downloading, setDownloading] = useState(false);
@@ -68,6 +75,32 @@ export default function Home() {
     setProfile(loadProfile());
     setHydrated(true);
   }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    let cancelled = false;
+
+    const loadStats = async () => {
+      const s = await fetchStats();
+      if (cancelled || !s) return;
+      setStats({ totalQuotes: s.totalQuotes, activeUsers: s.activeUsers });
+    };
+
+    pingActive().catch(() => {});
+    loadStats();
+
+    const pingInterval = setInterval(() => {
+      pingActive().catch(() => {});
+    }, 60 * 1000);
+
+    const statsInterval = setInterval(loadStats, 60 * 1000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(pingInterval);
+      clearInterval(statsInterval);
+    };
+  }, [hydrated]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -111,9 +144,17 @@ export default function Home() {
       console.error("sendQuote failed", e);
     }
     setTimeout(() => {
-      window.open("/print", "_blank");
       setDownloading(false);
+      setSuccessOpen(true);
+      fetchStats().then((s) => {
+        if (s) setStats({ totalQuotes: s.totalQuotes, activeUsers: s.activeUsers });
+      });
     }, 250);
+  };
+
+  const openPDF = () => {
+    setSuccessOpen(false);
+    window.open("/print", "_blank");
   };
 
   if (!hydrated) {
@@ -148,6 +189,7 @@ export default function Home() {
               <span className="text-[9px] sm:text-[10px] bg-brand-500 text-white px-1.5 py-0.5 rounded font-semibold">
                 BETA
               </span>
+              <StatsBadge totalQuotes={stats.totalQuotes} activeUsers={stats.activeUsers} />
             </div>
             <p className="text-[10px] sm:text-xs text-gray-500 truncate">
               {profile.tagline || "คำนวณราคาและทำใบเสนอราคาออนไลน์"}
@@ -394,6 +436,19 @@ export default function Home() {
         profile={profile}
         onClose={() => setProfileOpen(false)}
         onSave={updateProfile}
+      />
+      <SuccessModal
+        open={successOpen}
+        onClose={() => setSuccessOpen(false)}
+        onFeedback={() => {
+          setSuccessOpen(false);
+          setFeedbackOpen(true);
+        }}
+        onDonate={() => {
+          setSuccessOpen(false);
+          setDonationOpen(true);
+        }}
+        onViewPDF={openPDF}
       />
 
       {downloading && (

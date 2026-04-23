@@ -11,23 +11,20 @@ export interface FeedbackPayload {
   message: string;
 }
 
-export interface QuotePayload {
-  quoteNumber: string;
-  projectName: string;
-  customerName: string;
-  customerPhone: string;
-  customerEmail: string;
-  startDate: string;
-  endDate: string;
-  preDiscount: number;
-  vatAmount: number;
-  discountValue: number;
-  taxDeduction: number;
-  total: number;
-  deposit: number;
-  paymentCondition: string;
-  preparedBy: string;
-  raw: string;
+export interface StatsResponse {
+  totalQuotes: number;
+  activeUsers: number;
+}
+
+function getClientId(): string {
+  if (typeof window === "undefined") return "";
+  const KEY = "freelance-solo-cid";
+  let cid = localStorage.getItem(KEY);
+  if (!cid) {
+    cid = `cid_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    localStorage.setItem(KEY, cid);
+  }
+  return cid;
 }
 
 async function postNoCors(type: string, payload: unknown): Promise<void> {
@@ -52,31 +49,30 @@ export function sendFeedback(p: FeedbackPayload): Promise<void> {
 }
 
 export function sendQuote(
-  q: QuoteSettings,
-  calc: CalcResult,
-  profile: Profile
+  _q: QuoteSettings,
+  _calc: CalcResult,
+  _profile: Profile
 ): Promise<void> {
-  const payload: QuotePayload = {
-    quoteNumber: q.quoteNumber || "",
-    projectName: q.projectName || "",
-    customerName: q.customer.name || "",
-    customerPhone: q.customer.phone || "",
-    customerEmail: q.customer.email || "",
-    startDate: q.startDate || "",
-    endDate: q.endDate || "",
-    preDiscount: round(calc.preDiscount),
-    vatAmount: round(calc.vatAmount),
-    discountValue: round(calc.discountValue),
-    taxDeduction: round(calc.taxDeduction),
-    total: round(calc.total),
-    deposit: round(calc.deposit),
-    paymentCondition: q.paymentCondition || "",
-    preparedBy: profile.ownerName || profile.studioName || "",
-    raw: JSON.stringify({ quote: q, profile, calc }),
-  };
-  return postNoCors("quote", payload);
+  return postNoCors("quote", { clientId: getClientId() });
 }
 
-function round(n: number): number {
-  return Math.round(n * 100) / 100;
+export async function fetchStats(): Promise<StatsResponse | null> {
+  if (!GAS_URL || GAS_URL.includes("REPLACE_WITH_YOUR")) return null;
+  try {
+    const res = await fetch(`${GAS_URL}?action=stats`, { method: "GET" });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (typeof data?.totalQuotes !== "number") return null;
+    return {
+      totalQuotes: Number(data.totalQuotes) || 0,
+      activeUsers: Number(data.activeUsers) || 0,
+    };
+  } catch (e) {
+    console.error("fetchStats failed", e);
+    return null;
+  }
+}
+
+export function pingActive(): Promise<void> {
+  return postNoCors("ping", { clientId: getClientId() });
 }

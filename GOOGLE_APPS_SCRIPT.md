@@ -5,7 +5,7 @@
 ### 1. สร้าง Google Sheet
 สร้าง Google Sheet ใหม่ 1 ไฟล์ ตั้งชื่อตามใจชอบ (เช่น `FreelanceSolo Data`)
 
-ภายในไฟล์มี 2 sheets:
+ภายในไฟล์มี 3 sheets:
 
 #### Sheet 1: `ข้อเสนอแนะ`
 | A | B | C | D |
@@ -13,9 +13,18 @@
 | timestamp | email | คะแนน | ข้อเสนอแนะ |
 
 #### Sheet 2: `ใบเสนอราคา`
-| A | B | C | D | E | F | G | H | I | J | K | L | M | N | O | P |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| timestamp | เลขที่ | ชื่อโครงการ | ลูกค้า | เบอร์ | email | วันเริ่ม | วันจบ | ยอดก่อนภาษี | VAT 7% | ส่วนลด | หัก 3% | รวมสุทธิ | มัดจำ | เงื่อนไขการชำระ | เตรียมโดย |
+นับจำนวนใบที่ถูกสร้าง (ไม่เก็บข้อมูลส่วนตัวของผู้ใช้)
+
+| A | B |
+|---|---|
+| timestamp | clientId |
+
+#### Sheet 3: `Active`
+นับผู้ใช้งานปัจจุบัน (active ภายใน 5 นาที)
+
+| A | B |
+|---|---|
+| clientId | lastSeen |
 
 ### 2. สร้าง Google Apps Script
 
@@ -34,7 +43,7 @@
    - **Who has access**: `Anyone`  ← สำคัญมาก!
 4. กด **Deploy**
 5. กด **Authorize access** → อนุญาต permissions
-6. คัดลอก **Web app URL** ที่ได้ (รูปแบบ `https://script.google.com/macros/s/AKfycb.../exec`)
+6. คัดลอก **Web app URL** ที่ได้
 
 ### 4. ใส่ URL ในเว็บ
 
@@ -51,12 +60,14 @@ NEXT_PUBLIC_GAS_URL=https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec
 ```javascript
 const SHEET_FEEDBACK = "ข้อเสนอแนะ";
 const SHEET_QUOTE = "ใบเสนอราคา";
+const SHEET_ACTIVE = "Active";
+const ACTIVE_WINDOW_MS = 5 * 60 * 1000;
 
 function doPost(e) {
   try {
     const body = JSON.parse(e.postData.contents);
     const type = body.type;
-    const payload = body.payload;
+    const payload = body.payload || {};
 
     const ss = SpreadsheetApp.getActiveSpreadsheet();
 
@@ -74,58 +85,84 @@ function doPost(e) {
         payload.message || "",
       ]);
     } else if (type === "quote") {
-      const sheet = getOrCreateSheet(ss, SHEET_QUOTE, [
-        "timestamp",
-        "เลขที่",
-        "ชื่อโครงการ",
-        "ลูกค้า",
-        "เบอร์",
-        "email",
-        "วันเริ่ม",
-        "วันจบ",
-        "ยอดก่อนภาษี",
-        "VAT 7%",
-        "ส่วนลด",
-        "หัก 3%",
-        "รวมสุทธิ",
-        "มัดจำ",
-        "เงื่อนไขการชำระ",
-        "เตรียมโดย",
-      ]);
-      sheet.appendRow([
-        new Date(),
-        payload.quoteNumber || "",
-        payload.projectName || "",
-        payload.customerName || "",
-        payload.customerPhone || "",
-        payload.customerEmail || "",
-        payload.startDate || "",
-        payload.endDate || "",
-        Number(payload.preDiscount) || 0,
-        Number(payload.vatAmount) || 0,
-        Number(payload.discountValue) || 0,
-        Number(payload.taxDeduction) || 0,
-        Number(payload.total) || 0,
-        Number(payload.deposit) || 0,
-        payload.paymentCondition || "",
-        payload.preparedBy || "",
-      ]);
+      const sheet = getOrCreateSheet(ss, SHEET_QUOTE, ["timestamp", "clientId"]);
+      sheet.appendRow([new Date(), payload.clientId || ""]);
+      upsertActive(ss, payload.clientId || "");
+    } else if (type === "ping") {
+      upsertActive(ss, payload.clientId || "");
     }
 
-    return ContentService.createTextOutput(
-      JSON.stringify({ ok: true })
-    ).setMimeType(ContentService.MimeType.JSON);
+    return json({ ok: true });
   } catch (err) {
-    return ContentService.createTextOutput(
-      JSON.stringify({ ok: false, error: String(err) })
-    ).setMimeType(ContentService.MimeType.JSON);
+    return json({ ok: false, error: String(err) });
   }
 }
 
-function doGet() {
-  return ContentService.createTextOutput(
-    JSON.stringify({ ok: true, message: "FreelanceSolo API is running" })
-  ).setMimeType(ContentService.MimeType.JSON);
+function doGet(e) {
+  try {
+    const action = (e && e.parameter && e.parameter.action) || "";
+
+    if (action === "stats") {
+      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const quoteSheet = getOrCreateSheet(ss, SHEET_QUOTE, [
+        "timestamp",
+        "clientId",
+      ]);
+      const activeSheet = getOrCreateSheet(ss, SHEET_ACTIVE, [
+        "clientId",
+        "lastSeen",
+      ]);
+
+      const totalQuotes = Math.max(0, quoteSheet.getLastRow() - 1);
+      const activeUsers = countActive(activeSheet);
+
+      return json({ ok: true, totalQuotes: totalQuotes, activeUsers: activeUsers });
+    }
+
+    return json({ ok: true, message: "FreelanceSolo API is running" });
+  } catch (err) {
+    return json({ ok: false, error: String(err) });
+  }
+}
+
+function upsertActive(ss, clientId) {
+  if (!clientId) return;
+  const sheet = getOrCreateSheet(ss, SHEET_ACTIVE, ["clientId", "lastSeen"]);
+  const lastRow = sheet.getLastRow();
+  const now = new Date();
+
+  if (lastRow <= 1) {
+    sheet.appendRow([clientId, now]);
+    return;
+  }
+
+  const data = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  for (let i = 0; i < data.length; i++) {
+    if (data[i][0] === clientId) {
+      sheet.getRange(i + 2, 2).setValue(now);
+      return;
+    }
+  }
+  sheet.appendRow([clientId, now]);
+}
+
+function countActive(sheet) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return 0;
+  const data = sheet.getRange(2, 1, lastRow - 1, 2).getValues();
+  const cutoff = Date.now() - ACTIVE_WINDOW_MS;
+  let count = 0;
+  for (let i = 0; i < data.length; i++) {
+    const ts = data[i][1];
+    if (ts instanceof Date && ts.getTime() >= cutoff) count++;
+  }
+  return count;
+}
+
+function json(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(
+    ContentService.MimeType.JSON
+  );
 }
 
 function getOrCreateSheet(ss, name, headers) {
@@ -146,7 +183,11 @@ function getOrCreateSheet(ss, name, headers) {
 
 ## หมายเหตุ
 
-- เว็บใช้ `mode: "no-cors"` ตอน fetch — ไม่สามารถอ่าน response ได้ แต่ข้อมูลจะส่งถึง GAS แน่นอน
+- เว็บใช้ `mode: "no-cors"` ตอน POST → ไม่อ่าน response ได้ แต่ข้อมูลส่งถึง GAS
+- GET ใช้ CORS ปกติเพื่อดึง stats (GAS อนุญาต CORS สำหรับ doGet)
+- การ ping active ทำทุก 1 นาที + ตอนกดสร้างใบ
+- Active user นับภายใน 5 นาทีล่าสุด (ตั้งใน `ACTIVE_WINDOW_MS`)
+- **ไม่มีการเก็บข้อมูลส่วนตัวของลูกค้า/ผู้ใช้** — sheet "ใบเสนอราคา" เก็บแค่ timestamp + clientId
 - ถ้าแก้โค้ด GAS แล้ว ต้อง **Deploy → Manage deployments → ดินสอ ✏️ → New version → Deploy** (ไม่ใช่ New deployment)
 - หลังแก้ versions ใหม่ URL ยังเหมือนเดิม
-- ถ้า GAS ตอบช้า/ล่ม → เว็บยังทำงานได้ปกติ (fire-and-forget)
+- ถ้า GAS ตอบช้า/ล่ม → เว็บยังทำงานได้ปกติ (fire-and-forget + badge ซ่อนอัตโนมัติ)
