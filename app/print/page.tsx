@@ -276,52 +276,22 @@ export default function PrintPage() {
     const t = setTimeout(() => {
       const pxPerMm = 96 / 25.4;
       const pageHeightPx = 297 * pxPerMm;
-      const usableHeightPx = (297 - 15 - 22) * pxPerMm;
-
-      const findSmartBreaks = (root: HTMLElement): number[] => {
-        const rootRect = root.getBoundingClientRect();
-        const sections = Array.from(
-          root.querySelectorAll("section")
-        ) as HTMLElement[];
-        const ranges = sections.map((s) => {
-          const r = s.getBoundingClientRect();
-          return {
-            startPx: r.top - rootRect.top,
-            endPx: r.bottom - rootRect.top,
-          };
-        });
-
-        const totalH = root.offsetHeight;
-        if (totalH <= usableHeightPx + 10) return [];
-
-        const breaks: number[] = [];
-        let currentTop = 0;
-
-        while (currentTop + usableHeightPx < totalH - 10) {
-          const targetEnd = currentTop + usableHeightPx;
-          const minEnd = currentTop + usableHeightPx * 0.5;
-
-          const crossing = ranges.find(
-            (r) => r.startPx < targetEnd && r.endPx > targetEnd
-          );
-          let breakY = targetEnd;
-          if (crossing) {
-            const sh = crossing.endPx - crossing.startPx;
-            if (sh <= usableHeightPx * 0.95) {
-              const alt = crossing.startPx;
-              if (alt > minEnd) breakY = alt;
-            }
-          }
-          breaks.push(breakY);
-          currentTop = breakY;
-        }
-        return breaks;
-      };
 
       const breaks: Record<string, number[]> = {};
       const pages = document.querySelectorAll(".print-page");
       pages.forEach((el, idx) => {
-        breaks[String(idx)] = findSmartBreaks(el as HTMLElement);
+        const h = (el as HTMLElement).offsetHeight;
+        if (h > pageHeightPx + 10) {
+          const arr: number[] = [];
+          let pos = pageHeightPx;
+          while (pos < h - 10) {
+            arr.push(pos);
+            pos += pageHeightPx;
+          }
+          breaks[String(idx)] = arr;
+        } else {
+          breaks[String(idx)] = [];
+        }
       });
       setPageBreaks(breaks);
 
@@ -814,32 +784,14 @@ export default function PrintPage() {
 
         {hasMilestones && milestonesInline && <MilestonesBlock inline />}
 
-        {(() => {
-          const breaks = pageBreaks["0"] || [];
-          const items: JSX.Element[] = [];
-          breaks.forEach((y, i) => {
-            items.push(
-              <div
-                key={`wm-${i}`}
-                className="page-end-watermark no-print"
-                style={{ top: `${y - 25}px` }}
-              >
-                <span>Free to Create, Easy to Manage by</span>
-                <div className="watermark-logo">SF</div>
-                <span style={{ fontWeight: 600 }}>So1o Freelancer</span>
-              </div>
-            );
-            items.push(
-              <div
-                key={`gap-${i}`}
-                className="sheet-gap no-print"
-                data-label={`หน้า ${i + 2}`}
-                style={{ top: `${y}px` }}
-              />
-            );
-          });
-          return items;
-        })()}
+        {(pageBreaks["0"] || []).map((y, i) => (
+          <div
+            key={`br-${i}`}
+            className="page-break-indicator no-print"
+            data-label={`— ขอบหน้า ${i + 1} / ${i + 2} —`}
+            style={{ top: `${y}px` }}
+          />
+        ))}
 
         <div className="last-page-watermark no-print">
           <span>Free to Create, Easy to Manage by</span>
@@ -851,32 +803,14 @@ export default function PrintPage() {
       {hasMilestones && !milestonesInline && (
         <div className="print-page milestones-page">
           <MilestonesBlock inline={false} />
-          {(() => {
-            const breaks = pageBreaks["1"] || [];
-            const items: JSX.Element[] = [];
-            breaks.forEach((y, i) => {
-              items.push(
-                <div
-                  key={`wm-${i}`}
-                  className="page-end-watermark no-print"
-                  style={{ top: `${y - 25}px` }}
-                >
-                  <span>Free to Create, Easy to Manage by</span>
-                  <div className="watermark-logo">SF</div>
-                  <span style={{ fontWeight: 600 }}>So1o Freelancer</span>
-                </div>
-              );
-              items.push(
-                <div
-                  key={`gap-${i}`}
-                  className="sheet-gap no-print"
-                  data-label={`หน้า ${i + 2}`}
-                  style={{ top: `${y}px` }}
-                />
-              );
-            });
-            return items;
-          })()}
+          {(pageBreaks["1"] || []).map((y, i) => (
+            <div
+              key={`br-${i}`}
+              className="page-break-indicator no-print"
+              data-label={`— ขอบหน้า —`}
+              style={{ top: `${y}px` }}
+            />
+          ))}
 
           <div className="last-page-watermark no-print">
             <span>Free to Create, Easy to Manage by</span>
@@ -907,43 +841,6 @@ export default function PrintPage() {
           position: relative;
           box-sizing: border-box;
           min-height: 297mm;
-        }
-        .sheet-gap {
-          position: absolute;
-          left: -15mm;
-          right: -15mm;
-          height: 30px;
-          background: #e5e7eb;
-          box-shadow:
-            0 -6px 20px rgba(0, 0, 0, 0.08) inset,
-            0 6px 20px rgba(0, 0, 0, 0.08) inset;
-          pointer-events: none;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 2;
-          transform: translateY(-5px);
-        }
-        .sheet-gap::before {
-          content: "Free to Create, Easy to Manage by  · So1o Freelancer · " attr(data-label);
-          position: absolute;
-          top: -16px;
-          right: 15mm;
-          font-size: 9px;
-          color: #6b7280;
-          background: transparent;
-          white-space: nowrap;
-          pointer-events: none;
-        }
-        .sheet-gap::after {
-          content: attr(data-label);
-          font-size: 11px;
-          font-weight: 500;
-          color: #94a3b8;
-          background: #e5e7eb;
-          padding: 2px 12px;
-          border-radius: 10px;
-          letter-spacing: 0.5px;
         }
         .page-break-indicator {
           position: absolute;
@@ -993,17 +890,6 @@ export default function PrintPage() {
           font-size: 9px;
           color: #6b7280;
           pointer-events: none;
-        }
-        .page-end-watermark {
-          position: absolute;
-          right: 15mm;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 9px;
-          color: #6b7280;
-          pointer-events: none;
-          z-index: 1;
         }
         .watermark-logo {
           width: 16px;
