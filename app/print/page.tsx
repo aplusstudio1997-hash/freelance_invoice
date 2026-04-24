@@ -11,6 +11,30 @@ import {
 import { loadDraft, loadProfile } from "@/lib/storage";
 import { calculate, fmt, fmtDate, buildMilestones } from "@/lib/calc";
 
+function sanitizeForFilename(s: string): string {
+  return s
+    .replace(/[\\/:*?"<>|]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function buildFilename(data: QuoteSettings, profile: Profile): string {
+  const project = sanitizeForFilename(data.projectName || "");
+  const customer = sanitizeForFilename(data.customer?.name || "");
+  const studio = sanitizeForFilename(profile.studioName || "");
+  const d = new Date();
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yy = String((d.getFullYear() + 543) % 100).padStart(2, "0");
+  const dateStr = `${dd}-${mm}-${yy}`;
+  const parts = ["QT"];
+  if (project) parts.push(project);
+  if (customer) parts.push(customer);
+  if (studio) parts.push(studio);
+  parts.push(dateStr);
+  return parts.join("_");
+}
+
 export default function PrintPage() {
   const [data, setData] = useState<QuoteSettings>(DEFAULT_QUOTE);
   const [profile, setProfile] = useState<Profile>(DEFAULT_PROFILE);
@@ -35,10 +59,17 @@ export default function PrintPage() {
         const usableHeight = 297 - 15 - 22;
         setMilestonesInline(heightMm > usableHeight + 5);
       }
-      setTimeout(() => window.print(), 100);
+      const originalTitle = document.title;
+      document.title = buildFilename(data, profile);
+      setTimeout(() => {
+        window.print();
+        setTimeout(() => {
+          document.title = originalTitle;
+        }, 500);
+      }, 100);
     }, 500);
     return () => clearTimeout(t);
-  }, [ready]);
+  }, [ready, data, profile]);
 
   if (!ready) {
     return (
@@ -144,7 +175,14 @@ export default function PrintPage() {
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => window.print()}
+              onClick={() => {
+                const originalTitle = document.title;
+                document.title = buildFilename(data, profile);
+                window.print();
+                setTimeout(() => {
+                  document.title = originalTitle;
+                }, 500);
+              }}
               className="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-md text-sm font-medium"
             >
               พิมพ์ / บันทึก PDF
