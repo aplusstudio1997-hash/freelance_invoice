@@ -481,7 +481,7 @@ function HeaderBtn({
 }) {
   const base = "flex items-center gap-1.5 px-2.5 py-1.5 text-sm transition";
   const cls = outlined
-    ? `${base} text-gray-700 border border-gray-300 hover:border-brand-400 hover:text-brand-600 hover:bg-brand-50 rounded-md`
+    ? `${base} text-brand-600 border border-brand-400 hover:border-brand-500 hover:bg-brand-50 rounded-md`
     : `${base} text-gray-600 hover:text-brand-600 hover:bg-brand-50 rounded-full`;
   return (
     <button onClick={onClick} className={cls}>

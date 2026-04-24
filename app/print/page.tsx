@@ -459,7 +459,7 @@ export default function PrintPage() {
 
       {data.startDate && data.endDate && milestones.length > 0 && (
         <div className="print-page milestones-page">
-          <section>
+          <section className="milestones-content">
             <div className="text-xs text-gray-500 uppercase tracking-wide mb-3">
               ลำดับงานและกำหนดส่ง
             </div>
@@ -594,8 +594,15 @@ export default function PrintPage() {
             color: #6b7280;
           }
           .milestones-page {
-            page-break-before: always;
-            break-before: page;
+            page-break-before: always !important;
+            break-before: page !important;
+            display: flex !important;
+            flex-direction: column;
+            justify-content: flex-end;
+          }
+          .milestones-page .milestones-content {
+            page-break-inside: avoid;
+            break-inside: avoid;
           }
           @page {
             size: A4;
