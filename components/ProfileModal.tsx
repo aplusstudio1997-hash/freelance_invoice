@@ -309,16 +309,16 @@ export default function ProfileModal({
           </Field>
         </div>
 
-        <div className="px-5 pt-3 pb-5 border-t border-gray-100 bg-white flex items-center gap-3 safe-bottom rounded-b-xl">
+        <div className="px-5 py-3 border-t border-gray-100 bg-white flex items-center gap-3 safe-bottom rounded-b-xl">
           <button
             onClick={reset}
-            className="text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 px-4 py-2.5 rounded-md transition shrink-0"
+            className="text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md transition shrink-0"
           >
             รีเซ็ต
           </button>
           <button
             onClick={save}
-            className="flex-1 bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white py-3 rounded-md font-medium transition"
+            className="flex-1 bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white py-2.5 rounded-md font-medium transition text-sm"
           >
             บันทึกการตั้งค่า
           </button>
