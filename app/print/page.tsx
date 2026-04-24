@@ -40,6 +40,10 @@ export default function PrintPage() {
   const [profile, setProfile] = useState<Profile>(DEFAULT_PROFILE);
   const [ready, setReady] = useState(false);
   const [milestonesInline, setMilestonesInline] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [pageBreaks, setPageBreaks] = useState<
+    Record<string, number[]>
+  >({});
 
   useEffect(() => {
     setData(loadDraft());
@@ -47,29 +51,115 @@ export default function PrintPage() {
     setReady(true);
   }, []);
 
+  const downloadPdf = async () => {
+    if (generating) return;
+    setGenerating(true);
+    try {
+      const mod = await import("html2pdf.js");
+      const html2pdf = mod.default || mod;
+      const pages = Array.from(
+        document.querySelectorAll(".print-page")
+      ) as HTMLElement[];
+      if (!pages.length) return;
+
+      const container = document.createElement("div");
+      container.style.cssText = "background:white;";
+      pages.forEach((p, idx) => {
+        const clone = p.cloneNode(true) as HTMLElement;
+        clone
+          .querySelectorAll(".page-break-indicator")
+          .forEach((el) => el.remove());
+        clone.style.cssText = `
+          width: 210mm;
+          min-height: 297mm;
+          padding: 15mm 15mm 22mm 15mm;
+          background: white;
+          box-sizing: border-box;
+          position: relative;
+          color: #1f2937;
+          ${idx > 0 ? "page-break-before: always;" : ""}
+        `;
+        container.appendChild(clone);
+      });
+      document.body.appendChild(container);
+
+      const filename = buildFilename(data, profile) + ".pdf";
+
+      await html2pdf()
+        .set({
+          margin: 0,
+          filename,
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: "#ffffff",
+            logging: false,
+          },
+          jsPDF: {
+            unit: "mm",
+            format: "a4",
+            orientation: "portrait",
+            compress: true,
+          },
+          pagebreak: { mode: ["css", "legacy"] },
+        })
+        .from(container)
+        .save();
+
+      document.body.removeChild(container);
+    } catch (err) {
+      console.error("PDF generation failed", err);
+      alert("สร้าง PDF ไม่สำเร็จ ลองใหม่อีกครั้ง");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   useEffect(() => {
     if (!ready) return;
     const t = setTimeout(() => {
+      const pxPerMm = 96 / 25.4;
+      const pageHeightPx = 297 * pxPerMm;
+
+      const breaks: Record<string, number[]> = {};
+      const pages = document.querySelectorAll(".print-page");
+      pages.forEach((el, idx) => {
+        const h = (el as HTMLElement).offsetHeight;
+        if (h > pageHeightPx + 10) {
+          const arr: number[] = [];
+          let pos = pageHeightPx;
+          while (pos < h - 10) {
+            arr.push(pos);
+            pos += pageHeightPx;
+          }
+          breaks[String(idx)] = arr;
+        } else {
+          breaks[String(idx)] = [];
+        }
+      });
+      setPageBreaks(breaks);
+
       const mainPage = document.querySelector(
         ".print-page:not(.milestones-page)"
       ) as HTMLElement | null;
       if (mainPage) {
-        const mmPerPx = 25.4 / 96;
-        const heightMm = mainPage.offsetHeight * mmPerPx;
+        const heightMm = mainPage.offsetHeight / pxPerMm;
         const usableHeight = 297 - 15 - 22;
         setMilestonesInline(heightMm > usableHeight + 5);
       }
-      const originalTitle = document.title;
-      document.title = buildFilename(data, profile);
-      setTimeout(() => {
-        window.print();
-        setTimeout(() => {
-          document.title = originalTitle;
-        }, 500);
-      }, 100);
     }, 500);
     return () => clearTimeout(t);
-  }, [ready, data, profile]);
+  }, [ready]);
+
+  useEffect(() => {
+    if (!ready) return;
+    const t = setTimeout(() => {
+      downloadPdf();
+    }, 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, milestonesInline]);
 
   if (!ready) {
     return (
@@ -168,24 +258,24 @@ export default function PrintPage() {
       <div className="print-toolbar no-print">
         <div className="max-w-[210mm] mx-auto flex items-center justify-between py-3 px-4">
           <div className="text-sm text-gray-600">
-            ถ้ากล่อง print ไม่เปิดอัตโนมัติ กด{" "}
-            <kbd className="px-1.5 py-0.5 bg-gray-200 rounded text-xs">
-              Ctrl/⌘ + P
-            </kbd>
+            {generating
+              ? "กำลังสร้าง PDF... กรุณารอสักครู่"
+              : "PDF จะถูกดาวน์โหลดอัตโนมัติ ถ้าไม่โหลดกดปุ่มด้านขวา"}
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => {
-                const originalTitle = document.title;
-                document.title = buildFilename(data, profile);
-                window.print();
-                setTimeout(() => {
-                  document.title = originalTitle;
-                }, 500);
-              }}
-              className="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-md text-sm font-medium"
+              onClick={downloadPdf}
+              disabled={generating}
+              className="bg-brand-500 hover:bg-brand-600 disabled:bg-brand-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md text-sm font-medium"
             >
-              พิมพ์ / บันทึก PDF
+              {generating ? "กำลังสร้าง PDF..." : "ดาวน์โหลด PDF"}
+            </button>
+            <button
+              onClick={() => window.print()}
+              className="border border-gray-300 text-gray-600 hover:bg-gray-50 px-4 py-2 rounded-md text-sm"
+              title="พิมพ์ผ่าน print dialog (สำรอง)"
+            >
+              พิมพ์
             </button>
             <button
               onClick={() => window.close()}
@@ -544,19 +634,38 @@ export default function PrintPage() {
 
         {hasMilestones && milestonesInline && <MilestonesBlock inline />}
 
+        {(pageBreaks["0"] || []).map((y, i) => (
+          <div
+            key={i}
+            className="page-break-indicator no-print"
+            style={{ top: `${y}px` }}
+          >
+            ↓ หน้า {i + 2} ↓
+          </div>
+        ))}
+
         <Watermark />
       </div>
 
       {hasMilestones && !milestonesInline && (
         <div className="print-page milestones-page">
           <MilestonesBlock inline={false} />
+          {(pageBreaks["1"] || []).map((y, i) => (
+            <div
+              key={i}
+              className="page-break-indicator no-print"
+              style={{ top: `${y}px` }}
+            >
+              ↓ หน้าถัดไป ↓
+            </div>
+          ))}
           <Watermark />
         </div>
       )}
 
       <style jsx global>{`
         body {
-          background: #f3f4f6;
+          background: #e5e7eb;
         }
         .print-toolbar {
           position: sticky;
@@ -567,7 +676,6 @@ export default function PrintPage() {
         }
         .print-page {
           width: 210mm;
-          min-height: 297mm;
           padding: 15mm 15mm 22mm 15mm;
           margin: 20px auto;
           background: white;
@@ -575,6 +683,24 @@ export default function PrintPage() {
           color: #1f2937;
           position: relative;
           box-sizing: border-box;
+          min-height: 297mm;
+        }
+        .page-break-indicator {
+          position: absolute;
+          left: -20px;
+          right: -20px;
+          height: 20px;
+          background: #e5e7eb;
+          box-shadow:
+            0 -4px 20px rgba(0, 0, 0, 0.08) inset,
+            0 4px 20px rgba(0, 0, 0, 0.08) inset;
+          pointer-events: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 10px;
+          color: #94a3b8;
+          font-weight: 500;
         }
         .print-page section {
           page-break-inside: avoid;
@@ -624,7 +750,7 @@ export default function PrintPage() {
           }
           .print-page {
             margin: 0;
-            padding: 0;
+            padding: 0 15mm;
             box-shadow: none;
             width: auto;
             min-height: auto;
@@ -635,14 +761,10 @@ export default function PrintPage() {
           }
           .print-footer-watermark {
             position: fixed;
-            bottom: 4mm;
-            right: 0;
-            left: 0;
-            text-align: right;
-            padding-right: 15mm;
+            bottom: 8mm;
+            right: 15mm;
             display: flex !important;
             align-items: center;
-            justify-content: flex-end;
             gap: 6px;
             font-size: 9px;
             color: #6b7280;
@@ -660,7 +782,7 @@ export default function PrintPage() {
           }
           @page {
             size: A4;
-            margin: 15mm 15mm 22mm 15mm;
+            margin: 15mm 0 20mm 0;
           }
         }
         .print-footer-watermark {
