@@ -11,6 +11,7 @@ import {
   CalendarDays,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import DateInput from "./DateInput";
 
 interface Props {
   data: QuoteSettings;
@@ -94,20 +95,16 @@ export default function TimelinePanel({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-sm text-gray-600 mb-1">วันที่เริ่ม</label>
-              <input
-                type="date"
+              <DateInput
                 value={data.startDate}
-                onChange={(e) => update({ startDate: e.target.value })}
-                className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
+                onChange={(v) => update({ startDate: v })}
               />
             </div>
             <div>
               <label className="block text-sm text-gray-600 mb-1">วันที่จบงาน</label>
-              <input
-                type="date"
+              <DateInput
                 value={data.endDate}
-                onChange={(e) => update({ endDate: e.target.value })}
-                className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
+                onChange={(v) => update({ endDate: v })}
               />
             </div>
           </div>
@@ -169,13 +166,10 @@ export default function TimelinePanel({
                           )}
                         </div>
                       </div>
-                      <input
-                        type="date"
+                      <DateInput
                         value={m.date}
-                        onChange={(e) =>
-                          updateMilestoneDate(m.id, e.target.value)
-                        }
-                        className="w-full sm:w-44 border border-gray-200 rounded-md px-2.5 py-1.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
+                        onChange={(v) => updateMilestoneDate(m.id, v)}
+                        className="w-full sm:w-44"
                       />
                     </div>
                   </div>
