@@ -792,12 +792,6 @@ export default function PrintPage() {
             style={{ top: `${y}px` }}
           />
         ))}
-
-        <div className="last-page-watermark no-print">
-          <span>Free to Create, Easy to Manage by</span>
-          <div className="watermark-logo">SF</div>
-          <span style={{ fontWeight: 600 }}>So1o Freelancer</span>
-        </div>
       </div>
 
       {hasMilestones && !milestonesInline && (
@@ -811,12 +805,6 @@ export default function PrintPage() {
               style={{ top: `${y}px` }}
             />
           ))}
-
-          <div className="last-page-watermark no-print">
-            <span>Free to Create, Easy to Manage by</span>
-            <div className="watermark-logo">SF</div>
-            <span style={{ fontWeight: 600 }}>So1o Freelancer</span>
-          </div>
         </div>
       )}
 
