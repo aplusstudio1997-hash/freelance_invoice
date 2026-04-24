@@ -146,29 +146,39 @@ export default function PrintPage() {
           endPx: r.endPx * scaleRatio,
         }));
 
-        const findSafeBreak = (targetEnd: number, minEnd: number): number => {
-          const crossing = sectionRangesCanvas.find(
-            (r) => r.startPx < targetEnd && r.endPx > targetEnd
-          );
-          if (!crossing) return targetEnd;
-          const sectionHeight = crossing.endPx - crossing.startPx;
-          if (sectionHeight > sliceHeightPx * 0.95) return targetEnd;
-          const alt = crossing.startPx;
-          if (alt <= minEnd) return targetEnd;
-          return alt;
+        const computeBreaks = (): number[] => {
+          if (canvasH <= sliceHeightPx + 10) return [];
+          const breaks: number[] = [];
+          let currentTop = 0;
+          while (currentTop + sliceHeightPx < canvasH - 10) {
+            const targetEnd = currentTop + sliceHeightPx;
+            const minEnd = currentTop + sliceHeightPx * 0.5;
+            const crossing = sectionRangesCanvas.find(
+              (r) => r.startPx < targetEnd && r.endPx > targetEnd
+            );
+            let breakY = targetEnd;
+            if (crossing) {
+              const sh = crossing.endPx - crossing.startPx;
+              if (sh <= sliceHeightPx * 0.95) {
+                const alt = crossing.startPx;
+                if (alt > minEnd) breakY = alt;
+              }
+            }
+            breaks.push(breakY);
+            currentTop = breakY;
+          }
+          return breaks;
         };
 
-        let offsetPx = 0;
-        while (offsetPx < canvasH) {
-          let thisSlicePx = Math.min(sliceHeightPx, canvasH - offsetPx);
-          const remaining = canvasH - offsetPx;
-          if (remaining > sliceHeightPx) {
-            const targetEnd = offsetPx + sliceHeightPx;
-            const minEnd = offsetPx + sliceHeightPx * 0.5;
-            const safeEnd = findSafeBreak(targetEnd, minEnd);
-            thisSlicePx = Math.floor(safeEnd - offsetPx);
-            if (thisSlicePx <= 0) thisSlicePx = sliceHeightPx;
-          }
+        const breakPoints = computeBreaks();
+        const pageBoundaries = [0, ...breakPoints, canvasH];
+
+        for (let p = 0; p < pageBoundaries.length - 1; p++) {
+          const startPx = pageBoundaries[p];
+          const endPx = pageBoundaries[p + 1];
+          const thisSlicePx = Math.floor(endPx - startPx);
+          if (thisSlicePx <= 0) continue;
+
           const sliceCanvas = document.createElement("canvas");
           sliceCanvas.width = canvasW;
           sliceCanvas.height = thisSlicePx;
@@ -179,7 +189,7 @@ export default function PrintPage() {
           ctx.drawImage(
             canvas,
             0,
-            offsetPx,
+            startPx,
             canvasW,
             thisSlicePx,
             0,
@@ -203,8 +213,6 @@ export default function PrintPage() {
             undefined,
             "FAST"
           );
-
-          offsetPx += thisSlicePx;
         }
       }
 
@@ -268,22 +276,52 @@ export default function PrintPage() {
     const t = setTimeout(() => {
       const pxPerMm = 96 / 25.4;
       const pageHeightPx = 297 * pxPerMm;
+      const usableHeightPx = (297 - 15 - 22) * pxPerMm;
+
+      const findSmartBreaks = (root: HTMLElement): number[] => {
+        const rootRect = root.getBoundingClientRect();
+        const sections = Array.from(
+          root.querySelectorAll("section")
+        ) as HTMLElement[];
+        const ranges = sections.map((s) => {
+          const r = s.getBoundingClientRect();
+          return {
+            startPx: r.top - rootRect.top,
+            endPx: r.bottom - rootRect.top,
+          };
+        });
+
+        const totalH = root.offsetHeight;
+        if (totalH <= usableHeightPx + 10) return [];
+
+        const breaks: number[] = [];
+        let currentTop = 0;
+
+        while (currentTop + usableHeightPx < totalH - 10) {
+          const targetEnd = currentTop + usableHeightPx;
+          const minEnd = currentTop + usableHeightPx * 0.5;
+
+          const crossing = ranges.find(
+            (r) => r.startPx < targetEnd && r.endPx > targetEnd
+          );
+          let breakY = targetEnd;
+          if (crossing) {
+            const sh = crossing.endPx - crossing.startPx;
+            if (sh <= usableHeightPx * 0.95) {
+              const alt = crossing.startPx;
+              if (alt > minEnd) breakY = alt;
+            }
+          }
+          breaks.push(breakY);
+          currentTop = breakY;
+        }
+        return breaks;
+      };
 
       const breaks: Record<string, number[]> = {};
       const pages = document.querySelectorAll(".print-page");
       pages.forEach((el, idx) => {
-        const h = (el as HTMLElement).offsetHeight;
-        if (h > pageHeightPx + 10) {
-          const arr: number[] = [];
-          let pos = pageHeightPx;
-          while (pos < h - 10) {
-            arr.push(pos);
-            pos += pageHeightPx;
-          }
-          breaks[String(idx)] = arr;
-        } else {
-          breaks[String(idx)] = [];
-        }
+        breaks[String(idx)] = findSmartBreaks(el as HTMLElement);
       });
       setPageBreaks(breaks);
 
@@ -336,32 +374,6 @@ export default function PrintPage() {
   const pay = profile.payment;
   const hasPayment =
     pay.qrCode || pay.bankName || pay.accountName || pay.accountNumber;
-
-  const PreviewWatermark = ({
-    top,
-    pageHeightMm,
-  }: {
-    top: number;
-    pageHeightMm: number;
-  }) => (
-    <div
-      className="preview-page-watermark no-print"
-      style={{
-        position: "absolute",
-        top: `${top}px`,
-        height: `${pageHeightMm}mm`,
-        right: `15mm`,
-        left: 0,
-        pointerEvents: "none",
-      }}
-    >
-      <div className="preview-watermark-inner">
-        <span>Free to Create, Easy to Manage by</span>
-        <div className="watermark-logo">SF</div>
-        <span className="font-semibold">So1o Freelancer</span>
-      </div>
-    </div>
-  );
 
   const MilestonesBlock = ({ inline }: { inline: boolean }) => (
     <section className={inline ? "pt-4 mt-4 border-t border-gray-200" : "milestones-content"}>
@@ -804,30 +816,36 @@ export default function PrintPage() {
 
         {(() => {
           const breaks = pageBreaks["0"] || [];
-          const pageCount = breaks.length + 1;
           const items: JSX.Element[] = [];
-          for (let i = 0; i < pageCount; i++) {
-            const top = i === 0 ? 0 : breaks[i - 1];
-            items.push(
-              <PreviewWatermark
-                key={`wm-${i}`}
-                top={top}
-                pageHeightMm={297}
-              />
-            );
-          }
           breaks.forEach((y, i) => {
             items.push(
               <div
-                key={`br-${i}`}
-                className="page-break-indicator no-print"
-                data-label={`— ขอบหน้า ${i + 1} / ${i + 2} —`}
+                key={`wm-${i}`}
+                className="page-end-watermark no-print"
+                style={{ top: `${y - 25}px` }}
+              >
+                <span>Free to Create, Easy to Manage by</span>
+                <div className="watermark-logo">SF</div>
+                <span style={{ fontWeight: 600 }}>So1o Freelancer</span>
+              </div>
+            );
+            items.push(
+              <div
+                key={`gap-${i}`}
+                className="sheet-gap no-print"
+                data-label={`หน้า ${i + 2}`}
                 style={{ top: `${y}px` }}
               />
             );
           });
           return items;
         })()}
+
+        <div className="last-page-watermark no-print">
+          <span>Free to Create, Easy to Manage by</span>
+          <div className="watermark-logo">SF</div>
+          <span style={{ fontWeight: 600 }}>So1o Freelancer</span>
+        </div>
       </div>
 
       {hasMilestones && !milestonesInline && (
@@ -835,30 +853,36 @@ export default function PrintPage() {
           <MilestonesBlock inline={false} />
           {(() => {
             const breaks = pageBreaks["1"] || [];
-            const pageCount = breaks.length + 1;
             const items: JSX.Element[] = [];
-            for (let i = 0; i < pageCount; i++) {
-              const top = i === 0 ? 0 : breaks[i - 1];
-              items.push(
-                <PreviewWatermark
-                  key={`wm-${i}`}
-                  top={top}
-                  pageHeightMm={297}
-                />
-              );
-            }
             breaks.forEach((y, i) => {
               items.push(
                 <div
-                  key={`br-${i}`}
-                  className="page-break-indicator no-print"
-                  data-label={`— ขอบหน้า —`}
+                  key={`wm-${i}`}
+                  className="page-end-watermark no-print"
+                  style={{ top: `${y - 25}px` }}
+                >
+                  <span>Free to Create, Easy to Manage by</span>
+                  <div className="watermark-logo">SF</div>
+                  <span style={{ fontWeight: 600 }}>So1o Freelancer</span>
+                </div>
+              );
+              items.push(
+                <div
+                  key={`gap-${i}`}
+                  className="sheet-gap no-print"
+                  data-label={`หน้า ${i + 2}`}
                   style={{ top: `${y}px` }}
                 />
               );
             });
             return items;
           })()}
+
+          <div className="last-page-watermark no-print">
+            <span>Free to Create, Easy to Manage by</span>
+            <div className="watermark-logo">SF</div>
+            <span style={{ fontWeight: 600 }}>So1o Freelancer</span>
+          </div>
         </div>
       )}
 
@@ -883,6 +907,43 @@ export default function PrintPage() {
           position: relative;
           box-sizing: border-box;
           min-height: 297mm;
+        }
+        .sheet-gap {
+          position: absolute;
+          left: -15mm;
+          right: -15mm;
+          height: 30px;
+          background: #e5e7eb;
+          box-shadow:
+            0 -6px 20px rgba(0, 0, 0, 0.08) inset,
+            0 6px 20px rgba(0, 0, 0, 0.08) inset;
+          pointer-events: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 2;
+          transform: translateY(-5px);
+        }
+        .sheet-gap::before {
+          content: "Free to Create, Easy to Manage by  · So1o Freelancer · " attr(data-label);
+          position: absolute;
+          top: -16px;
+          right: 15mm;
+          font-size: 9px;
+          color: #6b7280;
+          background: transparent;
+          white-space: nowrap;
+          pointer-events: none;
+        }
+        .sheet-gap::after {
+          content: attr(data-label);
+          font-size: 11px;
+          font-weight: 500;
+          color: #94a3b8;
+          background: #e5e7eb;
+          padding: 2px 12px;
+          border-radius: 10px;
+          letter-spacing: 0.5px;
         }
         .page-break-indicator {
           position: absolute;
@@ -922,18 +983,27 @@ export default function PrintPage() {
           page-break-inside: avoid;
           break-inside: avoid;
         }
-        .preview-page-watermark {
-          pointer-events: none;
-        }
-        .preview-watermark-inner {
+        .last-page-watermark {
           position: absolute;
-          right: 0;
+          right: 15mm;
           bottom: 8mm;
           display: flex;
           align-items: center;
           gap: 6px;
           font-size: 9px;
           color: #6b7280;
+          pointer-events: none;
+        }
+        .page-end-watermark {
+          position: absolute;
+          right: 15mm;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 9px;
+          color: #6b7280;
+          pointer-events: none;
+          z-index: 1;
         }
         .watermark-logo {
           width: 16px;
