@@ -387,12 +387,6 @@ export default function PrintPage() {
 
   return (
     <>
-      <div className="print-footer-watermark">
-        <span>Free to Create, Easy to Manage by</span>
-        <div className="watermark-logo">SF</div>
-        <span style={{ fontWeight: 600 }}>So1o Freelancer</span>
-      </div>
-
       <div className="print-toolbar no-print">
         <div className="max-w-[210mm] mx-auto flex items-center justify-between py-3 px-4">
           <div className="text-sm text-gray-600">
