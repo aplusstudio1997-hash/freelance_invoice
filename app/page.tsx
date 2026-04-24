@@ -170,21 +170,12 @@ export default function Home() {
       <header className="bg-white border-b border-gray-200 px-3 sm:px-4 py-3 flex items-center justify-between no-print safe-top gap-2">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-brand-500 text-white flex items-center justify-center font-bold shrink-0">
-            {profile.logo ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img
-                src={profile.logo}
-                alt="logo"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              (profile.studioName || "F").charAt(0).toUpperCase()
-            )}
+            SF
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="font-bold text-gray-800 truncate text-sm sm:text-base">
-                {profile.studioName || "So1o Freelancer"}
+                So1o Freelancer
               </h1>
               <span className="text-[9px] sm:text-[10px] bg-brand-500 text-white px-1.5 py-0.5 rounded font-semibold">
                 BETA
@@ -192,7 +183,7 @@ export default function Home() {
               <StatsBadge totalQuotes={stats.totalQuotes} activeUsers={stats.activeUsers} />
             </div>
             <p className="text-[10px] sm:text-xs text-gray-500 truncate">
-              {profile.tagline || "คำนวณราคาและทำใบเสนอราคาออนไลน์"}
+              โปรแกรมช่วยคำนวณราคาและทำใบเสนอราคาออนไลน์
             </p>
           </div>
         </div>
