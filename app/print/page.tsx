@@ -55,64 +55,151 @@ export default function PrintPage() {
     if (generating) return;
     setGenerating(true);
     try {
-      const mod = await import("html2pdf.js");
-      const html2pdf = mod.default || mod;
-      const pages = Array.from(
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import("jspdf"),
+        import("html2canvas"),
+      ]);
+
+      const sourcePages = Array.from(
         document.querySelectorAll(".print-page")
       ) as HTMLElement[];
-      if (!pages.length) return;
+      if (!sourcePages.length) return;
 
-      const container = document.createElement("div");
-      container.style.cssText = "background:white;";
-      pages.forEach((p, idx) => {
-        const clone = p.cloneNode(true) as HTMLElement;
+      const MARGIN_MM = { top: 15, right: 15, bottom: 22, left: 15 };
+      const PAGE_W_MM = 210;
+      const PAGE_H_MM = 297;
+      const CONTENT_W_MM = PAGE_W_MM - MARGIN_MM.left - MARGIN_MM.right;
+      const CONTENT_H_MM = PAGE_H_MM - MARGIN_MM.top - MARGIN_MM.bottom;
+      const MM_PER_PX = 25.4 / 96;
+      const CONTENT_W_PX = CONTENT_W_MM / MM_PER_PX;
+
+      const offscreen = document.createElement("div");
+      offscreen.style.cssText = `
+        position: fixed;
+        left: -99999px;
+        top: 0;
+        width: ${CONTENT_W_PX}px;
+        background: white;
+        color: #1f2937;
+      `;
+      document.body.appendChild(offscreen);
+
+      const pdf = new jsPDF({
+        unit: "mm",
+        format: "a4",
+        orientation: "portrait",
+        compress: true,
+      });
+
+      let firstPage = true;
+
+      for (const src of sourcePages) {
+        const clone = src.cloneNode(true) as HTMLElement;
         clone
-          .querySelectorAll(".page-break-indicator")
+          .querySelectorAll(".page-break-indicator,.page-watermark")
           .forEach((el) => el.remove());
         clone.style.cssText = `
-          width: 210mm;
-          min-height: 297mm;
-          padding: 15mm 15mm 22mm 15mm;
+          width: ${CONTENT_W_PX}px;
+          padding: 0;
+          margin: 0;
           background: white;
-          box-sizing: border-box;
-          position: relative;
-          color: #1f2937;
-          ${idx > 0 ? "page-break-before: always;" : ""}
+          box-shadow: none;
+          min-height: 0;
+          position: static;
         `;
-        container.appendChild(clone);
-      });
-      document.body.appendChild(container);
+        offscreen.innerHTML = "";
+        offscreen.appendChild(clone);
+
+        await new Promise((r) => setTimeout(r, 50));
+
+        const canvas = await html2canvas(clone, {
+          scale: 3,
+          useCORS: true,
+          backgroundColor: "#ffffff",
+          logging: false,
+          letterRendering: true,
+          allowTaint: true,
+          imageTimeout: 0,
+          windowWidth: CONTENT_W_PX,
+        });
+
+        const canvasW = canvas.width;
+        const canvasH = canvas.height;
+        const pxPerMm = canvasW / CONTENT_W_MM;
+        const sliceHeightPx = Math.floor(CONTENT_H_MM * pxPerMm);
+
+        let offsetPx = 0;
+        while (offsetPx < canvasH) {
+          const thisSlicePx = Math.min(sliceHeightPx, canvasH - offsetPx);
+          const sliceCanvas = document.createElement("canvas");
+          sliceCanvas.width = canvasW;
+          sliceCanvas.height = thisSlicePx;
+          const ctx = sliceCanvas.getContext("2d");
+          if (!ctx) break;
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, canvasW, thisSlicePx);
+          ctx.drawImage(
+            canvas,
+            0,
+            offsetPx,
+            canvasW,
+            thisSlicePx,
+            0,
+            0,
+            canvasW,
+            thisSlicePx
+          );
+
+          if (!firstPage) pdf.addPage();
+          firstPage = false;
+
+          const imgData = sliceCanvas.toDataURL("image/png");
+          const sliceHeightMm = thisSlicePx / pxPerMm;
+          pdf.addImage(
+            imgData,
+            "PNG",
+            MARGIN_MM.left,
+            MARGIN_MM.top,
+            CONTENT_W_MM,
+            sliceHeightMm,
+            undefined,
+            "FAST"
+          );
+
+          offsetPx += thisSlicePx;
+        }
+      }
+
+      const totalPages = pdf.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(107, 114, 128);
+        const footerY = PAGE_H_MM - 10;
+        const rightX = PAGE_W_MM - MARGIN_MM.right;
+        pdf.text(
+          "Free to Create, Easy to Manage by",
+          rightX - 45,
+          footerY,
+          { align: "left" }
+        );
+        pdf.setFillColor(249, 115, 22);
+        pdf.roundedRect(rightX - 18, footerY - 3, 4.5, 4.5, 0.7, 0.7, "F");
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(6);
+        pdf.text("SF", rightX - 15.75, footerY + 0.2, { align: "center" });
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(8);
+        pdf.setTextColor(55, 65, 81);
+        pdf.text("So1o Freelancer", rightX - 12, footerY, { align: "left" });
+        pdf.setFont("helvetica", "normal");
+      }
 
       const filename = buildFilename(data, profile) + ".pdf";
+      pdf.save(filename);
 
-      await html2pdf()
-        .set({
-          margin: 0,
-          filename,
-          image: { type: "png" },
-          html2canvas: {
-            scale: 3,
-            useCORS: true,
-            backgroundColor: "#ffffff",
-            logging: false,
-            letterRendering: true,
-            allowTaint: true,
-            imageTimeout: 0,
-            windowWidth: 794,
-          },
-          jsPDF: {
-            unit: "mm",
-            format: "a4",
-            orientation: "portrait",
-            compress: true,
-            precision: 16,
-          },
-          pagebreak: { mode: ["css", "legacy"] },
-        })
-        .from(container)
-        .save();
-
-      document.body.removeChild(container);
+      document.body.removeChild(offscreen);
     } catch (err) {
       console.error("PDF generation failed", err);
       alert("สร้าง PDF ไม่สำเร็จ ลองใหม่อีกครั้ง");
@@ -195,11 +282,29 @@ export default function PrintPage() {
   const hasPayment =
     pay.qrCode || pay.bankName || pay.accountName || pay.accountNumber;
 
-  const Watermark = () => (
-    <div className="page-watermark">
-      <span>Free to Create, Easy to Manage by</span>
-      <div className="watermark-logo">SF</div>
-      <span className="font-semibold">So1o Freelancer</span>
+  const PreviewWatermark = ({
+    top,
+    pageHeightMm,
+  }: {
+    top: number;
+    pageHeightMm: number;
+  }) => (
+    <div
+      className="preview-page-watermark no-print"
+      style={{
+        position: "absolute",
+        top: `${top}px`,
+        height: `${pageHeightMm}mm`,
+        right: `15mm`,
+        left: 0,
+        pointerEvents: "none",
+      }}
+    >
+      <div className="preview-watermark-inner">
+        <span>Free to Create, Easy to Manage by</span>
+        <div className="watermark-logo">SF</div>
+        <span className="font-semibold">So1o Freelancer</span>
+      </div>
     </div>
   );
 
@@ -302,7 +407,7 @@ export default function PrintPage() {
             </div>
           </div>
           <div className="text-right shrink-0">
-            <div className="inline-block bg-brand-500 text-white px-4 py-1.5 rounded font-semibold text-sm mb-2">
+            <div className="inline-flex items-center justify-center bg-brand-500 text-white px-4 py-1.5 rounded font-semibold text-sm mb-2 leading-none" style={{ lineHeight: 1.4 }}>
               ใบเสนอราคา
             </div>
             <div className="text-xs text-gray-700 space-y-0.5">
@@ -630,30 +735,63 @@ export default function PrintPage() {
 
         {hasMilestones && milestonesInline && <MilestonesBlock inline />}
 
-        {(pageBreaks["0"] || []).map((y, i) => (
-          <div
-            key={i}
-            className="page-break-indicator no-print"
-            data-label={`— ขอบหน้า ${i + 1} / ${i + 2} —`}
-            style={{ top: `${y}px` }}
-          />
-        ))}
-
-        <Watermark />
+        {(() => {
+          const breaks = pageBreaks["0"] || [];
+          const pageCount = breaks.length + 1;
+          const items: JSX.Element[] = [];
+          for (let i = 0; i < pageCount; i++) {
+            const top = i === 0 ? 0 : breaks[i - 1];
+            items.push(
+              <PreviewWatermark
+                key={`wm-${i}`}
+                top={top}
+                pageHeightMm={297}
+              />
+            );
+          }
+          breaks.forEach((y, i) => {
+            items.push(
+              <div
+                key={`br-${i}`}
+                className="page-break-indicator no-print"
+                data-label={`— ขอบหน้า ${i + 1} / ${i + 2} —`}
+                style={{ top: `${y}px` }}
+              />
+            );
+          });
+          return items;
+        })()}
       </div>
 
       {hasMilestones && !milestonesInline && (
         <div className="print-page milestones-page">
           <MilestonesBlock inline={false} />
-          {(pageBreaks["1"] || []).map((y, i) => (
-            <div
-              key={i}
-              className="page-break-indicator no-print"
-              data-label={`— ขอบหน้า —`}
-              style={{ top: `${y}px` }}
-            />
-          ))}
-          <Watermark />
+          {(() => {
+            const breaks = pageBreaks["1"] || [];
+            const pageCount = breaks.length + 1;
+            const items: JSX.Element[] = [];
+            for (let i = 0; i < pageCount; i++) {
+              const top = i === 0 ? 0 : breaks[i - 1];
+              items.push(
+                <PreviewWatermark
+                  key={`wm-${i}`}
+                  top={top}
+                  pageHeightMm={297}
+                />
+              );
+            }
+            breaks.forEach((y, i) => {
+              items.push(
+                <div
+                  key={`br-${i}`}
+                  className="page-break-indicator no-print"
+                  data-label={`— ขอบหน้า —`}
+                  style={{ top: `${y}px` }}
+                />
+              );
+            });
+            return items;
+          })()}
         </div>
       )}
 
@@ -717,9 +855,12 @@ export default function PrintPage() {
           page-break-inside: avoid;
           break-inside: avoid;
         }
-        .page-watermark {
+        .preview-page-watermark {
+          pointer-events: none;
+        }
+        .preview-watermark-inner {
           position: absolute;
-          right: 15mm;
+          right: 0;
           bottom: 8mm;
           display: flex;
           align-items: center;
@@ -756,19 +897,6 @@ export default function PrintPage() {
             min-height: auto;
             background: transparent;
           }
-          .print-page .page-watermark {
-            display: none;
-          }
-          .print-footer-watermark {
-            position: fixed;
-            bottom: 8mm;
-            right: 15mm;
-            display: flex !important;
-            align-items: center;
-            gap: 6px;
-            font-size: 9px;
-            color: #6b7280;
-          }
           .milestones-page {
             page-break-before: always !important;
             break-before: page !important;
@@ -784,9 +912,6 @@ export default function PrintPage() {
             size: A4;
             margin: 15mm 0 20mm 0;
           }
-        }
-        .print-footer-watermark {
-          display: none;
         }
       `}</style>
     </>
