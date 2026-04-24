@@ -112,6 +112,19 @@ export default function PrintPage() {
 
         await new Promise((r) => setTimeout(r, 50));
 
+        const rootRect = clone.getBoundingClientRect();
+        const sectionEls = Array.from(
+          clone.querySelectorAll("section")
+        ) as HTMLElement[];
+        const sectionRanges: { startPx: number; endPx: number }[] =
+          sectionEls.map((s) => {
+            const r = s.getBoundingClientRect();
+            return {
+              startPx: r.top - rootRect.top,
+              endPx: r.bottom - rootRect.top,
+            };
+          });
+
         const canvas = await html2canvas(clone, {
           scale: 3,
           useCORS: true,
@@ -124,12 +137,38 @@ export default function PrintPage() {
 
         const canvasW = canvas.width;
         const canvasH = canvas.height;
+        const scaleRatio = canvasH / clone.offsetHeight;
         const pxPerMm = canvasW / CONTENT_W_MM;
         const sliceHeightPx = Math.floor(CONTENT_H_MM * pxPerMm);
 
+        const sectionRangesCanvas = sectionRanges.map((r) => ({
+          startPx: r.startPx * scaleRatio,
+          endPx: r.endPx * scaleRatio,
+        }));
+
+        const findSafeBreak = (targetEnd: number, minEnd: number): number => {
+          const crossing = sectionRangesCanvas.find(
+            (r) => r.startPx < targetEnd && r.endPx > targetEnd
+          );
+          if (!crossing) return targetEnd;
+          const sectionHeight = crossing.endPx - crossing.startPx;
+          if (sectionHeight > sliceHeightPx * 0.95) return targetEnd;
+          const alt = crossing.startPx;
+          if (alt <= minEnd) return targetEnd;
+          return alt;
+        };
+
         let offsetPx = 0;
         while (offsetPx < canvasH) {
-          const thisSlicePx = Math.min(sliceHeightPx, canvasH - offsetPx);
+          let thisSlicePx = Math.min(sliceHeightPx, canvasH - offsetPx);
+          const remaining = canvasH - offsetPx;
+          if (remaining > sliceHeightPx) {
+            const targetEnd = offsetPx + sliceHeightPx;
+            const minEnd = offsetPx + sliceHeightPx * 0.5;
+            const safeEnd = findSafeBreak(targetEnd, minEnd);
+            thisSlicePx = Math.floor(safeEnd - offsetPx);
+            if (thisSlicePx <= 0) thisSlicePx = sliceHeightPx;
+          }
           const sliceCanvas = document.createElement("canvas");
           sliceCanvas.width = canvasW;
           sliceCanvas.height = thisSlicePx;
@@ -172,26 +211,43 @@ export default function PrintPage() {
       const totalPages = pdf.getNumberOfPages();
       for (let i = 1; i <= totalPages; i++) {
         pdf.setPage(i);
-        pdf.setFontSize(8);
-        pdf.setTextColor(107, 114, 128);
         const footerY = PAGE_H_MM - 10;
-        const rightX = PAGE_W_MM - MARGIN_MM.right;
-        pdf.text(
-          "Free to Create, Easy to Manage by",
-          rightX - 45,
-          footerY,
-          { align: "left" }
-        );
+        const rightEdge = PAGE_W_MM - MARGIN_MM.right;
+
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(8);
+        const brandText = "So1o Freelancer";
+        const brandWidth = pdf.getTextWidth(brandText);
+        const brandX = rightEdge - brandWidth;
+
+        const logoSize = 4.2;
+        const gap = 1.5;
+        const logoX = brandX - gap - logoSize;
+        const logoY = footerY - logoSize + 0.8;
+
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(8);
+        const prefixText = "Free to Create, Easy to Manage by";
+        const prefixWidth = pdf.getTextWidth(prefixText);
+        const prefixX = logoX - gap - prefixWidth;
+
+        pdf.setTextColor(107, 114, 128);
+        pdf.text(prefixText, prefixX, footerY);
+
         pdf.setFillColor(249, 115, 22);
-        pdf.roundedRect(rightX - 18, footerY - 3, 4.5, 4.5, 0.7, 0.7, "F");
+        pdf.roundedRect(logoX, logoY, logoSize, logoSize, 0.6, 0.6, "F");
         pdf.setTextColor(255, 255, 255);
         pdf.setFont("helvetica", "bold");
-        pdf.setFontSize(6);
-        pdf.text("SF", rightX - 15.75, footerY + 0.2, { align: "center" });
+        pdf.setFontSize(5.5);
+        pdf.text("SF", logoX + logoSize / 2, logoY + logoSize / 2 + 0.7, {
+          align: "center",
+        });
+
         pdf.setFont("helvetica", "bold");
         pdf.setFontSize(8);
         pdf.setTextColor(55, 65, 81);
-        pdf.text("So1o Freelancer", rightX - 12, footerY, { align: "left" });
+        pdf.text(brandText, brandX, footerY);
+
         pdf.setFont("helvetica", "normal");
       }
 
@@ -406,7 +462,19 @@ export default function PrintPage() {
             </div>
           </div>
           <div className="text-right shrink-0">
-            <div className="inline-flex items-center justify-center bg-brand-500 text-white px-4 py-1.5 rounded font-semibold text-sm mb-2 leading-none" style={{ lineHeight: 1.4 }}>
+            <div
+              style={{
+                display: "inline-block",
+                backgroundColor: "#f97316",
+                color: "#ffffff",
+                padding: "6px 16px",
+                borderRadius: "4px",
+                fontWeight: 600,
+                fontSize: "14px",
+                marginBottom: "8px",
+                lineHeight: "1.5",
+              }}
+            >
               ใบเสนอราคา
             </div>
             <div className="text-xs text-gray-700 space-y-0.5">
