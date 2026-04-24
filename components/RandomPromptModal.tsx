@@ -93,7 +93,7 @@ export default function RandomPromptModal({
         lines.push(`${c.icon} ${c.text}`);
       });
     }
-    lines.push(``, `— จาก FreelanceSolo`);
+    lines.push(``, `— จาก So1o Freelancer`);
     return lines.join("\n");
   };
 

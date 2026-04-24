@@ -66,7 +66,6 @@ export default function FeedbackModal({
   return (
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto"
-      onClick={sending ? undefined : close}
     >
       <div
         className="bg-white rounded-xl max-w-md w-full p-6 animate-fadeIn shadow-xl my-auto"
@@ -101,7 +100,7 @@ export default function FeedbackModal({
             <div className="space-y-3">
               <div className="bg-orange-50/60 border border-orange-100 rounded-lg p-3 text-center">
                 <div className="text-xs text-gray-600 mb-2">
-                  ให้คะแนน FreelanceSolo
+                  ให้คะแนน So1o Freelancer
                 </div>
                 <div className="flex items-center justify-center gap-1 mb-1">
                   {[1, 2, 3, 4, 5].map((n) => {

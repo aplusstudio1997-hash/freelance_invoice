@@ -71,8 +71,8 @@ export default function PrintPage() {
   const Watermark = () => (
     <div className="page-watermark">
       <span>Free to Create, Easy to Manage by</span>
-      <div className="watermark-logo">FS</div>
-      <span className="font-semibold">FreelanceSolo</span>
+      <div className="watermark-logo">SF</div>
+      <span className="font-semibold">So1o Freelancer</span>
     </div>
   );
 
@@ -80,8 +80,8 @@ export default function PrintPage() {
     <>
       <div className="print-footer-watermark">
         <span>Free to Create, Easy to Manage by</span>
-        <div className="watermark-logo">FS</div>
-        <span style={{ fontWeight: 600 }}>FreelanceSolo</span>
+        <div className="watermark-logo">SF</div>
+        <span style={{ fontWeight: 600 }}>So1o Freelancer</span>
       </div>
 
       <div className="print-toolbar no-print">
@@ -122,7 +122,7 @@ export default function PrintPage() {
             )}
             <div className="min-w-0">
               <h1 className="text-2xl font-bold text-gray-800 mb-0.5">
-                {profile.studioName || "FreelanceSolo"}
+                {profile.studioName || "So1o Freelancer"}
               </h1>
               <p className="text-xs text-gray-500">{profile.tagline}</p>
             </div>

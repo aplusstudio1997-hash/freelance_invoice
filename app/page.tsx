@@ -184,7 +184,7 @@ export default function Home() {
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="font-bold text-gray-800 truncate text-sm sm:text-base">
-                {profile.studioName || "FreelanceSolo"}
+                {profile.studioName || "So1o Freelancer"}
               </h1>
               <span className="text-[9px] sm:text-[10px] bg-brand-500 text-white px-1.5 py-0.5 rounded font-semibold">
                 BETA
@@ -216,11 +216,13 @@ export default function Home() {
             icon={<Dice5 size={14} />}
             label="สุ่มโจทย์"
             onClick={() => setPromptOpen(true)}
+            outlined
           />
           <HeaderBtn
             icon={<Smile size={14} />}
             label="คลายเครียด"
             onClick={() => setReliefOpen(true)}
+            outlined
           />
           <div className="w-px h-5 bg-gray-200 mx-0.5" />
           <HeaderBtn
@@ -470,16 +472,19 @@ function HeaderBtn({
   icon,
   label,
   onClick,
+  outlined = false,
 }: {
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
+  outlined?: boolean;
 }) {
+  const base = "flex items-center gap-1.5 px-2.5 py-1.5 text-sm transition";
+  const cls = outlined
+    ? `${base} text-gray-700 border border-gray-300 hover:border-brand-400 hover:text-brand-600 hover:bg-brand-50 rounded-md`
+    : `${base} text-gray-600 hover:text-brand-600 hover:bg-brand-50 rounded-full`;
   return (
-    <button
-      onClick={onClick}
-      className="flex items-center gap-1.5 px-2.5 py-1.5 text-gray-600 hover:text-brand-600 hover:bg-brand-50 rounded-full text-sm transition"
-    >
+    <button onClick={onClick} className={cls}>
       {icon} <span className="hidden xl:inline">{label}</span>
     </button>
   );

@@ -139,9 +139,9 @@ export const DEFAULT_PAYMENT: PaymentInfo = {
 };
 
 export const DEFAULT_PROFILE: Profile = {
-  studioName: "FreelanceSolo",
+  studioName: "So1o Freelancer",
   tagline: "โปรแกรมช่วยคำนวณราคาและทำใบเสนอราคาออนไลน์อย่างง่าย",
-  ownerName: "FreelanceSolo",
+  ownerName: "So1o Freelancer",
   phone: "",
   email: "",
   address: "",
@@ -178,7 +178,7 @@ export const DEFAULT_QUOTE: QuoteSettings = {
   milestones: [],
   paymentTerm: "50",
   paymentCondition: "ชำระมัดจำก่อนเริ่มงาน",
-  preparedBy: "FreelanceSolo",
+  preparedBy: "So1o Freelancer",
 };
 
 export function generateQuoteNumber(): string {

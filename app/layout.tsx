@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "FreelanceSolo — โปรแกรมช่วยคำนวณราคาและทำใบเสนอราคาออนไลน์",
+  title: "So1o Freelancer — โปรแกรมช่วยคำนวณราคาและทำใบเสนอราคาออนไลน์",
   description:
     "เครื่องมือฟรีสำหรับฟรีแลนซ์ คำนวณราคางานและสร้างใบเสนอราคาแบบมืออาชีพ",
 };

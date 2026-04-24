@@ -3,7 +3,7 @@
 ## ขั้นตอนตั้งค่า
 
 ### 1. สร้าง Google Sheet
-สร้าง Google Sheet ใหม่ 1 ไฟล์ ตั้งชื่อตามใจชอบ (เช่น `FreelanceSolo Data`)
+สร้าง Google Sheet ใหม่ 1 ไฟล์ ตั้งชื่อตามใจชอบ (เช่น `So1o Freelancer Data`)
 
 ภายในไฟล์มี 3 sheets:
 
@@ -38,7 +38,7 @@
 1. กดปุ่ม **Deploy → New deployment**
 2. คลิกไอคอนเฟือง → เลือก **Web app**
 3. ตั้งค่า:
-   - **Description**: FreelanceSolo API
+   - **Description**: So1o Freelancer API
    - **Execute as**: `Me (your-email@gmail.com)`
    - **Who has access**: `Anyone`  ← สำคัญมาก!
 4. กด **Deploy**
@@ -119,7 +119,7 @@ function doGet(e) {
       return json({ ok: true, totalQuotes: totalQuotes, activeUsers: activeUsers });
     }
 
-    return json({ ok: true, message: "FreelanceSolo API is running" });
+    return json({ ok: true, message: "So1o Freelancer API is running" });
   } catch (err) {
     return json({ ok: false, error: String(err) });
   }

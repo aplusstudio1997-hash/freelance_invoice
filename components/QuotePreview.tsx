@@ -67,7 +67,7 @@ export default function QuotePreview({
                 )}
                 <div className="min-w-0 flex-1">
                   <div className="text-base sm:text-lg font-bold text-gray-800 truncate">
-                    {profile.studioName || "FreelanceSolo"}
+                    {profile.studioName || "So1o Freelancer"}
                   </div>
                   <div className="text-[10px] text-gray-500 mt-0.5 leading-tight line-clamp-2">
                     {profile.tagline}
@@ -401,9 +401,9 @@ export default function QuotePreview({
           <div className="flex items-center justify-end gap-1.5 pt-3 border-t border-gray-100 text-[9px] text-gray-500">
             <span>Free to Create, Easy to Manage by</span>
             <div className="w-4 h-4 rounded bg-brand-500 text-white flex items-center justify-center font-bold text-[8px]">
-              FS
+              SF
             </div>
-            <span className="font-semibold text-gray-700">FreelanceSolo</span>
+            <span className="font-semibold text-gray-700">So1o Freelancer</span>
           </div>
         </div>
       </div>

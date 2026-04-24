@@ -15,7 +15,7 @@ export default function ShareModal({ open, onClose }: Props) {
 
   const url =
     typeof window !== "undefined" ? window.location.origin : "";
-  const text = "FreelanceSolo — เครื่องมือคำนวณราคาและทำใบเสนอราคาฟรีสำหรับฟรีแลนซ์";
+  const text = "So1o Freelancer — เครื่องมือคำนวณราคาและทำใบเสนอราคาฟรีสำหรับฟรีแลนซ์";
 
   const shareFacebook = () => {
     const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
