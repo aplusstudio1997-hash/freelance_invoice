@@ -117,7 +117,6 @@ export default function PrintPage() {
           useCORS: true,
           backgroundColor: "#ffffff",
           logging: false,
-          letterRendering: true,
           allowTaint: true,
           imageTimeout: 0,
           windowWidth: CONTENT_W_PX,
