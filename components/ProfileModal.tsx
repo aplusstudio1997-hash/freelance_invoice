@@ -64,10 +64,11 @@ export default function ProfileModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4"
+      className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
     >
       <div
-        className="bg-white rounded-xl max-w-md w-full shadow-xl animate-fadeIn flex flex-col mx-3 mb-8 sm:mx-0 sm:mb-0 max-h-[calc(100dvh-4rem)] sm:max-h-[calc(100vh-2rem)]"
+        className="bg-white rounded-xl max-w-md w-full shadow-xl animate-fadeIn flex flex-col"
+        style={{ maxHeight: "calc(100dvh - 80px)" }}
               >
         <div className="px-5 py-4 border-b border-gray-100">
           <div className="flex items-center justify-between">
