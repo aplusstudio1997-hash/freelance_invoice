@@ -89,18 +89,23 @@ export default function PrintPage() {
         .set({
           margin: 0,
           filename,
-          image: { type: "jpeg", quality: 0.98 },
+          image: { type: "png" },
           html2canvas: {
-            scale: 2,
+            scale: 3,
             useCORS: true,
             backgroundColor: "#ffffff",
             logging: false,
+            letterRendering: true,
+            allowTaint: true,
+            imageTimeout: 0,
+            windowWidth: 794,
           },
           jsPDF: {
             unit: "mm",
             format: "a4",
             orientation: "portrait",
             compress: true,
+            precision: 16,
           },
           pagebreak: { mode: ["css", "legacy"] },
         })
@@ -151,15 +156,6 @@ export default function PrintPage() {
     }, 500);
     return () => clearTimeout(t);
   }, [ready]);
-
-  useEffect(() => {
-    if (!ready) return;
-    const t = setTimeout(() => {
-      downloadPdf();
-    }, 800);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, milestonesInline]);
 
   if (!ready) {
     return (
@@ -260,7 +256,7 @@ export default function PrintPage() {
           <div className="text-sm text-gray-600">
             {generating
               ? "กำลังสร้าง PDF... กรุณารอสักครู่"
-              : "PDF จะถูกดาวน์โหลดอัตโนมัติ ถ้าไม่โหลดกดปุ่มด้านขวา"}
+              : "ตรวจสอบเอกสารก่อนดาวน์โหลด แล้วกดปุ่มด้านขวา"}
           </div>
           <div className="flex gap-2">
             <button
@@ -638,10 +634,9 @@ export default function PrintPage() {
           <div
             key={i}
             className="page-break-indicator no-print"
+            data-label={`— ขอบหน้า ${i + 1} / ${i + 2} —`}
             style={{ top: `${y}px` }}
-          >
-            ↓ หน้า {i + 2} ↓
-          </div>
+          />
         ))}
 
         <Watermark />
@@ -654,10 +649,9 @@ export default function PrintPage() {
             <div
               key={i}
               className="page-break-indicator no-print"
+              data-label={`— ขอบหน้า —`}
               style={{ top: `${y}px` }}
-            >
-              ↓ หน้าถัดไป ↓
-            </div>
+            />
           ))}
           <Watermark />
         </div>
@@ -687,20 +681,26 @@ export default function PrintPage() {
         }
         .page-break-indicator {
           position: absolute;
-          left: -20px;
-          right: -20px;
-          height: 20px;
-          background: #e5e7eb;
-          box-shadow:
-            0 -4px 20px rgba(0, 0, 0, 0.08) inset,
-            0 4px 20px rgba(0, 0, 0, 0.08) inset;
+          left: -30px;
+          right: -30px;
+          height: 0;
+          border-top: 1px dashed #94a3b8;
           pointer-events: none;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          z-index: 1;
+        }
+        .page-break-indicator::before {
+          content: attr(data-label);
+          position: absolute;
+          top: -10px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: #e5e7eb;
+          padding: 2px 12px;
           font-size: 10px;
-          color: #94a3b8;
+          color: #64748b;
           font-weight: 500;
+          border-radius: 10px;
+          white-space: nowrap;
         }
         .print-page section {
           page-break-inside: avoid;
