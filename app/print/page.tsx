@@ -15,6 +15,7 @@ export default function PrintPage() {
   const [data, setData] = useState<QuoteSettings>(DEFAULT_QUOTE);
   const [profile, setProfile] = useState<Profile>(DEFAULT_PROFILE);
   const [ready, setReady] = useState(false);
+  const [milestonesInline, setMilestonesInline] = useState(false);
 
   useEffect(() => {
     setData(loadDraft());
@@ -25,7 +26,16 @@ export default function PrintPage() {
   useEffect(() => {
     if (!ready) return;
     const t = setTimeout(() => {
-      window.print();
+      const mainPage = document.querySelector(
+        ".print-page:not(.milestones-page)"
+      ) as HTMLElement | null;
+      if (mainPage) {
+        const mmPerPx = 25.4 / 96;
+        const heightMm = mainPage.offsetHeight * mmPerPx;
+        const usableHeight = 297 - 15 - 22;
+        setMilestonesInline(heightMm > usableHeight + 5);
+      }
+      setTimeout(() => window.print(), 100);
     }, 500);
     return () => clearTimeout(t);
   }, [ready]);
@@ -75,6 +85,46 @@ export default function PrintPage() {
       <span className="font-semibold">So1o Freelancer</span>
     </div>
   );
+
+  const MilestonesBlock = ({ inline }: { inline: boolean }) => (
+    <section className={inline ? "pt-4 mt-4 border-t border-gray-200" : "milestones-content"}>
+      <div className="text-xs text-gray-500 uppercase tracking-wide mb-3">
+        ลำดับงานและกำหนดส่ง
+      </div>
+      <div className="relative pl-2">
+        {milestones.map((m, i) => {
+          const isLast = i === milestones.length - 1;
+          const isEndpoint = m.type === "deposit" || m.type === "final";
+          return (
+            <div key={m.id} className="relative flex gap-3 pb-3 last:pb-0">
+              {!isLast && (
+                <div
+                  className="absolute left-[7px] top-4 w-0.5 bg-gray-300"
+                  style={{ height: "calc(100% - 0.5rem)" }}
+                />
+              )}
+              <div className="relative z-10 shrink-0 mt-1">
+                <div
+                  className={`w-4 h-4 rounded-full border-2 border-brand-500 ${
+                    isEndpoint ? "bg-brand-500" : "bg-white"
+                  }`}
+                />
+              </div>
+              <div className="flex-1 flex items-center justify-between gap-2 text-sm border-b border-gray-100 pb-2">
+                <span className="font-medium text-gray-800">{m.label}</span>
+                <span className="text-xs text-gray-500 tabular-nums">
+                  {m.date ? fmtDate(m.date) : "—"}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+
+  const hasMilestones =
+    !!data.startDate && !!data.endDate && milestones.length > 0;
 
   return (
     <>
@@ -454,48 +504,14 @@ export default function PrintPage() {
           </section>
         )}
 
+        {hasMilestones && milestonesInline && <MilestonesBlock inline />}
+
         <Watermark />
       </div>
 
-      {data.startDate && data.endDate && milestones.length > 0 && (
+      {hasMilestones && !milestonesInline && (
         <div className="print-page milestones-page">
-          <section className="milestones-content">
-            <div className="text-xs text-gray-500 uppercase tracking-wide mb-3">
-              ลำดับงานและกำหนดส่ง
-            </div>
-            <div className="relative pl-2">
-              {milestones.map((m, i) => {
-                const isLast = i === milestones.length - 1;
-                const isEndpoint = m.type === "deposit" || m.type === "final";
-                return (
-                  <div key={m.id} className="relative flex gap-3 pb-3 last:pb-0">
-                    {!isLast && (
-                      <div
-                        className="absolute left-[7px] top-4 w-0.5 bg-gray-300"
-                        style={{ height: "calc(100% - 0.5rem)" }}
-                      />
-                    )}
-                    <div className="relative z-10 shrink-0 mt-1">
-                      <div
-                        className={`w-4 h-4 rounded-full border-2 border-brand-500 ${
-                          isEndpoint ? "bg-brand-500" : "bg-white"
-                        }`}
-                      />
-                    </div>
-                    <div className="flex-1 flex items-center justify-between gap-2 text-sm border-b border-gray-100 pb-2">
-                      <span className="font-medium text-gray-800">
-                        {m.label}
-                      </span>
-                      <span className="text-xs text-gray-500 tabular-nums">
-                        {m.date ? fmtDate(m.date) : "—"}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-
+          <MilestonesBlock inline={false} />
           <Watermark />
         </div>
       )}
