@@ -177,7 +177,7 @@ export function buildMilestones(
     {
       id: "deposit",
       label: "มัดจำ / เริ่มงาน",
-      date: deposit?.date || startDate || getAutoDate(0, total),
+      date: startDate || deposit?.date || getAutoDate(0, total),
       type: "deposit",
     },
     {
@@ -189,7 +189,7 @@ export function buildMilestones(
     {
       id: "final",
       label: "ส่งมอบสุดท้าย",
-      date: final?.date || endDate || getAutoDate(total - 1, total),
+      date: endDate || final?.date || getAutoDate(total - 1, total),
       type: "final",
     },
   ];

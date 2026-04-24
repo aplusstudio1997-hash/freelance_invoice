@@ -185,7 +185,7 @@ export default function ServicesPanel({
                 </div>
                 <div>
                   <label className="text-[10px] text-gray-500 block mb-1">
-                    จำนวน
+                    จำนวน (ชิ้นงาน)
                   </label>
                   <input
                     type="number"

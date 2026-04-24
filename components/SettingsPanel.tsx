@@ -1,6 +1,6 @@
 "use client";
 
-import { QuoteSettings, ExtraOption, generateQuoteNumber } from "@/lib/types";
+import { QuoteSettings, ExtraOption } from "@/lib/types";
 import {
   ChevronDown,
   ChevronRight,
@@ -13,7 +13,6 @@ import {
   Settings2,
   Sliders,
   Hash,
-  Wand2,
 } from "lucide-react";
 import { useState } from "react";
 import ExtraEditModal from "./ExtraEditModal";
@@ -126,21 +125,12 @@ export default function SettingsPanel({
               icon={<Hash size={15} className="text-cyan-500" />}
               label="เลขที่ใบเสนอราคา"
             />
-            <div className="flex gap-2">
-              <input
-                placeholder="QT-2025-001"
-                value={data.quoteNumber}
-                onChange={(e) => update({ quoteNumber: e.target.value })}
-                className="flex-1 border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200"
-              />
-              <button
-                onClick={() => update({ quoteNumber: generateQuoteNumber() })}
-                className="px-3 py-2.5 border border-brand-200 text-brand-600 rounded-md hover:bg-brand-50 transition flex items-center gap-1 text-xs whitespace-nowrap"
-                title="สร้างเลขที่อัตโนมัติ"
-              >
-                <Wand2 size={13} /> Auto
-              </button>
-            </div>
+            <input
+              placeholder="QT-2025-001"
+              value={data.quoteNumber}
+              onChange={(e) => update({ quoteNumber: e.target.value })}
+              className="w-full border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200"
+            />
           </section>
 
           <section>

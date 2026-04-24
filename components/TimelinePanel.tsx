@@ -41,11 +41,14 @@ export default function TimelinePanel({
   }, [computedMilestones, data.milestones, update]);
 
   const updateMilestoneDate = (id: string, date: string) => {
-    update({
+    const patch: Partial<typeof data> = {
       milestones: computedMilestones.map((m) =>
         m.id === id ? { ...m, date } : m
       ),
-    });
+    };
+    if (id === "deposit") patch.startDate = date;
+    if (id === "final") patch.endDate = date;
+    update(patch);
   };
 
   if (collapsed) {
