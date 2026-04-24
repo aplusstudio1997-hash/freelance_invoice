@@ -677,14 +677,14 @@ export default function PrintPage() {
               discount
             />
           )}
-          <div className="flex justify-between py-2 px-3 mt-1.5 bg-orange-50 rounded text-brand-600 font-semibold">
+          <div className="flex justify-between items-center py-2.5 px-3 mt-1.5 bg-orange-50 rounded text-brand-600 font-semibold leading-none">
             <span>รวมทั้งสิ้น</span>
             <span className="tabular-nums">
               {currencySymbol}
               {fmt(calc.total)}
             </span>
           </div>
-          <div className="flex justify-between py-2 px-3 bg-orange-50 rounded text-brand-600 font-semibold">
+          <div className="flex justify-between items-center py-2.5 px-3 bg-orange-50 rounded text-brand-600 font-semibold leading-none">
             <span>มัดจำที่ต้องชำระ</span>
             <span className="tabular-nums">
               {currencySymbol}
@@ -693,9 +693,9 @@ export default function PrintPage() {
           </div>
         </section>
 
-        <section className="bg-orange-50 border-l-4 border-brand-500 px-3 py-2 rounded mb-4">
-          <div className="text-[10px] text-gray-500 mb-0.5">เงื่อนไขการชำระ</div>
-          <div className="text-xs font-medium text-gray-800">
+        <section className="bg-orange-50 border-l-4 border-brand-500 px-3 py-3 rounded mb-4">
+          <div className="text-[10px] text-gray-500 mb-1 leading-none">เงื่อนไขการชำระ</div>
+          <div className="text-xs font-medium text-gray-800 leading-none">
             {data.paymentCondition} (มัดจำ {termLabel[data.paymentTerm]})
           </div>
         </section>
