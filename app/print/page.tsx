@@ -677,14 +677,36 @@ export default function PrintPage() {
               discount
             />
           )}
-          <div className="flex justify-between items-center py-2.5 px-3 mt-1.5 bg-orange-50 rounded text-brand-600 font-semibold leading-none">
+          <div
+            className="flex justify-between bg-orange-50 rounded text-brand-600 font-semibold mt-1.5"
+            style={{
+              alignItems: "center",
+              minHeight: "32px",
+              paddingLeft: "12px",
+              paddingRight: "12px",
+              paddingTop: "10px",
+              paddingBottom: "6px",
+              lineHeight: 1,
+            }}
+          >
             <span>รวมทั้งสิ้น</span>
             <span className="tabular-nums">
               {currencySymbol}
               {fmt(calc.total)}
             </span>
           </div>
-          <div className="flex justify-between items-center py-2.5 px-3 bg-orange-50 rounded text-brand-600 font-semibold leading-none">
+          <div
+            className="flex justify-between bg-orange-50 rounded text-brand-600 font-semibold"
+            style={{
+              alignItems: "center",
+              minHeight: "32px",
+              paddingLeft: "12px",
+              paddingRight: "12px",
+              paddingTop: "10px",
+              paddingBottom: "6px",
+              lineHeight: 1,
+            }}
+          >
             <span>มัดจำที่ต้องชำระ</span>
             <span className="tabular-nums">
               {currencySymbol}
@@ -693,9 +715,19 @@ export default function PrintPage() {
           </div>
         </section>
 
-        <section className="bg-orange-50 border-l-4 border-brand-500 px-3 py-3 rounded mb-4">
-          <div className="text-[10px] text-gray-500 mb-1 leading-none">เงื่อนไขการชำระ</div>
-          <div className="text-xs font-medium text-gray-800 leading-none">
+        <section
+          className="bg-orange-50 border-l-4 border-brand-500 rounded mb-4"
+          style={{
+            paddingLeft: "12px",
+            paddingRight: "12px",
+            paddingTop: "12px",
+            paddingBottom: "8px",
+          }}
+        >
+          <div className="text-[10px] text-gray-500" style={{ marginBottom: "4px", lineHeight: 1 }}>
+            เงื่อนไขการชำระ
+          </div>
+          <div className="text-xs font-medium text-gray-800" style={{ lineHeight: 1 }}>
             {data.paymentCondition} (มัดจำ {termLabel[data.paymentTerm]})
           </div>
         </section>
