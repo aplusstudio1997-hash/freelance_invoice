@@ -107,16 +107,6 @@ export default function PrintPage() {
           min-height: 0;
           position: static;
         `;
-        clone.querySelectorAll<HTMLElement>(
-          ".bg-orange-50, .bg-brand-50, .bg-green-50, .bg-yellow-50"
-        ).forEach((el) => {
-          const cs = window.getComputedStyle(el);
-          const pt = parseFloat(cs.paddingTop) || 0;
-          const pb = parseFloat(cs.paddingBottom) || 0;
-          const totalY = pt + pb;
-          el.style.paddingTop = `${totalY * 0.7}px`;
-          el.style.paddingBottom = `${totalY * 0.3}px`;
-        });
         offscreen.innerHTML = "";
         offscreen.appendChild(clone);
 
