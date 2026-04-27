@@ -96,7 +96,7 @@ export default function PrintPage() {
       for (const src of sourcePages) {
         const clone = src.cloneNode(true) as HTMLElement;
         clone
-          .querySelectorAll(".page-break-indicator,.page-watermark")
+          .querySelectorAll(".page-break-indicator,.page-watermark,.last-page-watermark")
           .forEach((el) => el.remove());
         clone.style.cssText = `
           width: ${CONTENT_W_PX}px;
@@ -107,6 +107,16 @@ export default function PrintPage() {
           min-height: 0;
           position: static;
         `;
+        clone.querySelectorAll<HTMLElement>(
+          ".bg-orange-50, .bg-brand-50, .bg-green-50, .bg-yellow-50"
+        ).forEach((el) => {
+          const cs = window.getComputedStyle(el);
+          const pt = parseFloat(cs.paddingTop) || 0;
+          const pb = parseFloat(cs.paddingBottom) || 0;
+          const totalY = pt + pb;
+          el.style.paddingTop = `${totalY * 0.7}px`;
+          el.style.paddingBottom = `${totalY * 0.3}px`;
+        });
         offscreen.innerHTML = "";
         offscreen.appendChild(clone);
 
@@ -575,9 +585,7 @@ export default function PrintPage() {
                   </td>
                 </tr>
               ) : (
-                data.services.map((s) => {
-                  const qty = Math.max(1, s.quantity || 1);
-                  const lineTotal = s.free ? 0 : s.price * qty;
+                calc.adjustedServices.map((s) => {
                   return (
                     <tr key={s.id} className="border-b border-gray-100">
                       <td className="py-1.5 align-top">
@@ -588,10 +596,10 @@ export default function PrintPage() {
                               แถมฟรี
                             </span>
                           ) : (
-                            qty > 1 && (
+                            s.quantity > 1 && (
                               <span className="text-[11px] text-gray-400 whitespace-nowrap">
                                 @ {currencySymbol}
-                                {fmt(s.price)} × {qty}
+                                {fmt(s.adjustedUnitPrice)} × {s.quantity}
                               </span>
                             )
                           )}
@@ -603,24 +611,13 @@ export default function PrintPage() {
                         )}
                       </td>
                       <td className="py-1.5 text-right tabular-nums align-top whitespace-nowrap">
-                        {s.free ? "—" : fmt(lineTotal)}
+                        {s.free ? "—" : fmt(s.total)}
                       </td>
                     </tr>
                   );
                 })
               )}
 
-              {calc.difficultyBreakdown.map((x, i) => (
-                <tr
-                  key={`diff-${i}`}
-                  className="border-b border-gray-100 text-gray-600"
-                >
-                  <td className="py-1.5 text-sm">{x.label}</td>
-                  <td className="py-1.5 text-right tabular-nums">
-                    {fmt(x.amount)}
-                  </td>
-                </tr>
-              ))}
               {calc.extrasBreakdown.map((x, i) => (
                 <tr
                   key={`ex-${i}`}

@@ -247,6 +247,10 @@ export default function SettingsPanel({
                     </button>
                   </div>
                 ))}
+                <p className="text-[11px] text-gray-500 leading-relaxed pt-1 px-1">
+                  💡 รายการเหล่านี้จะ<span className="font-medium text-gray-600">ไม่แสดง</span>ในใบเสนอราคา
+                  แต่จะเอา % รวมไปบวกในราคาบริการแทน (ปัดหลักสิบขึ้น)
+                </p>
               </div>
             )}
           </section>

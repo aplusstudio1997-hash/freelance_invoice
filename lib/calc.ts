@@ -1,9 +1,22 @@
 import { QuoteSettings } from "./types";
 
+export interface AdjustedService {
+  id: string;
+  name: string;
+  description: string;
+  unitPrice: number;
+  adjustedUnitPrice: number;
+  quantity: number;
+  free: boolean;
+  total: number;
+}
+
 export interface CalcResult {
   servicesSubtotal: number;
   difficultyFee: number;
   difficultyBreakdown: { label: string; amount: number }[];
+  totalDifficultyPercent: number;
+  adjustedServices: AdjustedService[];
   extrasFee: number;
   extrasBreakdown: { label: string; amount: number }[];
   hiddenCostNum: number;
@@ -37,24 +50,39 @@ function workingDaysBetween(start: string, end: string): number {
 }
 
 export function calculate(q: QuoteSettings): CalcResult {
-  const servicesSubtotal = q.services.reduce((acc, s) => {
-    if (s.free) return acc;
-    const qty = Math.max(1, Number(s.quantity) || 1);
-    return acc + (Number(s.price) || 0) * qty;
-  }, 0);
+  const totalDifficultyPercent = (q.difficulties || []).reduce(
+    (acc, x) => (x.enabled && x.percent > 0 ? acc + x.percent : acc),
+    0
+  );
+  const difficultyMultiplier = 1 + totalDifficultyPercent / 100;
 
-  let difficultyFee = 0;
-  const difficultyBreakdown: { label: string; amount: number }[] = [];
-  (q.difficulties || []).forEach((x) => {
-    if (x.enabled && x.percent > 0) {
-      const amount = servicesSubtotal * (x.percent / 100);
-      difficultyFee += amount;
-      difficultyBreakdown.push({
-        label: `${x.label} (+${x.percent}%)`,
-        amount,
-      });
+  const adjustedServices: AdjustedService[] = q.services.map((s) => {
+    const unitPrice = Number(s.price) || 0;
+    const qty = Math.max(1, Number(s.quantity) || 1);
+    let adjustedUnitPrice = unitPrice;
+    if (!s.free && totalDifficultyPercent > 0 && unitPrice > 0) {
+      const raised = unitPrice * difficultyMultiplier;
+      adjustedUnitPrice = Math.ceil(raised / 10) * 10;
     }
+    return {
+      id: s.id,
+      name: s.name,
+      description: s.description || "",
+      unitPrice,
+      adjustedUnitPrice,
+      quantity: qty,
+      free: s.free,
+      total: s.free ? 0 : adjustedUnitPrice * qty,
+    };
   });
+
+  const servicesSubtotal = adjustedServices.reduce(
+    (acc, s) => acc + s.total,
+    0
+  );
+
+  const difficultyFee = 0;
+  const difficultyBreakdown: { label: string; amount: number }[] = [];
 
   let extrasFee = 0;
   const extrasBreakdown: { label: string; amount: number }[] = [];
@@ -68,8 +96,7 @@ export function calculate(q: QuoteSettings): CalcResult {
 
   const hiddenCostNum = Number(q.hiddenCost) || 0;
 
-  const preDiscount =
-    servicesSubtotal + difficultyFee + extrasFee + hiddenCostNum;
+  const preDiscount = servicesSubtotal + extrasFee + hiddenCostNum;
 
   const discountValue =
     q.discountUnit === "baht"
@@ -101,6 +128,8 @@ export function calculate(q: QuoteSettings): CalcResult {
     servicesSubtotal,
     difficultyFee,
     difficultyBreakdown,
+    totalDifficultyPercent,
+    adjustedServices,
     extrasFee,
     extrasBreakdown,
     hiddenCostNum,

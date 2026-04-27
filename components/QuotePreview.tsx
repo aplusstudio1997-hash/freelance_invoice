@@ -193,9 +193,7 @@ export default function QuotePreview({
                     </td>
                   </tr>
                 ) : (
-                  data.services.map((s) => {
-                    const qty = Math.max(1, s.quantity || 1);
-                    const lineTotal = s.free ? 0 : s.price * qty;
+                  calc.adjustedServices.map((s) => {
                     return (
                       <tr key={s.id} className="border-b border-gray-100">
                         <td className="py-1.5 pr-2 align-top">
@@ -206,10 +204,10 @@ export default function QuotePreview({
                                 ฟรี
                               </span>
                             ) : (
-                              qty > 1 && (
+                              s.quantity > 1 && (
                                 <span className="text-[10px] text-gray-400 whitespace-nowrap">
                                   @ {currencySymbol}
-                                  {fmt(s.price)} × {qty}
+                                  {fmt(s.adjustedUnitPrice)} × {s.quantity}
                                 </span>
                               )
                             )}
@@ -221,25 +219,13 @@ export default function QuotePreview({
                           )}
                         </td>
                         <td className="py-1.5 text-right tabular-nums whitespace-nowrap align-top">
-                          {s.free ? "—" : `${currencySymbol}${fmt(lineTotal)}`}
+                          {s.free ? "—" : `${currencySymbol}${fmt(s.total)}`}
                         </td>
                       </tr>
                     );
                   })
                 )}
 
-                {calc.difficultyBreakdown.map((x, i) => (
-                  <tr
-                    key={`diff-${i}`}
-                    className="border-b border-gray-100 text-gray-600"
-                  >
-                    <td className="py-1.5">{x.label}</td>
-                    <td className="py-1.5 text-right tabular-nums">
-                      {currencySymbol}
-                      {fmt(x.amount)}
-                    </td>
-                  </tr>
-                ))}
                 {calc.extrasBreakdown.map((x, i) => (
                   <tr
                     key={`ex-${i}`}

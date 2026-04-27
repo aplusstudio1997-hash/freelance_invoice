@@ -172,7 +172,7 @@ export default function Home() {
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-brand-500 text-white flex items-center justify-center font-bold shrink-0">
             SF
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <h1 className="font-bold text-gray-800 truncate text-sm sm:text-base">
                 So1o Freelancer
@@ -180,11 +180,14 @@ export default function Home() {
               <span className="text-[9px] sm:text-[10px] bg-brand-500 text-white px-1.5 py-0.5 rounded font-semibold">
                 BETA
               </span>
-              <StatsBadge totalQuotes={stats.totalQuotes} activeUsers={stats.activeUsers} />
             </div>
-            <p className="text-[10px] sm:text-xs text-gray-500 truncate">
-              โปรแกรมช่วยคำนวณราคาและทำใบเสนอราคาออนไลน์
-            </p>
+            {stats.totalQuotes !== null ? (
+              <StatsBadge totalQuotes={stats.totalQuotes} activeUsers={stats.activeUsers} />
+            ) : (
+              <p className="text-[10px] sm:text-xs text-gray-500 truncate">
+                โปรแกรมช่วยคำนวณราคาและทำใบเสนอราคาออนไลน์
+              </p>
+            )}
           </div>
         </div>
 
