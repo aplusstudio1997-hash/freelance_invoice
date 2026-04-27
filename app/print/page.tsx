@@ -440,13 +440,9 @@ export default function PrintPage() {
           <div className="text-right shrink-0">
             <div
               style={{
-                display: "inline-block",
-                backgroundColor: "#f97316",
-                color: "#ffffff",
-                padding: "8px 18px",
-                borderRadius: "4px",
-                fontWeight: 600,
-                fontSize: "16px",
+                color: "#f97316",
+                fontWeight: 700,
+                fontSize: "22px",
                 marginBottom: "8px",
                 lineHeight: 1,
               }}
