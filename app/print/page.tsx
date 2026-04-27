@@ -443,12 +443,12 @@ export default function PrintPage() {
                 display: "inline-block",
                 backgroundColor: "#f97316",
                 color: "#ffffff",
-                padding: "6px 16px",
+                padding: "8px 18px",
                 borderRadius: "4px",
                 fontWeight: 600,
-                fontSize: "14px",
+                fontSize: "16px",
                 marginBottom: "8px",
-                lineHeight: "1.5",
+                lineHeight: 1,
               }}
             >
               ใบเสนอราคา
