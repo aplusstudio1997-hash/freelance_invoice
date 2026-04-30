@@ -172,7 +172,7 @@ export default function PdfSettingsSidebar({
 
   return (
     <>
-      <aside className="pdf-settings-sidebar pdf-settings-desktop no-print">
+      <aside className="pdf-settings-desktop no-print">
         <div className="sidebar-inner">
           <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
             <Settings2 size={16} className="text-brand-500" />

@@ -925,21 +925,23 @@ export default function PrintPage() {
         .pdf-settings-mobile {
           display: none;
         }
-        @media (max-width: 1100px) {
+        @media (max-width: 1280px) {
           .print-layout {
-            padding: 0;
+            padding: 0 !important;
+            gap: 0 !important;
           }
           .pdf-settings-desktop {
-            display: none;
+            display: none !important;
           }
           .pdf-settings-mobile {
-            display: block;
+            display: block !important;
             position: sticky;
             top: 56px;
             z-index: 9;
           }
           .print-pages-area {
             width: 100%;
+            overflow-x: auto;
           }
         }
         .print-page {
