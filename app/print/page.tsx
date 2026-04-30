@@ -10,6 +10,31 @@ import {
 } from "@/lib/types";
 import { loadDraft, loadProfile } from "@/lib/storage";
 import { calculate, fmt, fmtDate, buildMilestones } from "@/lib/calc";
+import PdfSettingsSidebar, {
+  PdfVisibility,
+  DEFAULT_VISIBILITY,
+} from "@/components/PdfSettingsSidebar";
+
+const VIS_STORAGE_KEY = "freelance-solo-pdf-visibility";
+
+function loadVisibility(): PdfVisibility {
+  if (typeof window === "undefined") return DEFAULT_VISIBILITY;
+  try {
+    const raw = localStorage.getItem(VIS_STORAGE_KEY);
+    if (!raw) return DEFAULT_VISIBILITY;
+    const parsed = JSON.parse(raw);
+    return { ...DEFAULT_VISIBILITY, ...parsed };
+  } catch {
+    return DEFAULT_VISIBILITY;
+  }
+}
+
+function saveVisibility(v: PdfVisibility) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(VIS_STORAGE_KEY, JSON.stringify(v));
+  } catch {}
+}
 
 function sanitizeForFilename(s: string): string {
   return s
@@ -44,10 +69,22 @@ export default function PrintPage() {
   const [pageBreaks, setPageBreaks] = useState<
     Record<string, number[]>
   >({});
+  const [visibility, setVisibilityState] =
+    useState<PdfVisibility>(DEFAULT_VISIBILITY);
+
+  const setVisibility = (v: PdfVisibility) => {
+    setVisibilityState(v);
+    saveVisibility(v);
+  };
+  const resetVisibility = () => {
+    setVisibilityState(DEFAULT_VISIBILITY);
+    saveVisibility(DEFAULT_VISIBILITY);
+  };
 
   useEffect(() => {
     setData(loadDraft());
     setProfile(loadProfile());
+    setVisibilityState(loadVisibility());
     setReady(true);
   }, []);
 
@@ -305,7 +342,7 @@ export default function PrintPage() {
       }
     }, 500);
     return () => clearTimeout(t);
-  }, [ready]);
+  }, [ready, visibility]);
 
   if (!ready) {
     return (
@@ -388,30 +425,30 @@ export default function PrintPage() {
   return (
     <>
       <div className="print-toolbar no-print">
-        <div className="max-w-[210mm] mx-auto flex items-center justify-between py-3 px-4">
-          <div className="text-sm text-gray-600">
+        <div className="w-full flex flex-wrap items-center justify-between gap-2 py-3 px-3 sm:px-4">
+          <div className="text-xs sm:text-sm text-gray-600 flex-1 min-w-0">
             {generating
               ? "กำลังสร้าง PDF... กรุณารอสักครู่"
-              : "ตรวจสอบเอกสารก่อนดาวน์โหลด แล้วกดปุ่มด้านขวา"}
+              : "ตรวจสอบเอกสารก่อนดาวน์โหลด"}
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-1.5 sm:gap-2 shrink-0">
             <button
               onClick={downloadPdf}
               disabled={generating}
-              className="bg-brand-500 hover:bg-brand-600 disabled:bg-brand-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md text-sm font-medium"
+              className="bg-brand-500 hover:bg-brand-600 disabled:bg-brand-300 disabled:cursor-not-allowed text-white px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium whitespace-nowrap"
             >
-              {generating ? "กำลังสร้าง PDF..." : "ดาวน์โหลด PDF"}
+              {generating ? "กำลังสร้าง..." : "ดาวน์โหลด PDF"}
             </button>
             <button
               onClick={() => window.print()}
-              className="border border-gray-300 text-gray-600 hover:bg-gray-50 px-4 py-2 rounded-md text-sm"
+              className="border border-gray-300 text-gray-600 hover:bg-gray-50 px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm whitespace-nowrap"
               title="พิมพ์ผ่าน print dialog (สำรอง)"
             >
               พิมพ์
             </button>
             <button
               onClick={() => window.close()}
-              className="border border-gray-200 text-gray-600 px-4 py-2 rounded-md text-sm"
+              className="border border-gray-200 text-gray-600 px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm whitespace-nowrap"
             >
               ปิด
             </button>
@@ -419,6 +456,13 @@ export default function PrintPage() {
         </div>
       </div>
 
+      <div className="print-layout">
+        <PdfSettingsSidebar
+          visibility={visibility}
+          onChange={setVisibility}
+          onReset={resetVisibility}
+        />
+        <div className="print-pages-area">
       <div className="print-page page-1">
         <header className="flex items-start justify-between pb-4 border-b-[3px] border-brand-500">
           <div className="flex items-start gap-3 flex-1 pr-4">
@@ -464,79 +508,94 @@ export default function PrintPage() {
           </div>
         </header>
 
+        {(visibility.contactFrom || visibility.contactTo) && (
         <section className="grid grid-cols-2 gap-6 mt-4 mb-3">
-          <div>
-            <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">
-              จาก / From
+          {visibility.contactFrom ? (
+            <div>
+              <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">
+                จาก / From
+              </div>
+              <div className="font-semibold text-gray-800 mb-0.5">
+                {profile.ownerName || profile.studioName || "—"}
+              </div>
+              {profile.phone && (
+                <div className="text-xs text-gray-600">โทร. {profile.phone}</div>
+              )}
+              {profile.email && (
+                <div className="text-xs text-gray-600">{profile.email}</div>
+              )}
+              {profile.address && (
+                <div className="text-xs text-gray-600 mt-1 whitespace-pre-line">
+                  {profile.address}
+                </div>
+              )}
+              {profile.taxId && (
+                <div className="text-xs text-gray-600 mt-1">
+                  เลขประจำตัว: {profile.taxId}
+                </div>
+              )}
+              {profile.socialLink && (
+                <div className="text-xs text-brand-600 mt-1">
+                  {profile.socialLink.replace(/^https?:\/\//, "")}
+                </div>
+              )}
             </div>
-            <div className="font-semibold text-gray-800 mb-0.5">
-              {profile.ownerName || profile.studioName || "—"}
+          ) : (
+            <div />
+          )}
+          {visibility.contactTo ? (
+            <div>
+              <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">
+                เรียน / สำหรับ
+              </div>
+              <div className="font-semibold text-gray-800 mb-0.5">
+                {data.customer.name || "—"}
+              </div>
+              {data.customer.phone && (
+                <div className="text-xs text-gray-600">
+                  โทร. {data.customer.phone}
+                </div>
+              )}
+              {data.customer.email && (
+                <div className="text-xs text-gray-600">{data.customer.email}</div>
+              )}
+              {data.customer.lineId && (
+                <div className="text-xs text-gray-600">
+                  Line: {data.customer.lineId}
+                </div>
+              )}
+              {data.customer.address && (
+                <div className="text-xs text-gray-600 mt-1 whitespace-pre-line">
+                  {data.customer.address}
+                </div>
+              )}
+              {data.customer.taxId && (
+                <div className="text-xs text-gray-600 mt-1">
+                  เลขประจำตัว: {data.customer.taxId}
+                </div>
+              )}
             </div>
-            {profile.phone && (
-              <div className="text-xs text-gray-600">โทร. {profile.phone}</div>
-            )}
-            {profile.email && (
-              <div className="text-xs text-gray-600">{profile.email}</div>
-            )}
-            {profile.address && (
-              <div className="text-xs text-gray-600 mt-1 whitespace-pre-line">
-                {profile.address}
-              </div>
-            )}
-            {profile.taxId && (
-              <div className="text-xs text-gray-600 mt-1">
-                เลขประจำตัว: {profile.taxId}
-              </div>
-            )}
-            {profile.socialLink && (
-              <div className="text-xs text-brand-600 mt-1">
-                {profile.socialLink.replace(/^https?:\/\//, "")}
-              </div>
-            )}
-          </div>
-          <div>
-            <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">
-              เรียน / สำหรับ
-            </div>
-            <div className="font-semibold text-gray-800 mb-0.5">
-              {data.customer.name || "—"}
-            </div>
-            {data.customer.phone && (
-              <div className="text-xs text-gray-600">
-                โทร. {data.customer.phone}
-              </div>
-            )}
-            {data.customer.email && (
-              <div className="text-xs text-gray-600">{data.customer.email}</div>
-            )}
-            {data.customer.lineId && (
-              <div className="text-xs text-gray-600">
-                Line: {data.customer.lineId}
-              </div>
-            )}
-            {data.customer.address && (
-              <div className="text-xs text-gray-600 mt-1 whitespace-pre-line">
-                {data.customer.address}
-              </div>
-            )}
-            {data.customer.taxId && (
-              <div className="text-xs text-gray-600 mt-1">
-                เลขประจำตัว: {data.customer.taxId}
-              </div>
-            )}
-          </div>
+          ) : (
+            <div />
+          )}
         </section>
+        )}
 
+        {(visibility.project || visibility.duration) && (
         <section className="flex items-start justify-between gap-4 pt-3 pb-3 mb-3 border-t border-gray-100">
-          <div className="min-w-0">
-            <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">
-              โครงการ
+          {visibility.project ? (
+            <div className="min-w-0">
+              <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">
+                โครงการ
+              </div>
+              <div className="font-semibold text-gray-800">
+                {data.projectName || "—"}
+              </div>
             </div>
-            <div className="font-semibold text-gray-800">
-              {data.projectName || "—"}
-            </div>
-          </div>
-          {data.startDate && (
+          ) : (
+            <div />
+          )}
+          {visibility.duration && data.startDate && (
             <div className="text-right shrink-0">
               <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">
                 ระยะเวลา
@@ -552,7 +611,9 @@ export default function PrintPage() {
             </div>
           )}
         </section>
+        )}
 
+        {visibility.services && (
         <section className="mb-4">
           <table className="w-full border-collapse">
             <thead>
@@ -604,7 +665,7 @@ export default function PrintPage() {
                 })
               )}
 
-              {calc.extrasBreakdown.map((x, i) => (
+              {visibility.extras && calc.extrasBreakdown.map((x, i) => (
                 <tr
                   key={`ex-${i}`}
                   className="border-b border-gray-100 text-gray-600"
@@ -615,7 +676,7 @@ export default function PrintPage() {
                   </td>
                 </tr>
               ))}
-              {calc.hiddenCostNum > 0 && (
+              {visibility.extras && calc.hiddenCostNum > 0 && (
                 <tr className="border-b border-gray-100 text-gray-600">
                   <td className="py-1.5 text-sm">ต้นทุนแฝงอื่นๆ</td>
                   <td className="py-1.5 text-right tabular-nums">
@@ -626,13 +687,14 @@ export default function PrintPage() {
             </tbody>
           </table>
         </section>
+        )}
 
         <section className="mb-4 ml-auto w-80 space-y-1 text-sm">
           <SummaryLine
             label="ยอดรวมก่อนภาษี"
             value={`${currencySymbol}${fmt(calc.preDiscount)}`}
           />
-          {calc.discountValue > 0 && (
+          {visibility.discount && calc.discountValue > 0 && (
             <SummaryLine
               label={`ส่วนลด${
                 data.discountUnit === "percent" ? ` (${data.discount}%)` : ""
@@ -641,19 +703,19 @@ export default function PrintPage() {
               discount
             />
           )}
-          {calc.discountValue > 0 && (
+          {visibility.discount && calc.discountValue > 0 && (
             <SummaryLine
               label="ยอดหลังหักส่วนลด"
               value={`${currencySymbol}${fmt(calc.afterDiscount)}`}
             />
           )}
-          {data.vat7 && (
+          {visibility.vat && data.vat7 && (
             <SummaryLine
               label="VAT 7%"
               value={`+${currencySymbol}${fmt(calc.vatAmount)}`}
             />
           )}
-          {data.tax3Percent && (
+          {visibility.withholding && data.tax3Percent && (
             <SummaryLine
               label="หัก ณ ที่จ่าย 3%"
               value={`−${currencySymbol}${fmt(calc.taxDeduction)}`}
@@ -678,6 +740,7 @@ export default function PrintPage() {
               {fmt(calc.total)}
             </span>
           </div>
+          {visibility.deposit && (
           <div
             className="flex justify-between bg-orange-50 rounded text-brand-600 font-semibold"
             style={{
@@ -696,8 +759,10 @@ export default function PrintPage() {
               {fmt(calc.deposit)}
             </span>
           </div>
+          )}
         </section>
 
+        {visibility.paymentCondition && (
         <section
           className="bg-orange-50 border-l-4 border-brand-500 rounded mb-4"
           style={{
@@ -714,8 +779,9 @@ export default function PrintPage() {
             {data.paymentCondition} (มัดจำ {termLabel[data.paymentTerm]})
           </div>
         </section>
+        )}
 
-        {hasPayment && (
+        {visibility.paymentChannel && hasPayment && (
           <section className="border border-gray-200 rounded-lg p-3 mb-4">
             <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-2">
               ช่องทางการชำระเงิน
@@ -759,6 +825,7 @@ export default function PrintPage() {
           </section>
         )}
 
+        {visibility.signature && (
         <section className="flex items-end justify-between mt-8 mb-4">
           <div>
             <div className="text-[10px] text-gray-500 mb-0.5">เตรียมโดย</div>
@@ -776,8 +843,9 @@ export default function PrintPage() {
             <div className="text-[10px] text-gray-500">ลงนามผู้เสนอราคา</div>
           </div>
         </section>
+        )}
 
-        {termsLines.length > 0 && (
+        {visibility.notes && termsLines.length > 0 && (
           <section className="pt-3 border-t border-gray-200">
             <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-1.5">
               หมายเหตุและเงื่อนไข
@@ -791,7 +859,7 @@ export default function PrintPage() {
           </section>
         )}
 
-        {hasMilestones && milestonesInline && <MilestonesBlock inline />}
+        {visibility.milestones && hasMilestones && milestonesInline && <MilestonesBlock inline />}
 
         {(pageBreaks["0"] || []).map((y, i) => (
           <div
@@ -803,7 +871,7 @@ export default function PrintPage() {
         ))}
       </div>
 
-      {hasMilestones && !milestonesInline && (
+      {visibility.milestones && hasMilestones && !milestonesInline && (
         <div className="print-page milestones-page">
           <MilestonesBlock inline={false} />
           {(pageBreaks["1"] || []).map((y, i) => (
@@ -816,6 +884,8 @@ export default function PrintPage() {
           ))}
         </div>
       )}
+        </div>
+      </div>
 
       <style jsx global>{`
         body {
@@ -827,6 +897,43 @@ export default function PrintPage() {
           background: white;
           border-bottom: 1px solid #e5e7eb;
           z-index: 10;
+        }
+        .print-layout {
+          display: flex;
+          align-items: flex-start;
+          justify-content: center;
+          gap: 20px;
+          padding: 0 20px;
+        }
+        .print-pages-area {
+          flex: 0 0 auto;
+        }
+        .pdf-settings-sidebar {
+          position: sticky;
+          top: 80px;
+          width: 240px;
+          flex: 0 0 240px;
+          margin-top: 20px;
+          align-self: flex-start;
+        }
+        .sidebar-inner {
+          background: white;
+          border-radius: 12px;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+          padding: 14px 14px 12px 14px;
+        }
+        @media (max-width: 1100px) {
+          .print-layout {
+            flex-direction: column;
+            align-items: center;
+          }
+          .pdf-settings-sidebar {
+            position: static;
+            width: 210mm;
+            flex: 0 0 auto;
+            margin-top: 20px;
+            margin-bottom: 0;
+          }
         }
         .print-page {
           width: 210mm;

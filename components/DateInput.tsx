@@ -1,7 +1,7 @@
 "use client";
 
 import { Calendar } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 interface Props {
   value: string;
@@ -53,7 +53,6 @@ export default function DateInput({
 }: Props) {
   const [display, setDisplay] = useState(isoToDisplay(value));
   const [focused, setFocused] = useState(false);
-  const hiddenRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!focused) setDisplay(isoToDisplay(value));
@@ -70,21 +69,6 @@ export default function DateInput({
     } else {
       setDisplay(isoToDisplay(value));
     }
-  };
-
-  const openPicker = () => {
-    const el = hiddenRef.current;
-    if (!el) return;
-    if (typeof (el as HTMLInputElement & { showPicker?: () => void }).showPicker === "function") {
-      try {
-        (el as HTMLInputElement & { showPicker: () => void }).showPicker();
-        return;
-      } catch {
-        // fallback
-      }
-    }
-    el.focus();
-    el.click();
   };
 
   return (
@@ -105,25 +89,18 @@ export default function DateInput({
             (e.target as HTMLInputElement).blur();
           }
         }}
-        className="w-full border border-gray-200 rounded-md pl-3 pr-9 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200 tabular-nums"
+        className="w-full border border-gray-200 rounded-md pl-3 pr-10 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200 tabular-nums"
       />
-      <button
-        type="button"
-        onClick={openPicker}
-        className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-brand-500 hover:bg-brand-50 rounded transition"
-        aria-label="เลือกวันที่"
-        tabIndex={-1}
-      >
+      <div className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center pointer-events-none text-gray-400">
         <Calendar size={16} />
-      </button>
+      </div>
       <input
-        ref={hiddenRef}
         type="date"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="absolute inset-0 opacity-0 pointer-events-none w-0 h-0"
-        tabIndex={-1}
-        aria-hidden
+        aria-label="เลือกวันที่"
+        className="absolute right-0 top-0 h-full w-10 opacity-0 cursor-pointer"
+        style={{ colorScheme: "light" }}
       />
     </div>
   );
