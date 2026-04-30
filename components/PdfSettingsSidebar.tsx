@@ -1,6 +1,7 @@
 "use client";
 
-import { Eye, EyeOff, Settings2 } from "lucide-react";
+import { Eye, EyeOff, Settings2, ChevronDown } from "lucide-react";
+import { useState } from "react";
 
 export interface PdfVisibility {
   contactFrom: boolean;
@@ -100,6 +101,8 @@ export default function PdfSettingsSidebar({
   onChange,
   onReset,
 }: Props) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   const toggle = (key: keyof PdfVisibility) => {
     onChange({ ...visibility, [key]: !visibility[key] });
   };
@@ -113,69 +116,98 @@ export default function PdfSettingsSidebar({
   const visibleCount = Object.values(visibility).filter(Boolean).length;
   const totalCount = Object.values(visibility).length;
 
-  return (
-    <aside className="pdf-settings-sidebar no-print">
-      <div className="sidebar-inner">
-        <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
-          <Settings2 size={16} className="text-brand-500" />
-          <h3 className="font-semibold text-gray-800 text-sm">
-            แสดงใน PDF
-          </h3>
-          <span className="ml-auto text-[11px] text-gray-400 tabular-nums">
-            {visibleCount}/{totalCount}
-          </span>
-        </div>
+  const Body = () => (
+    <>
+      <div className="flex gap-2 py-2 border-b border-gray-100">
+        <button
+          onClick={allOn}
+          className="flex-1 text-[11px] text-brand-600 hover:bg-brand-50 py-1.5 rounded transition"
+        >
+          แสดงทั้งหมด
+        </button>
+        <button
+          onClick={onReset}
+          className="flex-1 text-[11px] text-gray-500 hover:bg-gray-50 py-1.5 rounded transition"
+        >
+          รีเซ็ต
+        </button>
+      </div>
 
-        <div className="flex gap-2 py-2 border-b border-gray-100">
-          <button
-            onClick={allOn}
-            className="flex-1 text-[11px] text-brand-600 hover:bg-brand-50 py-1.5 rounded transition"
-          >
-            แสดงทั้งหมด
-          </button>
-          <button
-            onClick={onReset}
-            className="flex-1 text-[11px] text-gray-500 hover:bg-gray-50 py-1.5 rounded transition"
-          >
-            รีเซ็ต
-          </button>
-        </div>
-
-        <div className="space-y-3 pt-3 max-h-[calc(100vh-280px)] overflow-y-auto pr-1">
-          {GROUPS.map((g) => (
-            <div key={g.title}>
-              <div className="text-[10px] uppercase tracking-wide text-gray-400 mb-1.5">
-                {g.title}
-              </div>
-              <div className="space-y-1">
-                {g.items.map((it) => {
-                  const on = visibility[it.key];
-                  return (
-                    <button
-                      key={it.key}
-                      onClick={() => toggle(it.key)}
-                      className={`w-full flex items-center gap-2 text-left px-2 py-1.5 rounded text-xs transition ${
-                        on
-                          ? "bg-brand-50 text-gray-800"
-                          : "text-gray-400 hover:bg-gray-50"
+      <div className="space-y-3 pt-3 lg:max-h-[calc(100vh-280px)] lg:overflow-y-auto pr-1">
+        {GROUPS.map((g) => (
+          <div key={g.title}>
+            <div className="text-[10px] uppercase tracking-wide text-gray-400 mb-1.5">
+              {g.title}
+            </div>
+            <div className="space-y-1">
+              {g.items.map((it) => {
+                const on = visibility[it.key];
+                return (
+                  <button
+                    key={it.key}
+                    onClick={() => toggle(it.key)}
+                    className={`w-full flex items-center gap-2 text-left px-2 py-1.5 rounded text-xs transition ${
+                      on
+                        ? "bg-brand-50 text-gray-800"
+                        : "text-gray-400 hover:bg-gray-50"
+                    }`}
+                  >
+                    <span
+                      className={`shrink-0 ${
+                        on ? "text-brand-500" : "text-gray-300"
                       }`}
                     >
-                      <span
-                        className={`shrink-0 ${
-                          on ? "text-brand-500" : "text-gray-300"
-                        }`}
-                      >
-                        {on ? <Eye size={14} /> : <EyeOff size={14} />}
-                      </span>
-                      <span className="truncate">{it.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
+                      {on ? <Eye size={14} /> : <EyeOff size={14} />}
+                    </span>
+                    <span className="truncate">{it.label}</span>
+                  </button>
+                );
+              })}
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      <aside className="pdf-settings-sidebar pdf-settings-desktop no-print">
+        <div className="sidebar-inner">
+          <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
+            <Settings2 size={16} className="text-brand-500" />
+            <h3 className="font-semibold text-gray-800 text-sm">แสดงใน PDF</h3>
+            <span className="ml-auto text-[11px] text-gray-400 tabular-nums">
+              {visibleCount}/{totalCount}
+            </span>
+          </div>
+          <Body />
+        </div>
+      </aside>
+
+      <div className="pdf-settings-mobile no-print">
+        <button
+          onClick={() => setMobileOpen(!mobileOpen)}
+          className="w-full flex items-center gap-2 px-4 py-2.5 bg-white border-b border-gray-200 text-sm"
+        >
+          <Settings2 size={16} className="text-brand-500" />
+          <span className="font-medium text-gray-800">แสดงใน PDF</span>
+          <span className="text-[11px] text-gray-400 tabular-nums">
+            {visibleCount}/{totalCount}
+          </span>
+          <ChevronDown
+            size={16}
+            className={`ml-auto text-gray-400 transition-transform ${
+              mobileOpen ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+        {mobileOpen && (
+          <div className="bg-white border-b border-gray-200 px-4 pb-3 max-h-[60vh] overflow-y-auto">
+            <Body />
+          </div>
+        )}
+      </div>
+    </>
   );
 }

@@ -908,7 +908,7 @@ export default function PrintPage() {
         .print-pages-area {
           flex: 0 0 auto;
         }
-        .pdf-settings-sidebar {
+        .pdf-settings-desktop {
           position: sticky;
           top: 80px;
           width: 240px;
@@ -922,17 +922,24 @@ export default function PrintPage() {
           box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
           padding: 14px 14px 12px 14px;
         }
+        .pdf-settings-mobile {
+          display: none;
+        }
         @media (max-width: 1100px) {
           .print-layout {
-            flex-direction: column;
-            align-items: center;
+            padding: 0;
           }
-          .pdf-settings-sidebar {
-            position: static;
-            width: 210mm;
-            flex: 0 0 auto;
-            margin-top: 20px;
-            margin-bottom: 0;
+          .pdf-settings-desktop {
+            display: none;
+          }
+          .pdf-settings-mobile {
+            display: block;
+            position: sticky;
+            top: 56px;
+            z-index: 9;
+          }
+          .print-pages-area {
+            width: 100%;
           }
         }
         .print-page {
