@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, EyeOff, Settings2, ChevronDown } from "lucide-react";
+import { Eye, EyeOff, Settings2, X } from "lucide-react";
 import { useState } from "react";
 
 export interface PdfVisibility {
@@ -90,19 +90,13 @@ const GROUPS: Group[] = [
   },
 ];
 
-interface Props {
+interface BodyProps {
   visibility: PdfVisibility;
   onChange: (next: PdfVisibility) => void;
   onReset: () => void;
 }
 
-export default function PdfSettingsSidebar({
-  visibility,
-  onChange,
-  onReset,
-}: Props) {
-  const [mobileOpen, setMobileOpen] = useState(false);
-
+function Body({ visibility, onChange, onReset }: BodyProps) {
   const toggle = (key: keyof PdfVisibility) => {
     onChange({ ...visibility, [key]: !visibility[key] });
   };
@@ -113,27 +107,24 @@ export default function PdfSettingsSidebar({
     });
     onChange(next);
   };
-  const visibleCount = Object.values(visibility).filter(Boolean).length;
-  const totalCount = Object.values(visibility).length;
-
-  const Body = () => (
+  return (
     <>
       <div className="flex gap-2 py-2 border-b border-gray-100">
         <button
           onClick={allOn}
-          className="flex-1 text-[11px] text-brand-600 hover:bg-brand-50 py-1.5 rounded transition"
+          className="flex-1 text-xs text-brand-600 hover:bg-brand-50 py-2 rounded transition"
         >
           แสดงทั้งหมด
         </button>
         <button
           onClick={onReset}
-          className="flex-1 text-[11px] text-gray-500 hover:bg-gray-50 py-1.5 rounded transition"
+          className="flex-1 text-xs text-gray-500 hover:bg-gray-50 py-2 rounded transition"
         >
           รีเซ็ต
         </button>
       </div>
 
-      <div className="space-y-3 pt-3 lg:max-h-[calc(100vh-280px)] lg:overflow-y-auto pr-1">
+      <div className="space-y-3 pt-3 pr-1">
         {GROUPS.map((g) => (
           <div key={g.title}>
             <div className="text-[10px] uppercase tracking-wide text-gray-400 mb-1.5">
@@ -146,7 +137,7 @@ export default function PdfSettingsSidebar({
                   <button
                     key={it.key}
                     onClick={() => toggle(it.key)}
-                    className={`w-full flex items-center gap-2 text-left px-2 py-1.5 rounded text-xs transition ${
+                    className={`w-full flex items-center gap-2 text-left px-2 py-2 rounded text-sm transition ${
                       on
                         ? "bg-brand-50 text-gray-800"
                         : "text-gray-400 hover:bg-gray-50"
@@ -157,7 +148,7 @@ export default function PdfSettingsSidebar({
                         on ? "text-brand-500" : "text-gray-300"
                       }`}
                     >
-                      {on ? <Eye size={14} /> : <EyeOff size={14} />}
+                      {on ? <Eye size={16} /> : <EyeOff size={16} />}
                     </span>
                     <span className="truncate">{it.label}</span>
                   </button>
@@ -169,45 +160,105 @@ export default function PdfSettingsSidebar({
       </div>
     </>
   );
+}
+
+interface Props {
+  visibility: PdfVisibility;
+  onChange: (next: PdfVisibility) => void;
+  onReset: () => void;
+}
+
+export default function PdfSettingsSidebar({
+  visibility,
+  onChange,
+  onReset,
+}: Props) {
+  const visibleCount = Object.values(visibility).filter(Boolean).length;
+  const totalCount = Object.values(visibility).length;
+
+  return (
+    <aside className="pdf-settings-desktop no-print">
+      <div className="sidebar-inner">
+        <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
+          <Settings2 size={16} className="text-brand-500" />
+          <h3 className="font-semibold text-gray-800 text-sm">แสดงใน PDF</h3>
+          <span className="ml-auto text-[11px] text-gray-400 tabular-nums">
+            {visibleCount}/{totalCount}
+          </span>
+        </div>
+        <div className="lg:max-h-[calc(100vh-280px)] lg:overflow-y-auto">
+          <Body
+            visibility={visibility}
+            onChange={onChange}
+            onReset={onReset}
+          />
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+export function PdfSettingsButton({
+  visibility,
+  onChange,
+  onReset,
+}: Props) {
+  const [open, setOpen] = useState(false);
+  const visibleCount = Object.values(visibility).filter(Boolean).length;
+  const totalCount = Object.values(visibility).length;
 
   return (
     <>
-      <aside className="pdf-settings-desktop no-print">
-        <div className="sidebar-inner">
-          <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
-            <Settings2 size={16} className="text-brand-500" />
-            <h3 className="font-semibold text-gray-800 text-sm">แสดงใน PDF</h3>
-            <span className="ml-auto text-[11px] text-gray-400 tabular-nums">
-              {visibleCount}/{totalCount}
-            </span>
-          </div>
-          <Body />
-        </div>
-      </aside>
+      <button
+        onClick={() => setOpen(true)}
+        className="flex items-center gap-1.5 border border-gray-300 text-gray-700 hover:bg-gray-50 px-3 py-2 rounded-md text-xs sm:text-sm whitespace-nowrap"
+      >
+        <Settings2 size={14} />
+        <span>แสดงใน PDF</span>
+        <span className="text-[10px] text-gray-400 tabular-nums">
+          {visibleCount}/{totalCount}
+        </span>
+      </button>
 
-      <div className="pdf-settings-mobile no-print">
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="w-full flex items-center gap-2 px-4 py-2.5 bg-white border-b border-gray-200 text-sm"
-        >
-          <Settings2 size={16} className="text-brand-500" />
-          <span className="font-medium text-gray-800">แสดงใน PDF</span>
-          <span className="text-[11px] text-gray-400 tabular-nums">
-            {visibleCount}/{totalCount}
-          </span>
-          <ChevronDown
-            size={16}
-            className={`ml-auto text-gray-400 transition-transform ${
-              mobileOpen ? "rotate-180" : ""
-            }`}
-          />
-        </button>
-        {mobileOpen && (
-          <div className="bg-white border-b border-gray-200 px-4 pb-3 max-h-[60vh] overflow-y-auto">
-            <Body />
+      {open && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 no-print">
+          <div className="bg-white sm:rounded-xl w-full sm:max-w-md flex flex-col max-h-[85vh] sm:max-h-[80vh] shadow-xl rounded-t-xl">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 shrink-0">
+              <div className="flex items-center gap-2">
+                <Settings2 size={16} className="text-brand-500" />
+                <h3 className="font-semibold text-gray-800 text-sm">
+                  แสดงใน PDF
+                </h3>
+                <span className="text-[11px] text-gray-400 tabular-nums">
+                  {visibleCount}/{totalCount}
+                </span>
+              </div>
+              <button
+                onClick={() => setOpen(false)}
+                className="text-gray-400 hover:text-gray-600 p-1"
+                aria-label="ปิด"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-4 pb-4">
+              <Body
+                visibility={visibility}
+                onChange={onChange}
+                onReset={onReset}
+              />
+            </div>
+            <div className="px-4 py-3 border-t border-gray-100 shrink-0">
+              <button
+                onClick={() => setOpen(false)}
+                className="w-full bg-brand-500 hover:bg-brand-600 text-white py-2.5 rounded-md font-medium text-sm"
+              >
+                เสร็จสิ้น
+              </button>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </>
   );
 }

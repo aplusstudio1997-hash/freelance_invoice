@@ -13,7 +13,9 @@ import { calculate, fmt, fmtDate, buildMilestones } from "@/lib/calc";
 import PdfSettingsSidebar, {
   PdfVisibility,
   DEFAULT_VISIBILITY,
+  PdfSettingsButton,
 } from "@/components/PdfSettingsSidebar";
+import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 
 const VIS_STORAGE_KEY = "freelance-solo-pdf-visibility";
 
@@ -71,6 +73,7 @@ export default function PrintPage() {
   >({});
   const [visibility, setVisibilityState] =
     useState<PdfVisibility>(DEFAULT_VISIBILITY);
+  const [zoom, setZoom] = useState(1);
 
   const setVisibility = (v: PdfVisibility) => {
     setVisibilityState(v);
@@ -426,12 +429,21 @@ export default function PrintPage() {
     <>
       <div className="print-toolbar no-print">
         <div className="w-full flex flex-wrap items-center justify-between gap-2 py-3 px-3 sm:px-4">
-          <div className="text-xs sm:text-sm text-gray-600 flex-1 min-w-0">
-            {generating
-              ? "กำลังสร้าง PDF... กรุณารอสักครู่"
-              : "ตรวจสอบเอกสารก่อนดาวน์โหลด"}
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <div className="text-xs sm:text-sm text-gray-600 truncate">
+              {generating
+                ? "กำลังสร้าง PDF..."
+                : "ตรวจสอบเอกสารก่อนดาวน์โหลด"}
+            </div>
           </div>
-          <div className="flex gap-1.5 sm:gap-2 shrink-0">
+          <div className="flex gap-1.5 sm:gap-2 shrink-0 items-center">
+            <div className="lg:hidden">
+              <PdfSettingsButton
+                visibility={visibility}
+                onChange={setVisibility}
+                onReset={resetVisibility}
+              />
+            </div>
             <button
               onClick={downloadPdf}
               disabled={generating}
@@ -441,7 +453,7 @@ export default function PrintPage() {
             </button>
             <button
               onClick={() => window.print()}
-              className="border border-gray-300 text-gray-600 hover:bg-gray-50 px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm whitespace-nowrap"
+              className="hidden sm:inline-flex border border-gray-300 text-gray-600 hover:bg-gray-50 px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm whitespace-nowrap"
               title="พิมพ์ผ่าน print dialog (สำรอง)"
             >
               พิมพ์
@@ -456,13 +468,46 @@ export default function PrintPage() {
         </div>
       </div>
 
+      <div className="zoom-controls no-print">
+        <button
+          onClick={() => setZoom((z) => Math.min(2, +(z + 0.1).toFixed(2)))}
+          className="zoom-btn"
+          aria-label="ขยาย"
+        >
+          <ZoomIn size={16} />
+        </button>
+        <div className="zoom-display">{Math.round(zoom * 100)}%</div>
+        <button
+          onClick={() => setZoom((z) => Math.max(0.4, +(z - 0.1).toFixed(2)))}
+          className="zoom-btn"
+          aria-label="ย่อ"
+        >
+          <ZoomOut size={16} />
+        </button>
+        <button
+          onClick={() => setZoom(1)}
+          className="zoom-btn"
+          aria-label="รีเซ็ต"
+          title="รีเซ็ต 100%"
+        >
+          <RotateCcw size={14} />
+        </button>
+      </div>
+
       <div className="print-layout">
         <PdfSettingsSidebar
           visibility={visibility}
           onChange={setVisibility}
           onReset={resetVisibility}
         />
-        <div className="print-pages-area">
+        <div className="print-pages-scroll">
+          <div
+            className="print-pages-area"
+            style={{
+              transform: `scale(${zoom})`,
+              transformOrigin: "top center",
+            }}
+          >
       <div className="print-page page-1">
         <header className="flex items-start justify-between pb-4 border-b-[3px] border-brand-500">
           <div className="flex items-start gap-3 flex-1 pr-4">
@@ -885,6 +930,7 @@ export default function PrintPage() {
         </div>
       )}
         </div>
+        </div>
       </div>
 
       <style jsx global>{`
@@ -905,8 +951,16 @@ export default function PrintPage() {
           gap: 20px;
           padding: 0 20px;
         }
+        .print-pages-scroll {
+          flex: 1 1 auto;
+          min-width: 0;
+          overflow: auto;
+          max-height: calc(100vh - 60px);
+        }
         .print-pages-area {
-          flex: 0 0 auto;
+          width: 210mm;
+          margin: 0 auto;
+          transition: transform 0.15s ease-out;
         }
         .pdf-settings-desktop {
           position: sticky;
@@ -922,8 +976,45 @@ export default function PrintPage() {
           box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
           padding: 14px 14px 12px 14px;
         }
-        .pdf-settings-mobile {
-          display: none;
+        .zoom-controls {
+          position: fixed;
+          bottom: 16px;
+          right: 16px;
+          z-index: 30;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          background: white;
+          border: 1px solid #e5e7eb;
+          border-radius: 10px;
+          padding: 4px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .zoom-btn {
+          width: 36px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #4b5563;
+          border-radius: 6px;
+          transition: background-color 0.15s;
+        }
+        .zoom-btn:hover {
+          background: #f3f4f6;
+          color: #f97316;
+        }
+        .zoom-btn:active {
+          background: #fde6cf;
+        }
+        .zoom-display {
+          font-size: 10px;
+          font-weight: 600;
+          color: #6b7280;
+          text-align: center;
+          padding: 2px 0;
+          min-width: 36px;
+          font-variant-numeric: tabular-nums;
         }
         @media (max-width: 1280px) {
           .print-layout {
@@ -932,16 +1023,6 @@ export default function PrintPage() {
           }
           .pdf-settings-desktop {
             display: none !important;
-          }
-          .pdf-settings-mobile {
-            display: block !important;
-            position: sticky;
-            top: 56px;
-            z-index: 9;
-          }
-          .print-pages-area {
-            width: 100%;
-            overflow-x: auto;
           }
         }
         .print-page {
@@ -954,6 +1035,10 @@ export default function PrintPage() {
           position: relative;
           box-sizing: border-box;
           min-height: 297mm;
+        }
+        .print-pages-scroll .print-page {
+          margin-left: 0;
+          margin-right: 0;
         }
         .page-break-indicator {
           position: absolute;
