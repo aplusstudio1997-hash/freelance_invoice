@@ -794,12 +794,12 @@ export default function PrintPage() {
             className="flex justify-between bg-orange-50 rounded text-brand-600 font-semibold mt-1.5"
             style={{
               alignItems: "center",
-              minHeight: "32px",
               paddingLeft: "12px",
               paddingRight: "12px",
-              paddingTop: "10px",
-              paddingBottom: "6px",
+              paddingTop: "7px",
+              paddingBottom: "5px",
               lineHeight: 1,
+              fontSize: "13px",
             }}
           >
             <span>รวมทั้งสิ้น</span>
@@ -813,12 +813,12 @@ export default function PrintPage() {
             className="flex justify-between bg-orange-50 rounded text-brand-600 font-semibold"
             style={{
               alignItems: "center",
-              minHeight: "32px",
               paddingLeft: "12px",
               paddingRight: "12px",
-              paddingTop: "10px",
-              paddingBottom: "6px",
+              paddingTop: "7px",
+              paddingBottom: "5px",
               lineHeight: 1,
+              fontSize: "13px",
             }}
           >
             <span>มัดจำที่ต้องชำระ</span>
@@ -833,12 +833,12 @@ export default function PrintPage() {
               className="flex justify-between bg-green-50 rounded text-green-700 font-semibold border border-green-200"
               style={{
                 alignItems: "center",
-                minHeight: "32px",
                 paddingLeft: "12px",
                 paddingRight: "12px",
-                paddingTop: "10px",
-                paddingBottom: "6px",
+                paddingTop: "7px",
+                paddingBottom: "5px",
                 lineHeight: 1,
+                fontSize: "13px",
               }}
             >
               <span>ได้รับเงินแล้ว</span>
@@ -857,12 +857,12 @@ export default function PrintPage() {
               className="flex justify-between bg-amber-50 rounded text-amber-700 font-semibold border border-amber-200"
               style={{
                 alignItems: "center",
-                minHeight: "32px",
                 paddingLeft: "12px",
                 paddingRight: "12px",
-                paddingTop: "10px",
-                paddingBottom: "6px",
+                paddingTop: "7px",
+                paddingBottom: "5px",
                 lineHeight: 1,
+                fontSize: "13px",
               }}
             >
               <span>ยอดที่ต้องชำระ</span>
