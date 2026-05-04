@@ -185,19 +185,19 @@ export default function PrintPage() {
           if (spans.length >= 2) {
             const labelSpan = spans[0];
             const valueSpan = spans[1];
-            const verticalCenter = `${m.height / 2}px`;
+            const centerY = m.height * 0.42;
 
             labelSpan.style.position = "absolute";
             labelSpan.style.left = "12px";
-            labelSpan.style.top = verticalCenter;
+            labelSpan.style.top = `${centerY}px`;
             labelSpan.style.transform = "translateY(-50%)";
-            labelSpan.style.lineHeight = "1";
+            labelSpan.style.lineHeight = "1.3";
 
             valueSpan.style.position = "absolute";
             valueSpan.style.right = "12px";
-            valueSpan.style.top = verticalCenter;
+            valueSpan.style.top = `${centerY}px`;
             valueSpan.style.transform = "translateY(-50%)";
-            valueSpan.style.lineHeight = "1";
+            valueSpan.style.lineHeight = "1.3";
           }
         });
 
