@@ -387,6 +387,7 @@ export default function Home() {
             currencySymbol={currencySymbol}
             onDownload={downloadPDF}
             downloading={downloading}
+            type={activeType}
           />
         </div>
       </main>

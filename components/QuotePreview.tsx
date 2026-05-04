@@ -1,6 +1,6 @@
 "use client";
 
-import { QuoteSettings, Profile } from "@/lib/types";
+import { QuoteSettings, Profile, DocumentType } from "@/lib/types";
 import { CalcResult, fmt, fmtDate } from "@/lib/calc";
 import { Download, FileText, Link2 } from "lucide-react";
 
@@ -11,7 +11,14 @@ interface Props {
   currencySymbol: string;
   onDownload: () => void;
   downloading: boolean;
+  type?: DocumentType;
 }
+
+const TYPE_LABELS: Record<DocumentType, string> = {
+  quote: "ใบเสนอราคา",
+  invoice: "ใบแจ้งหนี้",
+  receipt: "ใบเสร็จรับเงิน",
+};
 
 export default function QuotePreview({
   data,
@@ -20,7 +27,9 @@ export default function QuotePreview({
   currencySymbol,
   onDownload,
   downloading,
+  type = "quote",
 }: Props) {
+  const docLabel = TYPE_LABELS[type];
   const today = new Date().toLocaleDateString("th-TH", {
     day: "numeric",
     month: "short",
@@ -48,7 +57,7 @@ export default function QuotePreview({
       <div className="hidden lg:flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white no-print">
         <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
           <FileText size={14} className="text-brand-500" />
-          ใบเสนอราคา
+          {docLabel}
         </h2>
       </div>
 
@@ -75,8 +84,8 @@ export default function QuotePreview({
                 </div>
               </div>
               <div className="text-right shrink-0">
-                <div className="inline-block bg-brand-500 text-white px-2 py-1 rounded text-[10px] font-semibold whitespace-nowrap">
-                  ใบเสนอราคา
+                <div className="inline-block text-brand-600 font-bold text-sm whitespace-nowrap">
+                  {docLabel}
                 </div>
                 <div className="text-[10px] text-gray-700 mt-1.5 space-y-0.5">
                   {data.quoteNumber && (
@@ -89,6 +98,18 @@ export default function QuotePreview({
                     <span className="text-gray-400">วันที่: </span>
                     <span className="font-medium">{today}</span>
                   </div>
+                  {type === "invoice" && data.dueDate && (
+                    <div>
+                      <span className="text-gray-400">ครบกำหนด: </span>
+                      <span className="font-medium">{fmtDate(data.dueDate)}</span>
+                    </div>
+                  )}
+                  {type === "receipt" && data.paidDate && (
+                    <div>
+                      <span className="text-gray-400">วันที่รับเงิน: </span>
+                      <span className="font-medium">{fmtDate(data.paidDate)}</span>
+                    </div>
+                  )}
                   {profile.ownerName && (
                     <div>
                       <span className="text-gray-400">ชื่อ: </span>
@@ -292,19 +313,56 @@ export default function QuotePreview({
               value={`${currencySymbol}${fmt(calc.total)}`}
               highlight
             />
-            <Row
-              label="มัดจำที่ต้องชำระ"
-              value={`${currencySymbol}${fmt(calc.deposit)}`}
-              highlight
-            />
+            {type === "quote" && (
+              <Row
+                label="มัดจำที่ต้องชำระ"
+                value={`${currencySymbol}${fmt(calc.deposit)}`}
+                highlight
+              />
+            )}
+            {type === "invoice" && (
+              <div className="flex justify-between items-center px-2 py-1.5 bg-amber-50 border border-amber-200 rounded text-amber-700 font-semibold text-[11px]">
+                <span>ยอดที่ต้องชำระ</span>
+                <span className="tabular-nums">
+                  {currencySymbol}
+                  {fmt(calc.total)}
+                </span>
+              </div>
+            )}
+            {type === "receipt" && (
+              <div className="flex justify-between items-center px-2 py-1.5 bg-green-50 border border-green-200 rounded text-green-700 font-semibold text-[11px]">
+                <span>ได้รับเงินแล้ว</span>
+                <span className="tabular-nums">
+                  {currencySymbol}
+                  {fmt(
+                    data.paidAmount && data.paidAmount > 0
+                      ? data.paidAmount
+                      : calc.total
+                  )}
+                </span>
+              </div>
+            )}
           </section>
 
-          <section className="bg-orange-50 border-l-4 border-brand-500 px-3 py-2 rounded">
-            <div className="text-[10px] text-gray-500 mb-0.5">เงื่อนไขการชำระ</div>
-            <div className="text-[11px] font-medium">
-              {data.paymentCondition} (มัดจำ {termLabel[data.paymentTerm]})
-            </div>
-          </section>
+          {type === "receipt" && data.paymentMethod && (
+            <section className="bg-green-50 border-l-4 border-green-500 px-3 py-2 rounded">
+              <div className="text-[10px] text-gray-500 mb-0.5">
+                วิธีการชำระเงิน
+              </div>
+              <div className="text-[11px] font-medium">{data.paymentMethod}</div>
+            </section>
+          )}
+
+          {type !== "receipt" && (
+            <section className="bg-orange-50 border-l-4 border-brand-500 px-3 py-2 rounded">
+              <div className="text-[10px] text-gray-500 mb-0.5">
+                เงื่อนไขการชำระ
+              </div>
+              <div className="text-[11px] font-medium">
+                {data.paymentCondition} (มัดจำ {termLabel[data.paymentTerm]})
+              </div>
+            </section>
+          )}
 
           {hasPayment && (
             <section className="border border-gray-200 rounded-lg p-3">
