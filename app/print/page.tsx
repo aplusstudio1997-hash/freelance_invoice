@@ -141,6 +141,14 @@ export default function PrintPage() {
       let firstPage = true;
 
       for (const src of sourcePages) {
+        const sourceBoxes = Array.from(
+          src.querySelectorAll<HTMLElement>('[data-pdf-measure="box"]')
+        );
+        const measurements = sourceBoxes.map((el) => {
+          const r = el.getBoundingClientRect();
+          return { width: r.width, height: r.height };
+        });
+
         const clone = src.cloneNode(true) as HTMLElement;
         clone
           .querySelectorAll(".page-break-indicator,.page-watermark,.last-page-watermark")
@@ -154,6 +162,22 @@ export default function PrintPage() {
           min-height: 0;
           position: static;
         `;
+
+        const cloneBoxes = Array.from(
+          clone.querySelectorAll<HTMLElement>('[data-pdf-measure="box"]')
+        );
+        cloneBoxes.forEach((el, i) => {
+          const m = measurements[i];
+          if (!m) return;
+          el.style.height = `${m.height}px`;
+          el.style.minHeight = `${m.height}px`;
+          el.style.maxHeight = `${m.height}px`;
+          el.style.padding = "0 12px";
+          el.style.boxSizing = "border-box";
+          el.style.display = "flex";
+          el.style.alignItems = "center";
+        });
+
         offscreen.innerHTML = "";
         offscreen.appendChild(clone);
 
@@ -791,6 +815,7 @@ export default function PrintPage() {
             />
           )}
           <div
+            data-pdf-measure="box"
             className="flex justify-between bg-orange-50 rounded text-brand-600 font-semibold mt-1.5"
             style={{
               alignItems: "center",
@@ -810,6 +835,7 @@ export default function PrintPage() {
           </div>
           {visibility.deposit && activeType === "quote" && (
           <div
+            data-pdf-measure="box"
             className="flex justify-between bg-orange-50 rounded text-brand-600 font-semibold"
             style={{
               alignItems: "center",
@@ -830,6 +856,7 @@ export default function PrintPage() {
           )}
           {activeType === "receipt" && (
             <div
+              data-pdf-measure="box"
               className="flex justify-between bg-green-50 rounded text-green-700 font-semibold border border-green-200"
               style={{
                 alignItems: "center",
@@ -854,6 +881,7 @@ export default function PrintPage() {
           )}
           {activeType === "invoice" && (
             <div
+              data-pdf-measure="box"
               className="flex justify-between bg-amber-50 rounded text-amber-700 font-semibold border border-amber-200"
               style={{
                 alignItems: "center",
