@@ -148,6 +148,7 @@ export default function PrintPage() {
           width: el.offsetWidth,
           height: el.offsetHeight,
         }));
+        console.log("[PDF DEBUG] source boxes:", sourceBoxes.length, "measurements:", measurements);
 
         const clone = src.cloneNode(true) as HTMLElement;
         clone
@@ -166,9 +167,11 @@ export default function PrintPage() {
         const cloneBoxes = Array.from(
           clone.querySelectorAll<HTMLElement>('[data-pdf-measure="box"]')
         );
+        console.log("[PDF DEBUG] clone boxes:", cloneBoxes.length);
         cloneBoxes.forEach((el, i) => {
           const m = measurements[i];
           if (!m) return;
+          console.log(`[PDF DEBUG] applying box ${i} height ${m.height}px`);
           el.style.height = `${m.height}px`;
           el.style.minHeight = `${m.height}px`;
           el.style.maxHeight = `${m.height}px`;
