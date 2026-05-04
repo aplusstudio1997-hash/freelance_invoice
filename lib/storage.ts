@@ -86,6 +86,48 @@ export function clearDraft(): void {
   localStorage.removeItem(STORAGE_KEY);
 }
 
+const MIGRATION_KEY = "freelance-solo-migrated";
+
+export function getMigrationStatus(userId: string): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw = localStorage.getItem(MIGRATION_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    return !!parsed[userId];
+  } catch {
+    return false;
+  }
+}
+
+export function setMigrationStatus(userId: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = localStorage.getItem(MIGRATION_KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    parsed[userId] = true;
+    localStorage.setItem(MIGRATION_KEY, JSON.stringify(parsed));
+  } catch {}
+}
+
+export function hasLocalDraftData(): boolean {
+  if (typeof window === "undefined") return false;
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return false;
+  try {
+    const parsed = JSON.parse(raw);
+    const d = parsed.data;
+    if (!d) return false;
+    const hasContent =
+      (d.services && d.services.length > 0) ||
+      d.projectName ||
+      d.customer?.name;
+    return !!hasContent;
+  } catch {
+    return false;
+  }
+}
+
 export function saveProfile(profile: Profile): void {
   if (typeof window === "undefined") return;
   try {

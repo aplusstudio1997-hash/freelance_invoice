@@ -3,20 +3,14 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import {
   QuoteSettings,
-  DEFAULT_QUOTE,
   Profile,
-  DEFAULT_PROFILE,
+  DEFAULT_QUOTE,
   getCurrencySymbol,
 } from "@/lib/types";
-import {
-  loadDraft,
-  saveDraft,
-  clearDraft,
-  loadProfile,
-  saveProfile,
-} from "@/lib/storage";
+import { clearDraft } from "@/lib/storage";
 import { calculate, fmt } from "@/lib/calc";
 import { sendQuote, fetchStats, pingActive } from "@/lib/api";
+import { useDocuments } from "@/lib/documents";
 import SettingsPanel from "@/components/SettingsPanel";
 import ServicesPanel from "@/components/ServicesPanel";
 import TimelinePanel from "@/components/TimelinePanel";
@@ -29,6 +23,10 @@ import ShareModal from "@/components/ShareModal";
 import ProfileModal from "@/components/ProfileModal";
 import SuccessModal from "@/components/SuccessModal";
 import StatsBadge from "@/components/StatsBadge";
+import UserMenu from "@/components/UserMenu";
+import DocumentTabs from "@/components/DocumentTabs";
+import InvoiceReceiptFields from "@/components/InvoiceReceiptFields";
+import MigrationModal from "@/components/MigrationModal";
 import {
   Dice5,
   Smile,
@@ -49,9 +47,18 @@ import {
 type Tab = "settings" | "services" | "timeline" | "preview";
 
 export default function Home() {
-  const [data, setData] = useState<QuoteSettings>(DEFAULT_QUOTE);
-  const [profile, setProfile] = useState<Profile>(DEFAULT_PROFILE);
-  const [hydrated, setHydrated] = useState(false);
+  const {
+    loading: docLoading,
+    activeType,
+    data,
+    profile,
+    saveStatus: ctxSaveStatus,
+    shouldShowMigration,
+    dismissMigration,
+    completeMigration,
+    setData: ctxSetData,
+    setProfile: ctxSetProfile,
+  } = useDocuments();
 
   const [promptOpen, setPromptOpen] = useState(false);
   const [reliefOpen, setReliefOpen] = useState(false);
@@ -67,67 +74,55 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const [downloading, setDownloading] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<"" | "saving" | "saved">("");
   const [mobileTab, setMobileTab] = useState<Tab>("settings");
 
-  useEffect(() => {
-    setData(loadDraft());
-    setProfile(loadProfile());
-    setHydrated(true);
-  }, []);
+  const setData = ctxSetData;
+  const setProfile = ctxSetProfile;
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (docLoading) return;
     let cancelled = false;
-
     const loadStats = async () => {
       const s = await fetchStats();
       if (cancelled || !s) return;
       setStats({ totalQuotes: s.totalQuotes, activeUsers: s.activeUsers });
     };
-
     pingActive().catch(() => {});
     loadStats();
-
     const pingInterval = setInterval(() => {
       pingActive().catch(() => {});
     }, 60 * 1000);
-
     const statsInterval = setInterval(loadStats, 60 * 1000);
-
     return () => {
       cancelled = true;
       clearInterval(pingInterval);
       clearInterval(statsInterval);
     };
-  }, [hydrated]);
+  }, [docLoading]);
 
-  useEffect(() => {
-    if (!hydrated) return;
-    setSaveStatus("saving");
-    const t = setTimeout(() => {
-      saveDraft(data);
-      setSaveStatus("saved");
-      const t2 = setTimeout(() => setSaveStatus(""), 1500);
-      return () => clearTimeout(t2);
-    }, 500);
-    return () => clearTimeout(t);
-  }, [data, hydrated]);
-
-  const update = useCallback((patch: Partial<QuoteSettings>) => {
-    setData((d) => ({ ...d, ...patch }));
-  }, []);
+  const update = useCallback(
+    (patch: Partial<QuoteSettings>) => {
+      setData({ ...data, ...patch });
+    },
+    [data, setData]
+  );
 
   const updateProfile = (p: Profile) => {
     setProfile(p);
-    saveProfile(p);
   };
 
   const calc = useMemo(() => calculate(data), [data]);
   const currencySymbol = getCurrencySymbol(profile.currency);
 
+  const saveStatus =
+    ctxSaveStatus === "saving"
+      ? "saving"
+      : ctxSaveStatus === "saved"
+        ? "saved"
+        : "";
+
   const resetAll = () => {
-    if (confirm("ล้างข้อมูลทั้งหมดและเริ่มใหม่?")) {
+    if (confirm("ล้างข้อมูลในเอกสารปัจจุบัน?")) {
       clearDraft();
       setData(DEFAULT_QUOTE);
       setMenuOpen(false);
@@ -136,8 +131,6 @@ export default function Home() {
 
   const downloadPDF = async () => {
     setDownloading(true);
-    saveDraft(data);
-    saveProfile(profile);
     try {
       await sendQuote(data, calc, profile);
     } catch (e) {
@@ -157,7 +150,7 @@ export default function Home() {
     window.open("/print", "_blank");
   };
 
-  if (!hydrated) {
+  if (docLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-400">
         กำลังโหลด...
@@ -239,15 +232,20 @@ export default function Home() {
             label="ตั้งค่าส่วนตัว"
             onClick={() => setProfileOpen(true)}
           />
+          <div className="w-px h-5 bg-gray-200 mx-0.5" />
+          <UserMenu />
         </div>
 
-        <button
-          onClick={() => setMenuOpen(true)}
-          className="lg:hidden p-2 text-gray-600 hover:text-brand-600"
-          aria-label="เมนู"
-        >
-          <Menu size={22} />
-        </button>
+        <div className="lg:hidden flex items-center gap-1">
+          <UserMenu />
+          <button
+            onClick={() => setMenuOpen(true)}
+            className="p-2 text-gray-600 hover:text-brand-600"
+            aria-label="เมนู"
+          >
+            <Menu size={22} />
+          </button>
+        </div>
       </header>
 
       {menuOpen && (
@@ -337,10 +335,22 @@ export default function Home() {
         </div>
       )}
 
+      <DocumentTabs />
+
       <main className="flex-1 flex overflow-hidden flex-col lg:flex-row">
         <div
-          className={`${mobileTab === "settings" ? "flex" : "hidden"} lg:flex flex-1 lg:flex-none min-h-0`}
+          className={`${mobileTab === "settings" ? "flex" : "hidden"} lg:flex flex-1 lg:flex-none min-h-0 flex-col`}
         >
+          {activeType !== "quote" && (
+            <div className="px-3 sm:px-4 pt-3">
+              <InvoiceReceiptFields
+                type={activeType}
+                data={data}
+                update={update}
+                currency={profile.currency}
+              />
+            </div>
+          )}
           <SettingsPanel
             data={data}
             update={update}
@@ -446,6 +456,13 @@ export default function Home() {
         }}
         onViewPDF={openPDF}
       />
+
+      {shouldShowMigration && (
+        <MigrationModal
+          onClose={dismissMigration}
+          onDone={completeMigration}
+        />
+      )}
 
       {downloading && (
         <div className="fixed inset-0 bg-black/40 z-[100] flex items-center justify-center backdrop-blur-sm animate-fadeIn">

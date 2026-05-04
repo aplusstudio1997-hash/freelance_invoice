@@ -53,6 +53,8 @@ export interface Profile {
   socialLink: string;
 }
 
+export type DocumentType = "quote" | "invoice" | "receipt";
+
 export interface QuoteSettings {
   customer: Customer;
   projectName: string;
@@ -71,6 +73,10 @@ export interface QuoteSettings {
   paymentTerm: "30" | "50" | "70" | "full";
   paymentCondition: string;
   preparedBy: string;
+  dueDate?: string;
+  paidDate?: string;
+  paymentMethod?: string;
+  paidAmount?: number;
 }
 
 export const CURRENCIES = [
@@ -182,9 +188,14 @@ export const DEFAULT_QUOTE: QuoteSettings = {
 };
 
 export function generateQuoteNumber(): string {
+  return generateDocumentNumber("quote");
+}
+
+export function generateDocumentNumber(type: DocumentType): string {
   const d = new Date();
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const random = Math.floor(Math.random() * 900 + 100);
-  return `QT-${yyyy}${mm}-${random}`;
+  const prefix = type === "invoice" ? "IV" : type === "receipt" ? "RE" : "QT";
+  return `${prefix}-${yyyy}${mm}-${random}`;
 }

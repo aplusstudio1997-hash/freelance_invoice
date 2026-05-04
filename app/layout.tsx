@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { AuthProvider } from "@/lib/auth";
+import { DocumentProvider } from "@/lib/documents";
 
 export const metadata: Metadata = {
   title: "So1o Freelancer — โปรแกรมช่วยคำนวณราคาและทำใบเสนอราคาออนไลน์",
@@ -33,7 +35,11 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen font-sans">{children}</body>
+      <body className="min-h-screen font-sans">
+        <AuthProvider>
+          <DocumentProvider>{children}</DocumentProvider>
+        </AuthProvider>
+      </body>
     </html>
   );
 }

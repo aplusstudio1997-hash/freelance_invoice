@@ -3,13 +3,12 @@
 import { useEffect, useState } from "react";
 import {
   QuoteSettings,
-  DEFAULT_QUOTE,
   Profile,
-  DEFAULT_PROFILE,
   getCurrencySymbol,
+  DocumentType,
 } from "@/lib/types";
-import { loadDraft, loadProfile } from "@/lib/storage";
 import { calculate, fmt, fmtDate, buildMilestones } from "@/lib/calc";
+import { useDocuments } from "@/lib/documents";
 import PdfSettingsSidebar, {
   PdfVisibility,
   DEFAULT_VISIBILITY,
@@ -45,7 +44,11 @@ function sanitizeForFilename(s: string): string {
     .trim();
 }
 
-function buildFilename(data: QuoteSettings, profile: Profile): string {
+function buildFilename(
+  data: QuoteSettings,
+  profile: Profile,
+  type: DocumentType
+): string {
   const project = sanitizeForFilename(data.projectName || "");
   const customer = sanitizeForFilename(data.customer?.name || "");
   const studio = sanitizeForFilename(profile.studioName || "");
@@ -54,7 +57,8 @@ function buildFilename(data: QuoteSettings, profile: Profile): string {
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const yy = String((d.getFullYear() + 543) % 100).padStart(2, "0");
   const dateStr = `${dd}-${mm}-${yy}`;
-  const parts = ["QT"];
+  const prefix = type === "invoice" ? "IV" : type === "receipt" ? "RE" : "QT";
+  const parts = [prefix];
   if (project) parts.push(project);
   if (customer) parts.push(customer);
   if (studio) parts.push(studio);
@@ -63,8 +67,12 @@ function buildFilename(data: QuoteSettings, profile: Profile): string {
 }
 
 export default function PrintPage() {
-  const [data, setData] = useState<QuoteSettings>(DEFAULT_QUOTE);
-  const [profile, setProfile] = useState<Profile>(DEFAULT_PROFILE);
+  const {
+    loading: docLoading,
+    activeType,
+    data,
+    profile,
+  } = useDocuments();
   const [ready, setReady] = useState(false);
   const [milestonesInline, setMilestonesInline] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -85,11 +93,10 @@ export default function PrintPage() {
   };
 
   useEffect(() => {
-    setData(loadDraft());
-    setProfile(loadProfile());
+    if (docLoading) return;
     setVisibilityState(loadVisibility());
     setReady(true);
-  }, []);
+  }, [docLoading]);
 
   const downloadPdf = async () => {
     if (generating) return;
@@ -299,7 +306,7 @@ export default function PrintPage() {
         pdf.setFont("helvetica", "normal");
       }
 
-      const filename = buildFilename(data, profile) + ".pdf";
+      const filename = buildFilename(data, profile, activeType) + ".pdf";
       pdf.save(filename);
 
       document.body.removeChild(offscreen);
@@ -536,7 +543,11 @@ export default function PrintPage() {
                 lineHeight: 1,
               }}
             >
-              ใบเสนอราคา
+              {activeType === "invoice"
+                ? "ใบแจ้งหนี้"
+                : activeType === "receipt"
+                  ? "ใบเสร็จรับเงิน"
+                  : "ใบเสนอราคา"}
             </div>
             <div className="text-xs text-gray-700 space-y-0.5">
               {data.quoteNumber && (
@@ -549,6 +560,18 @@ export default function PrintPage() {
                 <span className="text-gray-400">วันที่: </span>
                 <span className="font-medium">{today}</span>
               </div>
+              {activeType === "invoice" && data.dueDate && (
+                <div>
+                  <span className="text-gray-400">ครบกำหนด: </span>
+                  <span className="font-medium">{fmtDate(data.dueDate)}</span>
+                </div>
+              )}
+              {activeType === "receipt" && data.paidDate && (
+                <div>
+                  <span className="text-gray-400">วันที่รับเงิน: </span>
+                  <span className="font-medium">{fmtDate(data.paidDate)}</span>
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -785,7 +808,7 @@ export default function PrintPage() {
               {fmt(calc.total)}
             </span>
           </div>
-          {visibility.deposit && (
+          {visibility.deposit && activeType === "quote" && (
           <div
             className="flex justify-between bg-orange-50 rounded text-brand-600 font-semibold"
             style={{
@@ -805,9 +828,78 @@ export default function PrintPage() {
             </span>
           </div>
           )}
+          {activeType === "receipt" && (
+            <div
+              className="flex justify-between bg-green-50 rounded text-green-700 font-semibold border border-green-200"
+              style={{
+                alignItems: "center",
+                minHeight: "32px",
+                paddingLeft: "12px",
+                paddingRight: "12px",
+                paddingTop: "10px",
+                paddingBottom: "6px",
+                lineHeight: 1,
+              }}
+            >
+              <span>ได้รับเงินแล้ว</span>
+              <span className="tabular-nums">
+                {currencySymbol}
+                {fmt(
+                  data.paidAmount && data.paidAmount > 0
+                    ? data.paidAmount
+                    : calc.total
+                )}
+              </span>
+            </div>
+          )}
+          {activeType === "invoice" && (
+            <div
+              className="flex justify-between bg-amber-50 rounded text-amber-700 font-semibold border border-amber-200"
+              style={{
+                alignItems: "center",
+                minHeight: "32px",
+                paddingLeft: "12px",
+                paddingRight: "12px",
+                paddingTop: "10px",
+                paddingBottom: "6px",
+                lineHeight: 1,
+              }}
+            >
+              <span>ยอดที่ต้องชำระ</span>
+              <span className="tabular-nums">
+                {currencySymbol}
+                {fmt(calc.total)}
+              </span>
+            </div>
+          )}
         </section>
 
-        {visibility.paymentCondition && (
+        {activeType === "receipt" && data.paymentMethod && (
+          <section
+            className="bg-green-50 border-l-4 border-green-500 rounded mb-4"
+            style={{
+              paddingLeft: "12px",
+              paddingRight: "12px",
+              paddingTop: "12px",
+              paddingBottom: "8px",
+            }}
+          >
+            <div
+              className="text-[10px] text-gray-500"
+              style={{ marginBottom: "4px", lineHeight: 1 }}
+            >
+              วิธีการชำระเงิน
+            </div>
+            <div
+              className="text-xs font-medium text-gray-800"
+              style={{ lineHeight: 1 }}
+            >
+              {data.paymentMethod}
+            </div>
+          </section>
+        )}
+
+        {visibility.paymentCondition && activeType !== "receipt" && (
         <section
           className="bg-orange-50 border-l-4 border-brand-500 rounded mb-4"
           style={{
