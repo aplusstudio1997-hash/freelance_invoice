@@ -144,10 +144,10 @@ export default function PrintPage() {
         const sourceBoxes = Array.from(
           src.querySelectorAll<HTMLElement>('[data-pdf-measure="box"]')
         );
-        const measurements = sourceBoxes.map((el) => {
-          const r = el.getBoundingClientRect();
-          return { width: r.width, height: r.height };
-        });
+        const measurements = sourceBoxes.map((el) => ({
+          width: el.offsetWidth,
+          height: el.offsetHeight,
+        }));
 
         const clone = src.cloneNode(true) as HTMLElement;
         clone
