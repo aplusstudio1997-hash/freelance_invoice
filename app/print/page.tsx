@@ -175,10 +175,30 @@ export default function PrintPage() {
           el.style.height = `${m.height}px`;
           el.style.minHeight = `${m.height}px`;
           el.style.maxHeight = `${m.height}px`;
-          el.style.padding = "0 12px";
+          el.style.padding = "0";
           el.style.boxSizing = "border-box";
-          el.style.display = "flex";
-          el.style.alignItems = "center";
+          el.style.display = "block";
+          el.style.position = "relative";
+          el.style.overflow = "hidden";
+
+          const spans = Array.from(el.children) as HTMLElement[];
+          if (spans.length >= 2) {
+            const labelSpan = spans[0];
+            const valueSpan = spans[1];
+            const verticalCenter = `${m.height / 2}px`;
+
+            labelSpan.style.position = "absolute";
+            labelSpan.style.left = "12px";
+            labelSpan.style.top = verticalCenter;
+            labelSpan.style.transform = "translateY(-50%)";
+            labelSpan.style.lineHeight = "1";
+
+            valueSpan.style.position = "absolute";
+            valueSpan.style.right = "12px";
+            valueSpan.style.top = verticalCenter;
+            valueSpan.style.transform = "translateY(-50%)";
+            valueSpan.style.lineHeight = "1";
+          }
         });
 
         offscreen.innerHTML = "";
