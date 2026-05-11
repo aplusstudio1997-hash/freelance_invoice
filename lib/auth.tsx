@@ -15,7 +15,11 @@ interface AuthContextValue {
   user: User | null;
   loading: boolean;
   signInWithEmail: (email: string, password: string) => Promise<void>;
-  signUpWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (
+    email: string,
+    password: string,
+    studioName?: string
+  ) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -51,8 +55,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   };
 
-  const signUpWithEmail = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({ email, password });
+  const signUpWithEmail = async (
+    email: string,
+    password: string,
+    studioName?: string
+  ) => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: studioName
+        ? { data: { studio_name: studioName } }
+        : undefined,
+    });
     if (error) throw error;
   };
 
@@ -60,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}${window.location.pathname}`,
+        redirectTo: `${window.location.origin}/app`,
       },
     });
     if (error) throw error;

@@ -4,16 +4,16 @@ import { AuthProvider } from "@/lib/auth";
 import { DocumentProvider } from "@/lib/documents";
 
 export const metadata: Metadata = {
-  title: "So1o Freelancer — โปรแกรมช่วยคำนวณราคาและทำใบเสนอราคาออนไลน์",
+  title: "So1o Freelancer — หลังบ้านฟรีแลนซ์ของคุณ",
   description:
-    "เครื่องมือฟรีสำหรับฟรีแลนซ์ คำนวณราคางานและสร้างใบเสนอราคาแบบมืออาชีพ",
+    "ระบบจัดการเอกสาร รายได้ ภาษี ลูกค้า และ Subscription สำหรับฟรีแลนซ์ — ครบในที่เดียว ใช้ฟรีตลอดช่วง Beta",
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: "#f97316",
+  themeColor: "#fffaf3",
 };
 
 export default function RootLayout({
