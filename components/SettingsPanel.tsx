@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import ExtraEditModal from "./ExtraEditModal";
+import ClientPicker from "./clients/ClientPicker";
 
 interface Props {
   data: QuoteSettings;
@@ -141,7 +142,9 @@ export default function SettingsPanel({
               label="ลูกค้า"
             />
             {customerOpen && (
-              <div className="space-y-2">
+              <div className="space-y-3">
+                <ClientPicker />
+                <div className="border-t border-orange-100 -mx-1" />
                 <Input
                   placeholder="ชื่อลูกค้า"
                   value={data.customer.name}

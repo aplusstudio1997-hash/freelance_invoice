@@ -12,6 +12,7 @@ import {
 import {
   QuoteSettings,
   Profile,
+  Customer,
   DocumentType,
   DEFAULT_QUOTE,
   DEFAULT_PROFILE,
@@ -27,15 +28,19 @@ import {
   setMigrationStatus,
 } from "./storage";
 import * as repo from "./repository";
+import * as fin from "./finance";
 import { useAuth } from "./auth";
 
 interface DocumentContextValue {
   loading: boolean;
   activeId: string | null;
   activeType: DocumentType;
+  activeClientId: string | null;
   data: QuoteSettings;
   profile: Profile;
   documents: repo.DocumentSummary[];
+  clients: repo.ClientSummary[];
+  role: repo.UserRole;
   saveStatus: "saving" | "saved" | null;
   shouldShowMigration: boolean;
   dismissMigration: () => void;
@@ -48,6 +53,14 @@ interface DocumentContextValue {
   newDocument: (type: DocumentType, sourceId?: string) => Promise<void>;
   deleteDocument: (id: string) => Promise<void>;
   refreshList: () => Promise<void>;
+
+  refreshClients: () => Promise<void>;
+  attachClient: (
+    clientId: string | null,
+    fillCustomer?: boolean
+  ) => Promise<void>;
+  saveCurrentCustomerAsClient: () => Promise<repo.ClientRecord | null>;
+  recordIncomeFromCurrent: () => Promise<fin.IncomeRecord | null>;
 }
 
 const DocumentContext = createContext<DocumentContextValue | null>(null);
@@ -59,9 +72,12 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeType, setActiveType] = useState<DocumentType>("quote");
+  const [activeClientId, setActiveClientId] = useState<string | null>(null);
   const [data, setDataState] = useState<QuoteSettings>(DEFAULT_QUOTE);
   const [profile, setProfileState] = useState<Profile>(DEFAULT_PROFILE);
   const [documents, setDocuments] = useState<repo.DocumentSummary[]>([]);
+  const [clients, setClients] = useState<repo.ClientSummary[]>([]);
+  const [role, setRole] = useState<repo.UserRole>("user");
   const [saveStatus, setSaveStatus] = useState<"saving" | "saved" | null>(
     null
   );
@@ -83,13 +99,29 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
+  const refreshClients = useCallback(async () => {
+    if (!user) {
+      setClients([]);
+      return;
+    }
+    try {
+      const list = await repo.listClients();
+      setClients(list);
+    } catch (e) {
+      console.error("refreshClients failed", e);
+    }
+  }, [user]);
+
   useEffect(() => {
     if (authLoading) return;
     if (initRef.current && !user) {
       setActiveId(null);
+      setActiveClientId(null);
       setDataState(loadLocalDraft());
       setProfileState(loadLocalProfile());
       setDocuments([]);
+      setClients([]);
+      setRole("user");
       setLoading(false);
       try {
         localStorage.removeItem(ACTIVE_KEY);
@@ -104,6 +136,20 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
         try {
           const remoteProfile = await repo.fetchProfile();
           setProfileState(remoteProfile);
+        } catch (e) {
+          console.error(e);
+        }
+
+        try {
+          const r = await repo.fetchUserRole();
+          setRole(r);
+        } catch {
+          setRole("user");
+        }
+
+        try {
+          const list = await repo.listClients();
+          setClients(list);
         } catch (e) {
           console.error(e);
         }
@@ -124,10 +170,12 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
             if (rec) {
               setActiveId(rec.id);
               setActiveType(rec.type);
+              setActiveClientId(rec.client_id || null);
               setDataState(rec.data);
             }
           } else {
             setActiveId(null);
+            setActiveClientId(null);
             setActiveType("quote");
             setDataState({
               ...DEFAULT_QUOTE,
@@ -144,10 +192,13 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
         }
       } else {
         setActiveId(null);
+        setActiveClientId(null);
         setActiveType("quote");
         setDataState(loadLocalDraft());
         setProfileState(loadLocalProfile());
         setDocuments([]);
+        setClients([]);
+        setRole("user");
       }
       setLoading(false);
     })();
@@ -218,6 +269,7 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
       if (rec) {
         setActiveId(rec.id);
         setActiveType(rec.type);
+        setActiveClientId(rec.client_id || null);
         setDataState(rec.data);
         try {
           localStorage.setItem(ACTIVE_KEY, rec.id);
@@ -234,6 +286,7 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
     async (type: DocumentType, sourceId?: string) => {
       if (!user) {
         setActiveId(null);
+        setActiveClientId(null);
         setActiveType(type);
         setDataState({
           ...DEFAULT_QUOTE,
@@ -247,6 +300,7 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
         quoteNumber: generateDocumentNumber(type),
       };
       let linkedFromId: string | null = null;
+      let clientId: string | null = null;
       if (sourceId) {
         try {
           const src = await repo.getDocument(sourceId);
@@ -260,6 +314,7 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
                 type === "receipt" ? "" : src.data.paymentMethod,
             };
             linkedFromId = src.id;
+            clientId = src.client_id || null;
           }
         } catch (e) {
           console.error(e);
@@ -272,9 +327,11 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
           number: baseData.quoteNumber,
           data: baseData,
           linkedFromId,
+          clientId,
         });
         setActiveId(rec.id);
         setActiveType(type);
+        setActiveClientId(clientId);
         setDataState(baseData);
         try {
           localStorage.setItem(ACTIVE_KEY, rec.id);
@@ -299,6 +356,7 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
             await openDocument(remaining[0].id);
           } else {
             setActiveId(null);
+            setActiveClientId(null);
             setDataState({
               ...DEFAULT_QUOTE,
               quoteNumber: generateDocumentNumber(activeType),
@@ -312,6 +370,88 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
     [user, documents, activeId, activeType, openDocument]
   );
 
+  const attachClient = useCallback(
+    async (clientId: string | null, fillCustomer = true) => {
+      setActiveClientId(clientId);
+      if (user && activeId) {
+        try {
+          await repo.updateDocument(activeId, { clientId });
+        } catch (e) {
+          console.error("attachClient failed", e);
+        }
+      }
+      if (!clientId || !fillCustomer) return;
+      try {
+        const rec = await repo.getClient(clientId);
+        if (rec) {
+          const customer: Customer = repo.recordToCustomer(rec);
+          setData({ ...data, customer });
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    [user, activeId, data, setData]
+  );
+
+  const saveCurrentCustomerAsClient =
+    useCallback(async (): Promise<repo.ClientRecord | null> => {
+      if (!user) return null;
+      const c = data.customer;
+      if (!c || !c.name.trim()) return null;
+
+      try {
+        const existing = await repo.findClientByName(c.name);
+        if (existing) {
+          await attachClient(existing.id, false);
+          return existing;
+        }
+        const created = await repo.createClient(c);
+        await refreshClients();
+        await attachClient(created.id, false);
+        return created;
+      } catch (e) {
+        console.error("save customer as client failed", e);
+        return null;
+      }
+    }, [user, data.customer, attachClient, refreshClients]);
+
+  const recordIncomeFromCurrent = useCallback(async (): Promise<
+    fin.IncomeRecord | null
+  > => {
+    if (!user) return null;
+    const calc = (await import("./calc")).calculate(data);
+    const amount =
+      Number(data.paidAmount) > 0 ? Number(data.paidAmount) : calc.total;
+    if (!amount || amount <= 0) return null;
+    const wht = data.tax3Percent ? calc.taxDeduction : 0;
+    const vat = data.vat7 ? calc.vatAmount : 0;
+    const receivedAt =
+      data.paidDate ||
+      new Date().toISOString().slice(0, 10);
+    try {
+      const rec = await fin.createIncome({
+        clientId: activeClientId,
+        documentId: activeId,
+        category: "service",
+        description:
+          data.projectName ||
+          data.customer?.name ||
+          data.quoteNumber ||
+          "รายรับ",
+        amount,
+        currency: profile.currency,
+        whtAmount: wht,
+        vatAmount: vat,
+        receivedAt,
+      });
+      return rec;
+    } catch (e) {
+      console.error("recordIncomeFromCurrent failed", e);
+      return null;
+    }
+  }, [user, data, activeClientId, activeId, profile.currency]);
+
   const dismissMigration = useCallback(() => {
     if (user) setMigrationStatus(user.id);
     setShouldShowMigration(false);
@@ -321,7 +461,8 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
     if (user) setMigrationStatus(user.id);
     setShouldShowMigration(false);
     await refreshList();
-  }, [user, refreshList]);
+    await refreshClients();
+  }, [user, refreshList, refreshClients]);
 
   return (
     <DocumentContext.Provider
@@ -329,9 +470,12 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
         loading,
         activeId,
         activeType,
+        activeClientId,
         data,
         profile,
         documents,
+        clients,
+        role,
         saveStatus,
         shouldShowMigration,
         dismissMigration,
@@ -343,6 +487,10 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
         newDocument,
         deleteDocument,
         refreshList,
+        refreshClients,
+        attachClient,
+        saveCurrentCustomerAsClient,
+        recordIncomeFromCurrent,
       }}
     >
       {children}
