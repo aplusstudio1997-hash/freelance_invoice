@@ -106,7 +106,7 @@ export default function ClientsPage() {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-5">
+    <div className="max-w-6xl mx-auto space-y-4 sm:space-y-5">
       <section className="bg-white/85 backdrop-blur border border-orange-100/80 rounded-3xl shadow-soft p-5 sm:p-6">
         <div className="flex items-start gap-3">
           <div className="w-11 h-11 rounded-2xl bg-orange-50 text-brand-500 flex items-center justify-center shrink-0">

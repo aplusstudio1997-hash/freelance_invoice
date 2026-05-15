@@ -41,7 +41,7 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="space-y-4 sm:space-y-5">
+    <div className="max-w-6xl mx-auto space-y-4 sm:space-y-5">
       <section className="bg-ink-900 text-white rounded-3xl shadow-soft-lg p-5 sm:p-6 relative overflow-hidden">
         <div className="absolute -top-16 -right-16 w-48 h-48 bg-brand-500/20 rounded-full blur-3xl" />
         <div className="absolute -bottom-20 -left-20 w-56 h-56 bg-peach-300/10 rounded-full blur-3xl" />

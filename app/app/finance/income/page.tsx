@@ -110,7 +110,7 @@ export default function IncomePage() {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-5">
+    <div className="max-w-6xl mx-auto space-y-4 sm:space-y-5">
       <section className="bg-white/85 backdrop-blur border border-orange-100/80 rounded-3xl shadow-soft p-4 sm:p-5">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-2 flex-wrap">

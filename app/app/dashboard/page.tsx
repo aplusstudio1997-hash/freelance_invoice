@@ -110,7 +110,7 @@ export default function DashboardPage() {
     .reduce((a, s) => a + monthlyEquivalent(s), 0);
 
   return (
-    <div className="space-y-4 sm:space-y-5">
+    <div className="max-w-6xl mx-auto space-y-4 sm:space-y-5">
       <Greeting name={studioName} />
 
       <RevenueGoal

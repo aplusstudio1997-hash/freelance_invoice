@@ -29,12 +29,10 @@ export default function AppLayout({
 
   return (
     <div className="min-h-[100dvh] bg-app pb-12">
-      <div className="max-w-6xl mx-auto">
-        <AppHeader />
-        <BetaBanner />
-        <AppTabs />
-        <main className="px-3 sm:px-6 pt-4 sm:pt-6">{children}</main>
-      </div>
+      <AppHeader />
+      <BetaBanner />
+      <AppTabs />
+      <main className="px-3 sm:px-6 pt-4 sm:pt-6">{children}</main>
     </div>
   );
 }
