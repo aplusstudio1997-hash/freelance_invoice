@@ -75,15 +75,15 @@ export default function TimelinePanel({
       <div className="p-5 space-y-5">
         <section>
           <h3 className="font-medium text-gray-700 mb-3">ไทม์ไลน์โครงการ</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
+          <div className="flex flex-wrap gap-3">
+            <div className="w-full sm:w-[180px]">
               <label className="block text-sm text-gray-600 mb-1">วันที่เริ่ม</label>
               <DateInput
                 value={data.startDate}
                 onChange={(v) => update({ startDate: v })}
               />
             </div>
-            <div>
+            <div className="w-full sm:w-[180px]">
               <label className="block text-sm text-gray-600 mb-1">วันที่จบงาน</label>
               <DateInput
                 value={data.endDate}
@@ -94,7 +94,7 @@ export default function TimelinePanel({
         </section>
 
         {data.startDate && data.endDate ? (
-          <section className="bg-white border border-gray-200 rounded-lg p-4 lg:p-6">
+          <section className="bg-white border border-gray-200 rounded-lg p-4 lg:p-6 max-w-2xl">
             <h3 className="font-medium text-gray-700 mb-4">ลำดับงาน</h3>
             <div className="relative pl-2">
               {computedMilestones.map((m, i) => {
@@ -161,12 +161,12 @@ export default function TimelinePanel({
             </div>
           </section>
         ) : (
-          <section className="bg-white border border-gray-200 rounded-lg p-6 text-center text-gray-400 text-sm">
+          <section className="bg-white border border-gray-200 rounded-lg p-6 text-center text-gray-400 text-sm max-w-2xl">
             เลือกวันที่เริ่มและวันจบ เพื่อดูไทม์ไลน์
           </section>
         )}
 
-        <section className="bg-white border border-gray-200 rounded-lg p-4 lg:p-5">
+        <section className="bg-white border border-gray-200 rounded-lg p-4 lg:p-5 max-w-md">
           <div className="flex items-center gap-2 mb-4 text-brand-600">
             <Clock size={18} />
             <h3 className="font-medium">อัตรารายชั่วโมง</h3>

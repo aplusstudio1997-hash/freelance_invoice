@@ -96,18 +96,24 @@ export default function SettingsPanel({
               icon={<Briefcase size={15} className="text-brand-500" />}
               label="ข้อมูลโครงการ"
             />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Input
-                placeholder="ชื่อโครงการ"
-                value={data.projectName}
-                onChange={(v) => update({ projectName: v })}
-              />
-              <input
-                placeholder="QT-2025-001"
-                value={data.quoteNumber}
-                onChange={(e) => update({ quoteNumber: e.target.value })}
-                className="w-full border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200"
-              />
+            <div className="flex flex-wrap gap-3">
+              <div className="w-full sm:w-[28rem]">
+                <Label>ชื่อโครงการ</Label>
+                <Input
+                  placeholder="เช่น ออกแบบเว็บบริษัท ABC"
+                  value={data.projectName}
+                  onChange={(v) => update({ projectName: v })}
+                />
+              </div>
+              <div className="w-full sm:w-[180px]">
+                <Label>เลขที่เอกสาร</Label>
+                <input
+                  placeholder="QT-2025-001"
+                  value={data.quoteNumber}
+                  onChange={(e) => update({ quoteNumber: e.target.value })}
+                  className="w-full border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200"
+                />
+              </div>
             </div>
           </section>
 
@@ -120,52 +126,70 @@ export default function SettingsPanel({
             />
             {customerOpen && (
               <div className="space-y-3">
-                <ClientPicker />
+                <div className="w-full sm:max-w-md">
+                  <ClientPicker />
+                </div>
                 <div className="border-t border-orange-100 -mx-1" />
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Input
-                    placeholder="ชื่อลูกค้า"
-                    value={data.customer.name}
-                    onChange={(v) =>
-                      update({ customer: { ...data.customer, name: v } })
+                <div className="flex flex-wrap gap-3">
+                  <div className="w-full sm:w-[28rem]">
+                    <Label>ชื่อลูกค้า</Label>
+                    <Input
+                      placeholder="ชื่อ-นามสกุล หรือชื่อบริษัท"
+                      value={data.customer.name}
+                      onChange={(v) =>
+                        update({ customer: { ...data.customer, name: v } })
+                      }
+                    />
+                  </div>
+                  <div className="w-full sm:w-[180px]">
+                    <Label>เบอร์โทร</Label>
+                    <Input
+                      placeholder="08x-xxx-xxxx"
+                      type="tel"
+                      value={data.customer.phone}
+                      onChange={(v) =>
+                        update({ customer: { ...data.customer, phone: v } })
+                      }
+                    />
+                  </div>
+                  <div className="w-full sm:w-[220px]">
+                    <Label>Line ID</Label>
+                    <Input
+                      placeholder="@username"
+                      value={data.customer.lineId}
+                      onChange={(v) =>
+                        update({ customer: { ...data.customer, lineId: v } })
+                      }
+                    />
+                  </div>
+                  <div className="w-full sm:w-[24rem]">
+                    <Label>Email</Label>
+                    <Input
+                      placeholder="name@example.com"
+                      type="email"
+                      value={data.customer.email}
+                      onChange={(v) =>
+                        update({ customer: { ...data.customer, email: v } })
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="w-full sm:max-w-2xl">
+                  <Label>ที่อยู่</Label>
+                  <textarea
+                    placeholder="ที่อยู่สำหรับออกใบกำกับภาษี"
+                    value={data.customer.address}
+                    onChange={(e) =>
+                      update({ customer: { ...data.customer, address: e.target.value } })
                     }
-                  />
-                  <Input
-                    placeholder="เบอร์โทร"
-                    type="tel"
-                    value={data.customer.phone}
-                    onChange={(v) =>
-                      update({ customer: { ...data.customer, phone: v } })
-                    }
-                  />
-                  <Input
-                    placeholder="Line ID"
-                    value={data.customer.lineId}
-                    onChange={(v) =>
-                      update({ customer: { ...data.customer, lineId: v } })
-                    }
-                  />
-                  <Input
-                    placeholder="Email"
-                    type="email"
-                    value={data.customer.email}
-                    onChange={(v) =>
-                      update({ customer: { ...data.customer, email: v } })
-                    }
+                    rows={2}
+                    className="w-full border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-300 resize-none"
                   />
                 </div>
-                <textarea
-                  placeholder="ที่อยู่"
-                  value={data.customer.address}
-                  onChange={(e) =>
-                    update({ customer: { ...data.customer, address: e.target.value } })
-                  }
-                  rows={2}
-                  className="w-full border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-300 resize-none"
-                />
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="w-full sm:w-[220px]">
+                  <Label>เลขประจำตัวผู้เสียภาษี</Label>
                   <Input
-                    placeholder="เลขประชาชน/นิติบุคคล"
+                    placeholder="13 หลัก"
                     value={data.customer.taxId}
                     onChange={(v) =>
                       update({ customer: { ...data.customer, taxId: v } })
@@ -244,12 +268,14 @@ export default function SettingsPanel({
               icon={<Coins size={15} className="text-yellow-500" />}
               label={`ค่าต้นทุนแฝงอื่นๆ (${currencySymbol})`}
             />
-            <Input
-              placeholder="0"
-              type="number"
-              value={data.hiddenCost}
-              onChange={(v) => update({ hiddenCost: v })}
-            />
+            <div className="w-full sm:w-[180px]">
+              <Input
+                placeholder="0"
+                type="number"
+                value={data.hiddenCost}
+                onChange={(v) => update({ hiddenCost: v })}
+              />
+            </div>
           </section>
 
           <section>
@@ -257,41 +283,43 @@ export default function SettingsPanel({
               icon={<CreditCard size={15} className="text-emerald-500" />}
               label="เงื่อนไขการชำระ"
             />
-            <div className="grid grid-cols-4 gap-1.5 mb-2">
-              {(["30", "50", "70", "full"] as const).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => update({ paymentTerm: t })}
-                  className={`px-1 py-2.5 rounded-md font-medium transition ${
-                    t === "full" ? "text-xs" : "text-sm"
-                  } ${
-                    data.paymentTerm === t
-                      ? "bg-brand-500 text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200 active:bg-gray-300"
-                  }`}
-                >
-                  {t === "full" ? "จ่ายเต็ม" : `${t}%`}
-                </button>
-              ))}
+            <div className="max-w-md space-y-2">
+              <div className="grid grid-cols-4 gap-1.5">
+                {(["30", "50", "70", "full"] as const).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => update({ paymentTerm: t })}
+                    className={`px-1 py-2.5 rounded-md font-medium transition ${
+                      t === "full" ? "text-xs" : "text-sm"
+                    } ${
+                      data.paymentTerm === t
+                        ? "bg-brand-500 text-white"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200 active:bg-gray-300"
+                    }`}
+                  >
+                    {t === "full" ? "จ่ายเต็ม" : `${t}%`}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500">
+                มัดจำ:{" "}
+                <span className="text-brand-500 font-semibold">
+                  {data.paymentTerm === "full"
+                    ? "100%"
+                    : `${data.paymentTerm}%`}
+                </span>
+              </p>
+              <select
+                value={data.paymentCondition}
+                onChange={(e) => update({ paymentCondition: e.target.value })}
+                className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white"
+              >
+                <option>ชำระมัดจำก่อนเริ่มงาน</option>
+                <option>ชำระเต็มก่อนเริ่มงาน</option>
+                <option>ชำระตามงวดที่ตกลง</option>
+                <option>ชำระหลังส่งมอบงาน</option>
+              </select>
             </div>
-            <p className="text-xs text-gray-500 mb-2">
-              มัดจำ:{" "}
-              <span className="text-brand-500 font-semibold">
-                {data.paymentTerm === "full"
-                  ? "100%"
-                  : `${data.paymentTerm}%`}
-              </span>
-            </p>
-            <select
-              value={data.paymentCondition}
-              onChange={(e) => update({ paymentCondition: e.target.value })}
-              className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white"
-            >
-              <option>ชำระมัดจำก่อนเริ่มงาน</option>
-              <option>ชำระเต็มก่อนเริ่มงาน</option>
-              <option>ชำระตามงวดที่ตกลง</option>
-              <option>ชำระหลังส่งมอบงาน</option>
-            </select>
           </section>
         </div>
         )}
@@ -320,6 +348,12 @@ function SectionHeader({
       {icon}
       <label className="font-medium text-gray-700">{label}</label>
     </div>
+  );
+}
+
+function Label({ children }: { children: React.ReactNode }) {
+  return (
+    <label className="block text-xs text-gray-500 mb-1">{children}</label>
   );
 }
 
@@ -358,11 +392,13 @@ function Input({
   value,
   onChange,
   type = "text",
+  className = "",
 }: {
   placeholder: string;
   value: string;
   onChange: (v: string) => void;
   type?: string;
+  className?: string;
 }) {
   return (
     <input
@@ -370,7 +406,7 @@ function Input({
       placeholder={placeholder}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-300"
+      className={`w-full border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-300 ${className}`}
     />
   );
 }

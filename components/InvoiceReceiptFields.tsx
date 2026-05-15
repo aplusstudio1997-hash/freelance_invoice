@@ -31,7 +31,7 @@ export default function InvoiceReceiptFields({
   const symbol = getCurrencySymbol(currency);
 
   return (
-    <section className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 mb-3">
+    <section>
       <div className="flex items-center gap-1.5 font-medium text-gray-700 mb-3 text-sm">
         {type === "invoice" ? (
           <>
@@ -47,26 +47,24 @@ export default function InvoiceReceiptFields({
       </div>
 
       {type === "invoice" && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">
-              วันครบกำหนดชำระ
-            </label>
-            <DateInput
-              value={data.dueDate || ""}
-              onChange={(v) => update({ dueDate: v })}
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              วันที่ลูกค้าต้องชำระเงินภายใน
-            </p>
-          </div>
+        <div className="w-full sm:w-[180px]">
+          <label className="block text-xs text-gray-500 mb-1">
+            วันครบกำหนดชำระ
+          </label>
+          <DateInput
+            value={data.dueDate || ""}
+            onChange={(v) => update({ dueDate: v })}
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            วันที่ลูกค้าต้องชำระเงินภายใน
+          </p>
         </div>
       )}
 
       {type === "receipt" && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">
+        <div className="flex flex-wrap gap-3">
+          <div className="w-full sm:w-[180px]">
+            <label className="block text-xs text-gray-500 mb-1">
               วันที่ได้รับเงิน
             </label>
             <DateInput
@@ -75,8 +73,8 @@ export default function InvoiceReceiptFields({
             />
           </div>
 
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">
+          <div className="w-full sm:w-[200px]">
+            <label className="block text-xs text-gray-500 mb-1">
               วิธีการชำระเงิน
             </label>
             <select
@@ -93,8 +91,8 @@ export default function InvoiceReceiptFields({
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm text-gray-600 mb-1 flex items-center gap-1">
+          <div className="w-full sm:w-[160px]">
+            <label className="block text-xs text-gray-500 mb-1 flex items-center gap-1">
               <Wallet size={12} />
               ยอดที่รับจริง ({symbol})
             </label>
@@ -106,8 +104,8 @@ export default function InvoiceReceiptFields({
                   paidAmount: e.target.value ? Number(e.target.value) : undefined,
                 })
               }
-              placeholder="ปล่อยว่าง = ยอดเต็ม"
-              className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200 text-sm"
+              placeholder="ปล่อยว่าง = เต็ม"
+              className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200 text-sm tabular-nums"
             />
           </div>
         </div>

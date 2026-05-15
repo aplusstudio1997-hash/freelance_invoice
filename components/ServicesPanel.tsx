@@ -139,23 +139,33 @@ export default function ServicesPanel({
             <h3 className="font-medium text-gray-700 mb-2 flex items-center gap-1.5">
               <PackagePlus size={15} className="text-brand-500" /> เพิ่มใหม่
             </h3>
-            <div className="bg-orange-50/60 border border-orange-100 rounded-lg p-3 space-y-2">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <input
-                  placeholder="ชื่อบริการ"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
-                />
-                <input
-                  placeholder="รายละเอียดงาน (ไม่บังคับ)"
-                  value={newDescription}
-                  onChange={(e) => setNewDescription(e.target.value)}
-                  className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200 text-xs"
-                />
+            <div className="bg-orange-50/60 border border-orange-100 rounded-lg p-3 space-y-3">
+              <div className="flex flex-wrap gap-2">
+                <div className="w-full sm:w-[28rem]">
+                  <label className="text-xs text-gray-500 block mb-1">
+                    ชื่อบริการ
+                  </label>
+                  <input
+                    placeholder="เช่น ออกแบบโลโก้ + Brand Identity"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
+                  />
+                </div>
+                <div className="w-full sm:w-[32rem]">
+                  <label className="text-xs text-gray-500 block mb-1">
+                    รายละเอียดงาน
+                  </label>
+                  <input
+                    placeholder="เช่น รวม revise 2 ครั้ง + source file"
+                    value={newDescription}
+                    onChange={(e) => setNewDescription(e.target.value)}
+                    className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
+                  />
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
+              <div className="flex flex-wrap gap-2">
+                <div className="w-[140px]">
                   <label className="text-xs text-gray-500 block mb-1">
                     ราคา/หน่วย
                   </label>
@@ -165,12 +175,12 @@ export default function ServicesPanel({
                     placeholder="0"
                     value={newPrice}
                     onChange={(e) => setNewPrice(e.target.value)}
-                    className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
+                    className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200 tabular-nums"
                   />
                 </div>
-                <div>
+                <div className="w-[100px]">
                   <label className="text-xs text-gray-500 block mb-1">
-                    จำนวน (ชิ้นงาน)
+                    จำนวน
                   </label>
                   <input
                     type="number"
@@ -178,16 +188,18 @@ export default function ServicesPanel({
                     min={1}
                     value={newQuantity}
                     onChange={(e) => setNewQuantity(e.target.value)}
-                    className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
+                    className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200 tabular-nums"
                   />
                 </div>
+                <div className="flex-1 flex items-end min-w-[140px]">
+                  <button
+                    onClick={addService}
+                    className="w-full bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white py-2.5 rounded-md font-medium flex items-center justify-center gap-2 transition"
+                  >
+                    <Plus size={16} /> เพิ่ม
+                  </button>
+                </div>
               </div>
-              <button
-                onClick={addService}
-                className="w-full bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white py-2.5 rounded-md font-medium flex items-center justify-center gap-2 transition"
-              >
-                <Plus size={16} /> เพิ่ม
-              </button>
             </div>
           </section>
 
@@ -195,6 +207,7 @@ export default function ServicesPanel({
             <h3 className="font-medium text-gray-700 mb-2 flex items-center gap-1.5">
               <ShoppingBasket size={15} className="text-blue-500" /> บริการของคุณ
             </h3>
+            <div className="max-w-3xl">
             {data.services.length === 0 ? (
               <p className="text-center text-gray-400 py-6 text-sm">
                 ยังไม่มีบริการ
@@ -277,10 +290,11 @@ export default function ServicesPanel({
                 })}
               </ul>
             )}
+            </div>
           </section>
 
           <section className="pt-2 border-t border-gray-100">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-2 max-w-3xl">
               <h3 className="font-medium text-gray-700 flex items-center gap-1.5">
                 <Sparkles size={15} className="text-purple-500" /> เพิ่มเติม
               </h3>
@@ -291,7 +305,7 @@ export default function ServicesPanel({
                 <Plus size={14} /> เพิ่ม
               </button>
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 max-w-3xl">
               {data.extras.map((x) => (
                 <div
                   key={x.id}
@@ -328,7 +342,7 @@ export default function ServicesPanel({
               <Receipt size={15} className="text-brand-500" /> สรุปใบเสนอราคา
             </h3>
 
-            <div className="bg-gray-50 rounded-lg p-3 space-y-2.5 text-sm">
+            <div className="bg-gray-50 rounded-lg p-3 space-y-2.5 text-sm max-w-md">
               <div className="flex justify-between items-center">
                 <span className="text-gray-600 text-xs">ยอดรวมก่อนภาษี</span>
                 <span className="font-semibold tabular-nums text-gray-800">

@@ -134,7 +134,7 @@ export default function ClientsPage() {
       </section>
 
       <section className="bg-white/85 backdrop-blur border border-orange-100/80 rounded-3xl shadow-soft p-4 sm:p-5">
-        <div className="relative">
+        <div className="relative max-w-md">
           <Search
             size={14}
             className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-400"
@@ -142,7 +142,7 @@ export default function ClientsPage() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="ค้นหาชื่อลูกค้า อีเมล โทรศัพท์ หรือเลขประจำตัวผู้เสียภาษี"
+            placeholder="ค้นหาชื่อ อีเมล โทร หรือเลข Tax ID"
             className="w-full pl-10 pr-4 py-2.5 bg-orange-50/40 border border-orange-100 rounded-full text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:bg-white transition"
           />
         </div>

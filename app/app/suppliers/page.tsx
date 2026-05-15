@@ -152,7 +152,7 @@ export default function SuppliersPage() {
 
       <section className="bg-white/85 backdrop-blur border border-orange-100/80 rounded-3xl shadow-soft p-4 sm:p-5">
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="relative flex-1 min-w-[200px]">
+          <div className="relative w-full sm:w-[400px]">
             <Search
               size={13}
               className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400"
@@ -160,11 +160,11 @@ export default function SuppliersPage() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="ค้นหา ชื่อ อีเมล โทรศัพท์ ประเภทบริการ หรือหมายเหตุ"
+              placeholder="ค้นหา ชื่อ อีเมล โทร หรือบริการ"
               className="w-full pl-9 pr-3.5 py-2 bg-orange-50/40 border border-orange-100 rounded-full text-sm placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:bg-white transition"
             />
           </div>
-          <div className="relative">
+          <div className="relative w-full sm:w-[200px]">
             <Filter
               size={12}
               className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400 pointer-events-none"
@@ -174,7 +174,7 @@ export default function SuppliersPage() {
               onChange={(e) =>
                 setCatFilter(e.target.value as SupplierCategory | "all")
               }
-              className="pl-9 pr-8 py-2 bg-orange-50/40 border border-orange-100 rounded-full text-sm text-ink-900 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:bg-white appearance-none cursor-pointer"
+              className="w-full pl-9 pr-8 py-2 bg-orange-50/40 border border-orange-100 rounded-full text-sm text-ink-900 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:bg-white appearance-none cursor-pointer"
             >
               <option value="all">ทุกหมวด</option>
               {Object.entries(SUPPLIER_CATEGORIES).map(([k, v]) => (

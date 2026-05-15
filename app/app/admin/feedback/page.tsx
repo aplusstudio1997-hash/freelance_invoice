@@ -144,7 +144,7 @@ export default function AdminFeedbackPage() {
 
       <section className="bg-white/85 backdrop-blur border border-orange-100/80 rounded-3xl shadow-soft p-4 sm:p-5">
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="relative flex-1 min-w-[200px]">
+          <div className="relative w-full sm:w-[400px]">
             <Search
               size={13}
               className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400"
