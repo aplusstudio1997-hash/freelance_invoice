@@ -140,18 +140,20 @@ export default function ServicesPanel({
               <PackagePlus size={15} className="text-brand-500" /> เพิ่มใหม่
             </h3>
             <div className="bg-orange-50/60 border border-orange-100 rounded-lg p-3 space-y-2">
-              <input
-                placeholder="ชื่อบริการ"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
-              />
-              <input
-                placeholder="รายละเอียดงาน (ไม่บังคับ)"
-                value={newDescription}
-                onChange={(e) => setNewDescription(e.target.value)}
-                className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200 text-xs"
-              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <input
+                  placeholder="ชื่อบริการ"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
+                />
+                <input
+                  placeholder="รายละเอียดงาน (ไม่บังคับ)"
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                  className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200 text-xs"
+                />
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-xs text-gray-500 block mb-1">

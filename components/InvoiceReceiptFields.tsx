@@ -47,22 +47,24 @@ export default function InvoiceReceiptFields({
       </div>
 
       {type === "invoice" && (
-        <div>
-          <label className="block text-sm text-gray-600 mb-1">
-            วันครบกำหนดชำระ
-          </label>
-          <DateInput
-            value={data.dueDate || ""}
-            onChange={(v) => update({ dueDate: v })}
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            วันที่ลูกค้าต้องชำระเงินภายใน
-          </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">
+              วันครบกำหนดชำระ
+            </label>
+            <DateInput
+              value={data.dueDate || ""}
+              onChange={(v) => update({ dueDate: v })}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              วันที่ลูกค้าต้องชำระเงินภายใน
+            </p>
+          </div>
         </div>
       )}
 
       {type === "receipt" && (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label className="block text-sm text-gray-600 mb-1">
               วันที่ได้รับเงิน

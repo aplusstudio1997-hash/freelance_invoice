@@ -11,7 +11,6 @@ import {
   Plus,
   Settings2,
   Sliders,
-  Hash,
 } from "lucide-react";
 import { useState } from "react";
 import ExtraEditModal from "./ExtraEditModal";
@@ -95,26 +94,21 @@ export default function SettingsPanel({
           <section>
             <SectionHeader
               icon={<Briefcase size={15} className="text-brand-500" />}
-              label="โครงการ"
+              label="ข้อมูลโครงการ"
             />
-            <Input
-              placeholder="ชื่อโครงการ"
-              value={data.projectName}
-              onChange={(v) => update({ projectName: v })}
-            />
-          </section>
-
-          <section>
-            <SectionHeader
-              icon={<Hash size={15} className="text-cyan-500" />}
-              label="เลขที่ใบเสนอราคา"
-            />
-            <input
-              placeholder="QT-2025-001"
-              value={data.quoteNumber}
-              onChange={(e) => update({ quoteNumber: e.target.value })}
-              className="w-full border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200"
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Input
+                placeholder="ชื่อโครงการ"
+                value={data.projectName}
+                onChange={(v) => update({ projectName: v })}
+              />
+              <input
+                placeholder="QT-2025-001"
+                value={data.quoteNumber}
+                onChange={(e) => update({ quoteNumber: e.target.value })}
+                className="w-full border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200"
+              />
+            </div>
           </section>
 
           <section>
@@ -128,52 +122,56 @@ export default function SettingsPanel({
               <div className="space-y-3">
                 <ClientPicker />
                 <div className="border-t border-orange-100 -mx-1" />
-                <Input
-                  placeholder="ชื่อลูกค้า"
-                  value={data.customer.name}
-                  onChange={(v) =>
-                    update({ customer: { ...data.customer, name: v } })
-                  }
-                />
-                <Input
-                  placeholder="เบอร์โทร"
-                  type="tel"
-                  value={data.customer.phone}
-                  onChange={(v) =>
-                    update({ customer: { ...data.customer, phone: v } })
-                  }
-                />
-                <Input
-                  placeholder="Line ID"
-                  value={data.customer.lineId}
-                  onChange={(v) =>
-                    update({ customer: { ...data.customer, lineId: v } })
-                  }
-                />
-                <Input
-                  placeholder="Email"
-                  type="email"
-                  value={data.customer.email}
-                  onChange={(v) =>
-                    update({ customer: { ...data.customer, email: v } })
-                  }
-                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Input
+                    placeholder="ชื่อลูกค้า"
+                    value={data.customer.name}
+                    onChange={(v) =>
+                      update({ customer: { ...data.customer, name: v } })
+                    }
+                  />
+                  <Input
+                    placeholder="เบอร์โทร"
+                    type="tel"
+                    value={data.customer.phone}
+                    onChange={(v) =>
+                      update({ customer: { ...data.customer, phone: v } })
+                    }
+                  />
+                  <Input
+                    placeholder="Line ID"
+                    value={data.customer.lineId}
+                    onChange={(v) =>
+                      update({ customer: { ...data.customer, lineId: v } })
+                    }
+                  />
+                  <Input
+                    placeholder="Email"
+                    type="email"
+                    value={data.customer.email}
+                    onChange={(v) =>
+                      update({ customer: { ...data.customer, email: v } })
+                    }
+                  />
+                </div>
                 <textarea
                   placeholder="ที่อยู่"
                   value={data.customer.address}
                   onChange={(e) =>
                     update({ customer: { ...data.customer, address: e.target.value } })
                   }
-                  rows={3}
+                  rows={2}
                   className="w-full border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-300 resize-none"
                 />
-                <Input
-                  placeholder="เลขประชาชน/นิติบุคคล"
-                  value={data.customer.taxId}
-                  onChange={(v) =>
-                    update({ customer: { ...data.customer, taxId: v } })
-                  }
-                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Input
+                    placeholder="เลขประชาชน/นิติบุคคล"
+                    value={data.customer.taxId}
+                    onChange={(v) =>
+                      update({ customer: { ...data.customer, taxId: v } })
+                    }
+                  />
+                </div>
               </div>
             )}
           </section>
