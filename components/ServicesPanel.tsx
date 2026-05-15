@@ -6,7 +6,6 @@ import {
   Plus,
   Trash2,
   ChevronDown,
-  ChevronRight,
   Pencil,
   Gift,
   Settings2,
@@ -117,41 +116,25 @@ export default function ServicesPanel({
     });
   };
 
-  if (collapsed) {
-    return (
-      <div className="hidden lg:flex w-12 bg-white border-r border-gray-200 flex-col items-center py-4">
-        <button
-          onClick={() => setCollapsed(false)}
-          className="text-gray-500 hover:text-brand-500"
-          aria-label="ขยาย"
-        >
-          <ChevronRight size={18} />
-        </button>
-        <div className="mt-4 [writing-mode:vertical-rl] text-xs text-gray-500 tracking-wider">
-          จัดการบริการ
-        </div>
-      </div>
-    );
-  }
-
   return (
     <>
-      <aside className="w-full lg:w-80 bg-white lg:border-r border-gray-200 flex flex-col h-full">
-        <div className="hidden lg:flex items-center justify-between px-4 py-3 border-b border-gray-100">
-          <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-            <Package size={14} className="text-brand-500" />
+      <section className="bg-white/85 backdrop-blur border border-orange-100/80 rounded-3xl shadow-soft overflow-hidden">
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="w-full flex items-center justify-between px-5 py-4 border-b border-orange-100 hover:bg-orange-50/30 transition"
+        >
+          <h2 className="font-semibold text-ink-900 flex items-center gap-2 text-base">
+            <Package size={16} className="text-brand-500" />
             จัดการบริการ
           </h2>
-          <button
-            onClick={() => setCollapsed(true)}
-            className="text-gray-400 hover:text-gray-600"
-            aria-label="ย่อ"
-          >
-            <ChevronDown size={16} className="rotate-90" />
-          </button>
-        </div>
+          <ChevronDown
+            size={18}
+            className={`text-ink-400 transition ${collapsed ? "-rotate-90" : ""}`}
+          />
+        </button>
 
-        <div className="flex-1 overflow-y-auto scrollbar-thin p-4 space-y-5 text-sm">
+        {!collapsed && (
+        <div className="p-5 space-y-5 text-sm">
           <section>
             <h3 className="font-medium text-gray-700 mb-2 flex items-center gap-1.5">
               <PackagePlus size={15} className="text-brand-500" /> เพิ่มใหม่
@@ -465,7 +448,8 @@ export default function ServicesPanel({
             </div>
           </section>
         </div>
-      </aside>
+        )}
+      </section>
 
       <ServiceEditModal
         open={editingService !== null}

@@ -5,7 +5,6 @@ import { CalcResult, fmt, fmtDateShort, buildMilestones } from "@/lib/calc";
 import {
   Clock,
   ChevronDown,
-  ChevronRight,
   Circle,
   CheckCircle2,
   CalendarDays,
@@ -52,44 +51,28 @@ export default function TimelinePanel({
     update(patch);
   };
 
-  if (collapsed) {
-    return (
-      <div className="hidden lg:flex w-12 bg-white border-r border-gray-200 flex-col items-center py-4">
-        <button
-          onClick={() => setCollapsed(false)}
-          className="text-gray-500 hover:text-brand-500"
-          aria-label="ขยาย"
-        >
-          <ChevronRight size={18} />
-        </button>
-        <div className="mt-4 [writing-mode:vertical-rl] text-xs text-gray-500 tracking-wider">
-          ไทม์ไลน์
-        </div>
-      </div>
-    );
-  }
-
   const depositAmount = calc.deposit;
   const depositPercent =
     data.paymentTerm === "full" ? "100%" : `${data.paymentTerm}%`;
 
   return (
-    <section className="flex-1 min-w-0 bg-gray-50 lg:border-r border-gray-200 flex flex-col h-full">
-      <div className="hidden lg:flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white">
-        <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-          <CalendarDays size={14} className="text-indigo-500" />
+    <section className="bg-white/85 backdrop-blur border border-orange-100/80 rounded-3xl shadow-soft overflow-hidden">
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="w-full flex items-center justify-between px-5 py-4 border-b border-orange-100 hover:bg-orange-50/30 transition"
+      >
+        <h2 className="font-semibold text-ink-900 flex items-center gap-2 text-base">
+          <CalendarDays size={16} className="text-indigo-500" />
           ไทม์ไลน์
         </h2>
-        <button
-          onClick={() => setCollapsed(true)}
-          className="text-gray-400 hover:text-gray-600"
-          aria-label="ย่อ"
-        >
-          <ChevronDown size={16} className="rotate-90" />
-        </button>
-      </div>
+        <ChevronDown
+          size={18}
+          className={`text-ink-400 transition ${collapsed ? "-rotate-90" : ""}`}
+        />
+      </button>
 
-      <div className="flex-1 overflow-y-auto scrollbar-thin p-4 lg:p-6 space-y-5">
+      {!collapsed && (
+      <div className="p-5 space-y-5">
         <section>
           <h3 className="font-medium text-gray-700 mb-3">ไทม์ไลน์โครงการ</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -207,6 +190,7 @@ export default function TimelinePanel({
           </div>
         </section>
       </div>
+      )}
     </section>
   );
 }

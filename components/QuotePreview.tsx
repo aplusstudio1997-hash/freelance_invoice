@@ -2,7 +2,7 @@
 
 import { QuoteSettings, Profile, DocumentType } from "@/lib/types";
 import { CalcResult, fmt, fmtDate } from "@/lib/calc";
-import { Download, FileText, Link2 } from "lucide-react";
+import { FileText, Link2 } from "lucide-react";
 
 interface Props {
   data: QuoteSettings;
@@ -53,16 +53,16 @@ export default function QuotePreview({
     pay.qrCode || pay.bankName || pay.accountName || pay.accountNumber;
 
   return (
-    <aside className="w-full lg:w-96 bg-gray-50 flex flex-col h-full">
-      <div className="hidden lg:flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white no-print">
-        <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-          <FileText size={14} className="text-brand-500" />
-          {docLabel}
+    <section className="bg-white/85 backdrop-blur border border-orange-100/80 rounded-3xl shadow-soft overflow-hidden">
+      <div className="hidden sm:flex items-center justify-between px-5 py-4 border-b border-orange-100 no-print">
+        <h2 className="font-semibold text-ink-900 flex items-center gap-2 text-base">
+          <FileText size={16} className="text-brand-500" />
+          ตัวอย่าง{docLabel}
         </h2>
       </div>
 
-      <div className="flex-1 overflow-y-auto scrollbar-thin p-3 sm:p-4">
-        <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-5 space-y-4 text-xs shadow-sm">
+      <div className="p-3 sm:p-6 bg-gray-50/60">
+        <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 space-y-4 text-xs shadow-sm">
           <header className="pb-3 border-b-2 border-brand-500">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-2.5 flex-1 min-w-0">
@@ -451,26 +451,7 @@ export default function QuotePreview({
           </div>
         </div>
       </div>
-
-      <div className="p-3 sm:p-4 bg-white border-t border-gray-100 no-print safe-bottom">
-        <button
-          onClick={onDownload}
-          disabled={downloading}
-          className="w-full bg-brand-500 hover:bg-brand-600 active:bg-brand-700 disabled:bg-brand-300 text-white py-3 rounded-md font-medium flex items-center justify-center gap-2 transition"
-        >
-          {downloading ? (
-            <>
-              <FileText size={18} className="animate-pulse" />
-              กำลังเตรียมเอกสาร...
-            </>
-          ) : (
-            <>
-              <Download size={18} /> บันทึกเป็น PDF
-            </>
-          )}
-        </button>
-      </div>
-    </aside>
+    </section>
   );
 }
 

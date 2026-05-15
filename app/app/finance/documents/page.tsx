@@ -27,13 +27,9 @@ import {
   Dice5,
   Smile,
   RotateCcw,
-  Settings,
-  ListPlus,
-  Calendar,
   FileText,
+  Loader2,
 } from "lucide-react";
-
-type Tab = "settings" | "services" | "timeline" | "preview";
 
 export default function FinancePage() {
   const {
@@ -59,7 +55,6 @@ export default function FinancePage() {
   }>({ totalQuotes: null, activeUsers: null });
 
   const [downloading, setDownloading] = useState(false);
-  const [mobileTab, setMobileTab] = useState<Tab>("settings");
 
   useEffect(() => {
     let cancelled = false;
@@ -153,103 +148,70 @@ export default function FinancePage() {
 
       <section className="bg-white/85 backdrop-blur border border-orange-100/80 rounded-3xl shadow-soft overflow-hidden">
         <DocumentTabs />
-
-        <div className="flex flex-col lg:flex-row min-h-[60vh]">
-          <div
-            className={`${
-              mobileTab === "settings" ? "flex" : "hidden"
-            } lg:flex flex-1 lg:flex-none min-h-0 flex-col`}
-          >
-            {activeType !== "quote" && (
-              <div className="px-3 sm:px-4 pt-3">
-                <InvoiceReceiptFields
-                  type={activeType}
-                  data={data}
-                  update={update}
-                  currency={profile.currency}
-                />
-              </div>
-            )}
-            <SettingsPanel
-              data={data}
-              update={update}
-              currencySymbol={currencySymbol}
-            />
-          </div>
-          <div
-            className={`${
-              mobileTab === "services" ? "flex" : "hidden"
-            } lg:flex flex-1 lg:flex-none min-h-0`}
-          >
-            <ServicesPanel
-              data={data}
-              update={update}
-              currencySymbol={currencySymbol}
-              calc={calc}
-            />
-          </div>
-          <div
-            className={`${
-              mobileTab === "timeline" ? "flex" : "hidden"
-            } lg:flex flex-1 lg:flex-1 min-h-0`}
-          >
-            <TimelinePanel
-              data={data}
-              update={update}
-              calc={calc}
-              currencySymbol={currencySymbol}
-            />
-          </div>
-          <div
-            className={`${
-              mobileTab === "preview" ? "flex" : "hidden"
-            } lg:flex flex-1 lg:flex-none min-h-0`}
-          >
-            <QuotePreview
-              data={data}
-              calc={calc}
-              profile={profile}
-              currencySymbol={currencySymbol}
-              onDownload={downloadPDF}
-              downloading={downloading}
-              type={activeType}
-            />
-          </div>
-        </div>
-
-        <nav className="lg:hidden bg-white border-t border-orange-100 safe-bottom no-print">
-          <div className="px-1.5 py-1 grid grid-cols-4 gap-0.5">
-            <FinTabBtn
-              active={mobileTab === "settings"}
-              onClick={() => setMobileTab("settings")}
-              icon={<Settings size={18} />}
-              label="ตั้งค่า"
-            />
-            <FinTabBtn
-              active={mobileTab === "services"}
-              onClick={() => setMobileTab("services")}
-              icon={<ListPlus size={18} />}
-              label="บริการ"
-              badge={data.services.length > 0 ? data.services.length : undefined}
-            />
-            <FinTabBtn
-              active={mobileTab === "timeline"}
-              onClick={() => setMobileTab("timeline")}
-              icon={<Calendar size={18} />}
-              label="ไทม์ไลน์"
-            />
-            <FinTabBtn
-              active={mobileTab === "preview"}
-              onClick={() => setMobileTab("preview")}
-              icon={<FileText size={18} />}
-              label={
-                calc.total > 0 ? `${currencySymbol}${fmt(calc.total)}` : "PDF"
-              }
-              highlight={calc.total > 0}
-            />
-          </div>
-        </nav>
       </section>
+
+      <div className="space-y-4 sm:space-y-5">
+        {activeType !== "quote" && (
+          <div className="bg-white/85 backdrop-blur border border-orange-100/80 rounded-3xl shadow-soft p-4 sm:p-5">
+            <InvoiceReceiptFields
+              type={activeType}
+              data={data}
+              update={update}
+              currency={profile.currency}
+            />
+          </div>
+        )}
+
+        <SettingsPanel
+          data={data}
+          update={update}
+          currencySymbol={currencySymbol}
+        />
+
+        <ServicesPanel
+          data={data}
+          update={update}
+          currencySymbol={currencySymbol}
+          calc={calc}
+        />
+
+        <TimelinePanel
+          data={data}
+          update={update}
+          calc={calc}
+          currencySymbol={currencySymbol}
+        />
+
+        <QuotePreview
+          data={data}
+          calc={calc}
+          profile={profile}
+          currencySymbol={currencySymbol}
+          onDownload={downloadPDF}
+          downloading={downloading}
+          type={activeType}
+        />
+
+        <div className="flex justify-center pt-2 pb-4">
+          <button
+            onClick={downloadPDF}
+            disabled={downloading}
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-brand-500 to-brand-400 hover:from-brand-600 hover:to-brand-500 text-white font-semibold text-base transition shadow-glow disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {downloading ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                กำลังสร้าง PDF...
+              </>
+            ) : (
+              <>
+                <FileText size={18} />
+                ดาวน์โหลด PDF {calc.total > 0 && `(${currencySymbol}${fmt(calc.total)})`}
+              </>
+            )}
+          </button>
+        </div>
+      </div>
 
       <RandomPromptModal
         open={promptOpen}
@@ -324,47 +286,6 @@ function FinHeaderBtn({
     <button onClick={onClick} className={cls}>
       {icon}
       <span className="hidden xl:inline">{label}</span>
-    </button>
-  );
-}
-
-function FinTabBtn({
-  active,
-  onClick,
-  icon,
-  label,
-  badge,
-  highlight,
-}: {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-  badge?: number;
-  highlight?: boolean;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`relative flex flex-col items-center justify-center py-1.5 rounded-md transition ${
-        active
-          ? "text-brand-600 bg-orange-50"
-          : "text-ink-400 active:bg-orange-50/50"
-      }`}
-    >
-      {icon}
-      <span
-        className={`text-xs mt-0.5 ${
-          highlight && !active ? "text-brand-600 font-semibold" : ""
-        }`}
-      >
-        {label}
-      </span>
-      {badge !== undefined && (
-        <span className="absolute top-0 right-3 bg-brand-500 text-white text-[9px] min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center font-semibold">
-          {badge}
-        </span>
-      )}
     </button>
   );
 }
