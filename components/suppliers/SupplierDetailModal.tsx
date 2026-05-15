@@ -107,11 +107,11 @@ export default function SupplierDetailModal({
                 {supplier.name}
               </h3>
               <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 font-medium">
+                <span className="text-xs px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 font-medium">
                   {SUPPLIER_CATEGORIES[supplier.category]}
                 </span>
                 {supplier.service_type && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-50 text-brand-700 border border-orange-100 font-medium">
+                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-orange-50 text-brand-700 border border-orange-100 font-medium">
                     {supplier.service_type}
                   </span>
                 )}
@@ -217,7 +217,7 @@ export default function SupplierDetailModal({
                       <div className="text-sm font-medium text-ink-900 truncate hover:text-emerald-700">
                         {f.name}
                       </div>
-                      <div className="text-[11px] text-ink-400 tabular-nums">
+                      <div className="text-xs text-ink-400 tabular-nums">
                         {formatBytes(f.size)} ·{" "}
                         {new Date(f.uploaded_at).toLocaleDateString("th-TH")}
                       </div>
@@ -311,7 +311,7 @@ function DetailRow({
         {icon}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-[10px] text-ink-400 uppercase tracking-wide">
+        <div className="text-xs text-ink-400 uppercase tracking-wide">
           {label}
         </div>
         <div

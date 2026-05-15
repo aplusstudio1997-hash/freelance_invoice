@@ -127,7 +127,7 @@ function Body({ visibility, onChange, onReset }: BodyProps) {
       <div className="space-y-3 pt-3 pr-1">
         {GROUPS.map((g) => (
           <div key={g.title}>
-            <div className="text-[10px] uppercase tracking-wide text-gray-400 mb-1.5">
+            <div className="text-xs uppercase tracking-wide text-gray-400 mb-1.5">
               {g.title}
             </div>
             <div className="space-y-1">
@@ -182,7 +182,7 @@ export default function PdfSettingsSidebar({
         <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
           <Settings2 size={16} className="text-brand-500" />
           <h3 className="font-semibold text-gray-800 text-sm">แสดงใน PDF</h3>
-          <span className="ml-auto text-[11px] text-gray-400 tabular-nums">
+          <span className="ml-auto text-xs text-gray-400 tabular-nums">
             {visibleCount}/{totalCount}
           </span>
         </div>
@@ -215,7 +215,7 @@ export function PdfSettingsButton({
       >
         <Settings2 size={14} />
         <span>แสดงใน PDF</span>
-        <span className="text-[10px] text-gray-400 tabular-nums">
+        <span className="text-xs text-gray-400 tabular-nums">
           {visibleCount}/{totalCount}
         </span>
       </button>
@@ -229,7 +229,7 @@ export function PdfSettingsButton({
                 <h3 className="font-semibold text-gray-800 text-sm">
                   แสดงใน PDF
                 </h3>
-                <span className="text-[11px] text-gray-400 tabular-nums">
+                <span className="text-xs text-gray-400 tabular-nums">
                   {visibleCount}/{totalCount}
                 </span>
               </div>

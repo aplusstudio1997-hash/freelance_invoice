@@ -351,7 +351,7 @@ function NumberField({
           className={`w-full ${icon ? "pl-10" : "pl-3.5"} pr-3.5 py-2.5 bg-orange-50/40 border border-orange-100 rounded-2xl text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:bg-white transition tabular-nums`}
         />
       </div>
-      {hint && <div className="text-[10px] text-ink-400 mt-1">{hint}</div>}
+      {hint && <div className="text-xs text-ink-400 mt-1">{hint}</div>}
     </div>
   );
 }

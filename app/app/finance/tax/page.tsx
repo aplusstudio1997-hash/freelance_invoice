@@ -136,7 +136,7 @@ export default function TaxPage() {
               <div className="font-semibold text-ink-900">
                 สรุปภาษีรายปี
               </div>
-              <div className="text-[11px] text-ink-400">
+              <div className="text-xs text-ink-400">
                 ประมาณการ ภงด.90 / ภงด.91 — ใช้เพื่อวางแผนเบื้องต้นเท่านั้น
               </div>
             </div>
@@ -178,7 +178,7 @@ export default function TaxPage() {
             <div className="overflow-x-auto scrollbar-thin">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-[11px] text-ink-400 uppercase">
+                  <tr className="text-left text-xs text-ink-400 uppercase">
                     <th className="py-2 pr-3 font-medium">เดือน</th>
                     <th className="py-2 px-3 font-medium text-right">รายรับ</th>
                     <th className="py-2 px-3 font-medium text-right">รายจ่าย</th>
@@ -241,7 +241,7 @@ export default function TaxPage() {
                 คำนวณภาษีโดยประมาณ
               </h3>
 
-              <div className="bg-orange-50/40 border border-orange-100 rounded-2xl p-3 text-[11px] text-ink-600 flex items-start gap-2 mb-4">
+              <div className="bg-orange-50/40 border border-orange-100 rounded-2xl p-3 text-xs text-ink-600 flex items-start gap-2 mb-4">
                 <Info size={12} className="text-brand-500 mt-0.5 shrink-0" />
                 <div>
                   ระบบคำนวณตามอัตราภาษีปี 2567 — ตัวเลขเป็นการประมาณการเบื้องต้น
@@ -386,27 +386,27 @@ export default function TaxPage() {
               />
               <div className="border-t border-white/15 my-2.5" />
               <div className="bg-white/10 rounded-2xl p-3 mt-2">
-                <div className="text-[10px] text-white/70 uppercase tracking-wide">
+                <div className="text-xs text-white/70 uppercase tracking-wide">
                   ภาษีต้องจ่ายเพิ่ม
                 </div>
                 <div className="text-2xl font-bold mt-0.5 tabular-nums">
                   ฿{fmtMoney(result.taxOwed)}
                 </div>
-                <div className="text-[11px] text-white/60 mt-1">
+                <div className="text-xs text-white/60 mt-1">
                   อัตราภาษีที่แท้จริง {(result.effectiveRate * 100).toFixed(2)}%
                 </div>
               </div>
 
               {result.taxByBracket.length > 0 && (
                 <div className="mt-4">
-                  <div className="text-[10px] text-white/70 uppercase tracking-wide mb-2">
+                  <div className="text-xs text-white/70 uppercase tracking-wide mb-2">
                     คำนวณตามขั้น
                   </div>
                   <div className="space-y-1">
                     {result.taxByBracket.map((b, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center justify-between text-[11px] text-white/70"
+                        className="flex items-center justify-between text-xs text-white/70"
                       >
                         <span>{(b.bracket.rate * 100).toFixed(0)}% ของ ฿{fmtMoney(b.taxable)}</span>
                         <span className="tabular-nums">฿{fmtMoney(b.tax)}</span>
@@ -482,7 +482,7 @@ function NumberField({
         }}
         className="w-full px-3.5 py-2 bg-orange-50/40 border border-orange-100 rounded-xl text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:bg-white transition tabular-nums"
       />
-      {hint && <div className="text-[10px] text-ink-400 mt-1">{hint}</div>}
+      {hint && <div className="text-xs text-ink-400 mt-1">{hint}</div>}
     </div>
   );
 }
@@ -499,7 +499,7 @@ function RadioPill({
   return (
     <button
       onClick={onClick}
-      className={`px-3 py-1 rounded-full text-[11px] font-medium transition ${
+      className={`px-3 py-1 rounded-full text-xs font-medium transition ${
         active
           ? "bg-ink-900 text-white"
           : "text-ink-500 hover:text-ink-900"
@@ -547,7 +547,7 @@ function SmallCard({
   return (
     <div className="bg-white/85 border border-orange-100 rounded-2xl shadow-soft px-4 py-3">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] text-ink-400 uppercase tracking-wide truncate">
+        <span className="text-xs text-ink-400 uppercase tracking-wide truncate">
           {label}
         </span>
         <span

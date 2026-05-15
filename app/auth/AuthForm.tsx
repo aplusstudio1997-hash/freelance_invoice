@@ -196,7 +196,7 @@ export default function AuthForm() {
                       size={14}
                       className="shrink-0 mt-0.5 text-brand-500"
                     />
-                    <p className="text-[11px] text-ink-600 leading-relaxed">
+                    <p className="text-xs text-ink-600 leading-relaxed">
                       <span className="font-semibold text-brand-700">
                         นโยบายช่วง Beta:
                       </span>{" "}
@@ -212,7 +212,7 @@ export default function AuthForm() {
                       onChange={(e) => setAgreed(e.target.checked)}
                       className="mt-0.5 accent-brand-500 cursor-pointer"
                     />
-                    <span className="text-[11px] text-ink-600 leading-relaxed">
+                    <span className="text-xs text-ink-600 leading-relaxed">
                       ฉันเข้าใจและยอมรับว่าสิทธิ์การใช้งานจะถูกระงับหากไม่มีความเคลื่อนไหวเกิน
                       7 วัน
                     </span>
@@ -225,7 +225,7 @@ export default function AuthForm() {
                       size={14}
                       className="shrink-0 mt-0.5 text-brand-500"
                     />
-                    <p className="text-[11px] text-ink-600 leading-relaxed">
+                    <p className="text-xs text-ink-600 leading-relaxed">
                       <span className="font-semibold text-brand-700">
                         นโยบายช่วง Beta:
                       </span>{" "}

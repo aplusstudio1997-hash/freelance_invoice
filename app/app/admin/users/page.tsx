@@ -145,7 +145,7 @@ export default function AdminUsersPage() {
           </div>
         ) : (
           <div className="divide-y divide-orange-100">
-            <div className="hidden sm:grid grid-cols-12 gap-2 px-5 py-2.5 bg-orange-50/40 text-[10px] uppercase tracking-wide text-ink-400 font-medium">
+            <div className="hidden sm:grid grid-cols-12 gap-2 px-5 py-2.5 bg-orange-50/40 text-xs uppercase tracking-wide text-ink-400 font-medium">
               <div className="col-span-4">ผู้ใช้</div>
               <div className="col-span-2 text-right">เอกสาร / ลูกค้า</div>
               <div className="col-span-3 text-right">รายได้รวม</div>
@@ -171,10 +171,10 @@ export default function AdminUsersPage() {
                     <div className="font-semibold text-ink-900 text-sm truncate">
                       {u.studio_name}
                     </div>
-                    <div className="text-[11px] text-ink-400 truncate">
+                    <div className="text-xs text-ink-400 truncate">
                       {u.email}
                     </div>
-                    <div className="text-[10px] text-ink-300 truncate font-mono">
+                    <div className="text-xs text-ink-300 truncate font-mono">
                       {u.user_id.slice(0, 12)}...
                     </div>
                   </div>
@@ -195,11 +195,11 @@ export default function AdminUsersPage() {
                   <div className="flex items-center sm:justify-end gap-1 text-sm text-green-700 font-medium tabular-nums">
                     <Wallet size={11} />฿{fmtMoney(u.income_total)}
                   </div>
-                  <div className="text-[10px] text-ink-400 sm:mt-0.5 tabular-nums">
+                  <div className="text-xs text-ink-400 sm:mt-0.5 tabular-nums">
                     จ่าย ฿{fmtMoney(u.expense_total)}
                   </div>
                 </div>
-                <div className="sm:col-span-2 sm:text-right flex sm:block items-center gap-1 text-[11px] text-ink-500">
+                <div className="sm:col-span-2 sm:text-right flex sm:block items-center gap-1 text-xs text-ink-500">
                   {u.last_active_at ? (
                     <span className="inline-flex items-center sm:justify-end gap-1">
                       <Clock size={10} />
@@ -208,18 +208,18 @@ export default function AdminUsersPage() {
                   ) : (
                     <span className="text-ink-300 italic">ยังไม่เคย</span>
                   )}
-                  <div className="text-[10px] text-ink-400 sm:mt-0.5">
+                  <div className="text-xs text-ink-400 sm:mt-0.5">
                     สมัคร {fmtDateDisplay(u.created_at)}
                   </div>
                 </div>
                 <div className="sm:col-span-1 sm:text-right">
                   {u.role === "admin" ? (
-                    <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-ink-900 text-white font-medium">
+                    <span className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full bg-ink-900 text-white font-medium">
                       <Shield size={9} />
                       Admin
                     </span>
                   ) : (
-                    <span className="text-[10px] text-ink-400">User</span>
+                    <span className="text-xs text-ink-400">User</span>
                   )}
                 </div>
               </div>
@@ -228,7 +228,7 @@ export default function AdminUsersPage() {
         )}
       </section>
 
-      <div className="text-[11px] text-ink-400 text-center">
+      <div className="text-xs text-ink-400 text-center">
         เปลี่ยน role ของ user ได้โดยรัน SQL ใน Supabase:{" "}
         <code className="bg-orange-50 px-1.5 py-0.5 rounded">
           update profiles set role=&apos;admin&apos; where user_id=&apos;...&apos;

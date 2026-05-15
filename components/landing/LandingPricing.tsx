@@ -90,7 +90,7 @@ export default function LandingPricing() {
               }`}
             >
               {p.highlight && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-3 py-1 rounded-full bg-brand-500 text-white text-[10px] font-semibold">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-3 py-1 rounded-full bg-brand-500 text-white text-xs font-semibold">
                   <Sparkles size={11} />
                   แนะนำ
                 </div>
@@ -106,7 +106,7 @@ export default function LandingPricing() {
                 </h3>
                 {!p.available && (
                   <span
-                    className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                    className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
                       p.highlight
                         ? "bg-white/15 text-white/80"
                         : "bg-orange-50 text-brand-700 border border-brand-100"

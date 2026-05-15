@@ -173,7 +173,7 @@ export default function SubscriptionsPage() {
             {Object.entries(summary.monthly).map(([cur, val]) => (
               <span
                 key={cur}
-                className="text-[11px] px-2.5 py-1 rounded-full bg-orange-50 border border-orange-100 text-brand-700 font-medium tabular-nums"
+                className="text-xs px-2.5 py-1 rounded-full bg-orange-50 border border-orange-100 text-brand-700 font-medium tabular-nums"
               >
                 {cur} {fmtMoney(val)}/เดือน
               </span>
@@ -211,7 +211,7 @@ export default function SubscriptionsPage() {
                     ? "ครบกำหนดแล้ว"
                     : `อีก ${days} วัน`}
                 </span>
-                <span className="text-[11px] text-ink-400 tabular-nums hidden sm:inline">
+                <span className="text-xs text-ink-400 tabular-nums hidden sm:inline">
                   {s.currency === "THB" ? "฿" : `${s.currency} `}
                   {fmtMoney(Number(s.amount))}
                 </span>
@@ -229,7 +229,7 @@ export default function SubscriptionsPage() {
               <button
                 key={k}
                 onClick={() => setFilter(k)}
-                className={`px-3 py-1 rounded-full text-[11px] font-medium transition ${
+                className={`px-3 py-1 rounded-full text-xs font-medium transition ${
                   filter === k
                     ? "bg-ink-900 text-white"
                     : "text-ink-500 hover:text-ink-900"
@@ -302,19 +302,19 @@ export default function SubscriptionsPage() {
                         <span className="font-semibold text-ink-900 truncate">
                           {s.name}
                         </span>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 font-medium">
+                        <span className="text-xs px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 font-medium">
                           {SUB_CATEGORIES[s.category]}
                         </span>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-50 text-brand-700 border border-orange-100 font-medium">
+                        <span className="text-xs px-1.5 py-0.5 rounded-full bg-orange-50 text-brand-700 border border-orange-100 font-medium">
                           {CYCLES[s.billing_cycle]}
                         </span>
                         {!s.active && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-ink-100 text-ink-500 font-medium">
+                          <span className="text-xs px-1.5 py-0.5 rounded-full bg-ink-100 text-ink-500 font-medium">
                             หยุดใช้งาน
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 text-[11px] text-ink-400 mt-0.5 flex-wrap">
+                      <div className="flex items-center gap-2 text-xs text-ink-400 mt-0.5 flex-wrap">
                         {s.next_billing_at && (
                           <span
                             className={`inline-flex items-center gap-1 ${
@@ -348,7 +348,7 @@ export default function SubscriptionsPage() {
                         )}
                       </div>
                       {s.note && (
-                        <div className="text-[11px] text-ink-500 mt-1 italic truncate">
+                        <div className="text-xs text-ink-500 mt-1 italic truncate">
                           {s.note}
                         </div>
                       )}
@@ -358,7 +358,7 @@ export default function SubscriptionsPage() {
                         {s.currency === "THB" ? "฿" : `${s.currency} `}
                         {fmtMoney(Number(s.amount))}
                       </div>
-                      <div className="text-[10px] text-ink-400 tabular-nums">
+                      <div className="text-xs text-ink-400 tabular-nums">
                         ≈ ฿{fmtMoney(monthly)}/เดือน
                       </div>
                     </div>
@@ -440,7 +440,7 @@ function Stat({
 }) {
   return (
     <div className="bg-orange-50/40 border border-orange-100 rounded-2xl px-3 py-2.5">
-      <div className="text-[10px] text-ink-400 uppercase tracking-wide truncate">
+      <div className="text-xs text-ink-400 uppercase tracking-wide truncate">
         {label}
       </div>
       <div
@@ -454,7 +454,7 @@ function Stat({
       >
         {value}
       </div>
-      {hint && <div className="text-[10px] text-ink-400 mt-0.5">{hint}</div>}
+      {hint && <div className="text-xs text-ink-400 mt-0.5">{hint}</div>}
     </div>
   );
 }

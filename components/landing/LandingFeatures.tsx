@@ -104,7 +104,7 @@ function FeatureCard({
           <Icon size={20} />
         </div>
         {badge && (
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 font-semibold border border-brand-100">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 font-semibold border border-brand-100">
             {badge}
           </span>
         )}

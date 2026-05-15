@@ -114,7 +114,7 @@ export default function DocumentListModal({
             <h3 className="font-semibold text-ink-900">
               {TYPE_LABELS[filterType]} ของฉัน
             </h3>
-            <div className="text-[11px] text-ink-400 mt-0.5">
+            <div className="text-xs text-ink-400 mt-0.5">
               {filteredDocs.length} ฉบับ
             </div>
           </div>
@@ -206,7 +206,7 @@ export default function DocumentListModal({
                       className="w-full flex items-center gap-2 px-2.5 py-2 text-left text-xs hover:bg-white rounded-xl disabled:opacity-50 transition"
                     >
                       <QIcon size={12} className="text-brand-400 shrink-0" />
-                      <span className="font-mono text-[11px] text-ink-500 shrink-0">
+                      <span className="font-mono text-xs text-ink-500 shrink-0">
                         {q2.number}
                       </span>
                       <span className="truncate text-ink-800">
@@ -264,14 +264,14 @@ export default function DocumentListModal({
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-mono text-[11px] text-ink-500 shrink-0">
+                        <span className="font-mono text-xs text-ink-500 shrink-0">
                           {d.number}
                         </span>
                         <span className="text-sm font-medium text-ink-900 truncate">
                           {d.projectName || d.customerName || "—"}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-[11px] text-ink-400 mt-0.5">
+                      <div className="flex items-center gap-1.5 text-xs text-ink-400 mt-0.5">
                         {clientName && (
                           <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-orange-50 text-brand-700 font-medium">
                             <User size={9} />

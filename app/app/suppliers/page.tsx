@@ -233,30 +233,30 @@ export default function SuppliersPage() {
                       {s.name}
                     </div>
                     <div className="flex items-center gap-1 mt-0.5 flex-wrap">
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 font-medium">
+                      <span className="text-xs px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 font-medium">
                         {SUPPLIER_CATEGORIES[s.category]}
                       </span>
                       {s.service_type && (
-                        <span className="text-[10px] text-ink-400 truncate">
+                        <span className="text-xs text-ink-400 truncate">
                           {s.service_type}
                         </span>
                       )}
                     </div>
                     {s.email && (
-                      <div className="flex items-center gap-1 text-[11px] text-ink-400 mt-1 truncate">
+                      <div className="flex items-center gap-1 text-xs text-ink-400 mt-1 truncate">
                         <Mail size={10} />
                         {s.email}
                       </div>
                     )}
                     {s.phone && (
-                      <div className="flex items-center gap-1 text-[11px] text-ink-400 mt-0.5 truncate">
+                      <div className="flex items-center gap-1 text-xs text-ink-400 mt-0.5 truncate">
                         <Phone size={10} />
                         {s.phone}
                       </div>
                     )}
                   </div>
                 </div>
-                <div className="mt-3 pt-3 border-t border-orange-100/70 flex items-center justify-between text-[11px]">
+                <div className="mt-3 pt-3 border-t border-orange-100/70 flex items-center justify-between text-xs">
                   <span className="inline-flex items-center gap-1 text-ink-500">
                     <Paperclip size={11} />
                     {s.files.length} ไฟล์
@@ -298,7 +298,7 @@ export default function SuppliersPage() {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-orange-50/40 border border-orange-100 rounded-2xl px-3 py-2.5">
-      <div className="text-[10px] text-ink-400 uppercase tracking-wide truncate">
+      <div className="text-xs text-ink-400 uppercase tracking-wide truncate">
         {label}
       </div>
       <div className="text-base font-bold text-ink-900 tabular-nums truncate mt-0.5">

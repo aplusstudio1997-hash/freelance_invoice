@@ -77,7 +77,7 @@ export default function AiPriceCheckModal({ open, onClose }: Props) {
               <h3 className="font-semibold text-ink-900">
                 AI Quick Price Check
               </h3>
-              <div className="text-[10px] text-ink-400">
+              <div className="text-xs text-ink-400">
                 ขั้นตอน {step} / 3
               </div>
             </div>
@@ -169,12 +169,12 @@ export default function AiPriceCheckModal({ open, onClose }: Props) {
                 <Wand2 size={22} />
               </div>
               <h3 className="font-semibold text-ink-900">ราคาที่แนะนำ</h3>
-              <div className="text-[11px] text-ink-400 mb-4">
+              <div className="text-xs text-ink-400 mb-4">
                 อ้างอิงราคาตลาดฟรีแลนซ์ไทย (ประมาณการ)
               </div>
 
               <div className="bg-gradient-to-br from-ink-900 to-ink-800 text-white rounded-3xl p-5 shadow-soft-lg">
-                <div className="text-[11px] text-white/70 uppercase tracking-wide">
+                <div className="text-xs text-white/70 uppercase tracking-wide">
                   ช่วงราคาที่เหมาะสม
                 </div>
                 <div className="text-3xl font-bold mt-1 tabular-nums">
@@ -196,7 +196,7 @@ export default function AiPriceCheckModal({ open, onClose }: Props) {
                 </div>
               </div>
 
-              <div className="mt-4 text-left bg-orange-50/50 border border-orange-100 rounded-2xl p-3 text-[11px] text-ink-600 leading-relaxed">
+              <div className="mt-4 text-left bg-orange-50/50 border border-orange-100 rounded-2xl p-3 text-xs text-ink-600 leading-relaxed">
                 <div className="font-semibold text-brand-700 mb-1 flex items-center gap-1">
                   <Sparkles size={11} />
                   เทียบกับงาน {WORK_TYPES.find((w) => w.id === workType)?.label}
@@ -206,7 +206,7 @@ export default function AiPriceCheckModal({ open, onClose }: Props) {
                 อาจทำให้ราคาแตกต่างไป
               </div>
 
-              <div className="mt-3 text-[11px] text-ink-400 bg-orange-50/40 rounded-2xl px-3 py-2 inline-flex items-center gap-1.5">
+              <div className="mt-3 text-xs text-ink-400 bg-orange-50/40 rounded-2xl px-3 py-2 inline-flex items-center gap-1.5">
                 <span className="text-brand-500 font-semibold">เร็ว ๆ นี้:</span>
                 เชื่อม AI จริง + ดึงข้อมูลตลาดล่าสุด
               </div>
@@ -340,7 +340,7 @@ function OptionRow({
         >
           {label}
         </div>
-        <div className="text-[11px] text-ink-400">{desc}</div>
+        <div className="text-xs text-ink-400">{desc}</div>
       </div>
     </button>
   );

@@ -209,13 +209,18 @@ export async function getClient(id: string): Promise<ClientRecord | null> {
   return data as ClientRecord | null;
 }
 
-export async function createClient(c: Customer): Promise<ClientRecord> {
+export async function createClient(
+  c: Customer,
+  note = ""
+): Promise<ClientRecord> {
   const sb = getSupabase();
   const { data: auth } = await sb.auth.getUser();
   if (!auth.user) throw new Error("Not authenticated");
+  const insert = customerToInsert(c, auth.user.id);
+  insert.note = note;
   const { data, error } = await sb
     .from("clients")
-    .insert(customerToInsert(c, auth.user.id))
+    .insert(insert)
     .select()
     .single();
   if (error) throw error;
@@ -260,9 +265,10 @@ export async function findClientByName(
     .select("*")
     .eq("user_id", auth.user.id)
     .ilike("name", trimmed)
-    .maybeSingle();
+    .limit(1);
   if (error) return null;
-  return (data as ClientRecord) || null;
+  if (!data || data.length === 0) return null;
+  return data[0] as ClientRecord;
 }
 
 // ========================================================================

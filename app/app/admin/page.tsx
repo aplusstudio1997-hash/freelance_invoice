@@ -158,7 +158,7 @@ function Card({
       <div className="flex items-start justify-between">
         <div className="min-w-0">
           <div
-            className={`text-[11px] font-medium uppercase tracking-wide truncate ${
+            className={`text-xs font-medium uppercase tracking-wide truncate ${
               highlight ? "text-white/80" : "text-ink-400"
             }`}
           >
@@ -169,7 +169,7 @@ function Card({
           </div>
           {hint && (
             <div
-              className={`text-[11px] mt-2 truncate ${
+              className={`text-xs mt-2 truncate ${
                 highlight ? "text-white/80" : "text-ink-400"
               }`}
             >
@@ -228,7 +228,7 @@ function DocStat({
             style={{ width: `${pct}%` }}
           />
         </div>
-        <div className="text-[10px] text-ink-400 mt-1 tabular-nums">
+        <div className="text-xs text-ink-400 mt-1 tabular-nums">
           {pct.toFixed(1)}% ของเอกสารทั้งหมด
         </div>
       </div>
@@ -251,7 +251,7 @@ function SimpleStat({
         {icon}
       </div>
       <div className="min-w-0">
-        <div className="text-[11px] text-ink-400">{label}</div>
+        <div className="text-xs text-ink-400">{label}</div>
         <div className="text-lg font-bold text-ink-900 tabular-nums truncate">
           {value}
         </div>

@@ -355,7 +355,7 @@ function Divider({ label }: { label?: string }) {
   return (
     <div className="flex items-center gap-2 pt-1">
       <div className="h-px bg-gray-200 flex-1" />
-      <span className="text-[11px] text-gray-500 font-medium uppercase tracking-wide">
+      <span className="text-xs text-gray-500 font-medium uppercase tracking-wide">
         {label}
       </span>
       <div className="h-px bg-gray-200 flex-1" />

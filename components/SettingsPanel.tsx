@@ -250,7 +250,7 @@ export default function SettingsPanel({
                     </button>
                   </div>
                 ))}
-                <p className="text-[11px] text-gray-500 leading-relaxed pt-1 px-1">
+                <p className="text-xs text-gray-500 leading-relaxed pt-1 px-1">
                   💡 รายการเหล่านี้จะ<span className="font-medium text-gray-600">ไม่แสดง</span>ในใบเสนอราคา
                   แต่จะเอา % รวมไปบวกในราคาบริการแทน (ปัดหลักสิบขึ้น)
                 </p>
@@ -282,7 +282,7 @@ export default function SettingsPanel({
                   key={t}
                   onClick={() => update({ paymentTerm: t })}
                   className={`px-1 py-2.5 rounded-md font-medium transition ${
-                    t === "full" ? "text-[11px]" : "text-sm"
+                    t === "full" ? "text-xs" : "text-sm"
                   } ${
                     data.paymentTerm === t
                       ? "bg-brand-500 text-white"

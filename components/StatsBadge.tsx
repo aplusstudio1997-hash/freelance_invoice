@@ -10,7 +10,7 @@ export default function StatsBadge({ totalQuotes, activeUsers }: Props) {
 
   return (
     <div className="inline-flex items-center gap-2 mt-1 px-2.5 py-1 bg-brand-50 border border-brand-100 rounded-md">
-      <span className="text-[10px] sm:text-xs text-gray-700">
+      <span className="text-xs sm:text-xs text-gray-700">
         มีฟรีแลนซ์สร้างใบเสนอราคาไปแล้ว{" "}
         <span className="font-semibold text-brand-600 tabular-nums">
           {totalQuotes.toLocaleString()}
@@ -21,7 +21,7 @@ export default function StatsBadge({ totalQuotes, activeUsers }: Props) {
         <>
           <span className="w-px h-3 bg-brand-200" />
           <span
-            className="flex items-center gap-1 text-green-700 text-[10px] sm:text-xs"
+            className="flex items-center gap-1 text-green-700 text-xs sm:text-xs"
             title={`กำลังใช้งานอยู่ ${activeUsers.toLocaleString()} คน`}
           >
             <span className="relative flex h-1.5 w-1.5">

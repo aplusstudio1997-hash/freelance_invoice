@@ -107,7 +107,7 @@ export default function FinanceLayout({
                 Finance &amp; Tax
               </h2>
               {status && (
-                <span className="text-[10px] inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-50 text-brand-700">
+                <span className="text-xs inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-50 text-brand-700">
                   <Save size={10} />
                   {status === "saving" ? "กำลังบันทึก..." : "บันทึกแล้ว"}
                 </span>
@@ -186,7 +186,7 @@ function MiniStat({
   return (
     <div className="bg-orange-50/40 border border-orange-100 rounded-2xl px-3 py-2.5">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] text-ink-400 uppercase tracking-wide truncate">
+        <span className="text-xs text-ink-400 uppercase tracking-wide truncate">
           {label}
         </span>
         <span

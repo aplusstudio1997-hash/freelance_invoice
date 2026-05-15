@@ -244,7 +244,7 @@ function RevenueGoal({
               style={{ width: `${progress}%` }}
             />
           </div>
-          <div className="flex items-center justify-between text-[11px] text-ink-500 mt-1.5">
+          <div className="flex items-center justify-between text-xs text-ink-500 mt-1.5">
             <span>
               ทำได้ {currency}
               {fmtMoney(income)}
@@ -255,7 +255,7 @@ function RevenueGoal({
           </div>
         </div>
       ) : (
-        <div className="text-[11px] text-ink-400 mt-3">
+        <div className="text-xs text-ink-400 mt-3">
           ยังไม่ได้ตั้งเป้าหมายรายได้ — กดปุ่ม &ldquo;ตั้งเป้า&rdquo;
           เพื่อเริ่มติดตามความคืบหน้า
         </div>
@@ -305,7 +305,7 @@ function MiniPanel({
 }) {
   return (
     <div className="bg-orange-50/40 border border-orange-100 rounded-2xl px-4 py-3">
-      <div className="text-[11px] text-ink-400">{label}</div>
+      <div className="text-xs text-ink-400">{label}</div>
       <div
         className={`text-lg font-bold mt-0.5 tabular-nums ${
           tone === "success" ? "text-green-600" : "text-ink-900"
@@ -329,7 +329,7 @@ function AiQuickCheck({ onOpen }: { onOpen: () => void }) {
             <div className="font-semibold text-ink-900 text-sm">
               AI Quick Price Check
             </div>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-brand-500 text-white">
+            <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-brand-500 text-white">
               ใหม่
             </span>
           </div>
@@ -433,7 +433,7 @@ function QuickFeatures({ clientCount }: { clientCount: number }) {
                 <div className="text-sm font-semibold text-ink-900 truncate">
                   {f.label}
                 </div>
-                <div className="text-[11px] text-ink-400 truncate">
+                <div className="text-xs text-ink-400 truncate">
                   {f.desc}
                 </div>
               </div>

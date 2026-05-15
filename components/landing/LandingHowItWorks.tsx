@@ -50,7 +50,7 @@ export default function LandingHowItWorks() {
             >
               <div className="relative mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-400 text-white flex items-center justify-center shadow-glow mb-4">
                 <s.icon size={24} />
-                <span className="absolute -top-1.5 -right-1.5 text-[10px] font-bold bg-ink-900 text-white px-1.5 py-0.5 rounded-full">
+                <span className="absolute -top-1.5 -right-1.5 text-xs font-bold bg-ink-900 text-white px-1.5 py-0.5 rounded-full">
                   {s.step}
                 </span>
               </div>

@@ -29,7 +29,7 @@ export default function PlaceholderPage({
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-xl font-bold text-ink-900">{title}</h2>
               {comingPhase && (
-                <span className="text-[10px] inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-50 border border-orange-100 text-brand-700 font-medium">
+                <span className="text-xs inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-50 border border-orange-100 text-brand-700 font-medium">
                   <Sparkles size={10} />
                   เร็ว ๆ นี้ — {comingPhase}
                 </span>

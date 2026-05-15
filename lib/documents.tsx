@@ -53,6 +53,7 @@ interface DocumentContextValue {
   newDocument: (type: DocumentType, sourceId?: string) => Promise<void>;
   deleteDocument: (id: string) => Promise<void>;
   refreshList: () => Promise<void>;
+  flushSave: () => Promise<void>;
 
   refreshClients: () => Promise<void>;
   attachClient: (
@@ -204,40 +205,69 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
     })();
   }, [user, authLoading]);
 
+  const performSave = useCallback(
+    async (next: QuoteSettings) => {
+      try {
+        if (user && activeId) {
+          await repo.updateDocument(activeId, { data: next });
+          setDocuments((prev) =>
+            prev.map((d) =>
+              d.id === activeId
+                ? {
+                    ...d,
+                    customerName: next.customer?.name || "",
+                    projectName: next.projectName || "",
+                    updatedAt: new Date().toISOString(),
+                  }
+                : d
+            )
+          );
+        } else if (user && !activeId) {
+          // ยังไม่มี activeId — สร้าง document ใหม่ก่อน
+          const rec = await repo.createDocument({
+            type: activeType,
+            number: next.quoteNumber || generateDocumentNumber(activeType),
+            data: next,
+            clientId: activeClientId,
+          });
+          setActiveId(rec.id);
+          try {
+            localStorage.setItem(ACTIVE_KEY, rec.id);
+          } catch {}
+          const list = await repo.listDocuments();
+          setDocuments(list);
+        } else if (!user) {
+          saveLocalDraft(next);
+        }
+        setSaveStatus("saved");
+        setTimeout(() => setSaveStatus(null), 1500);
+      } catch (e) {
+        console.error("save failed", e);
+        setSaveStatus(null);
+      }
+    },
+    [user, activeId, activeType, activeClientId]
+  );
+
   const setData = useCallback(
     (next: QuoteSettings) => {
       setDataState(next);
       if (saveTimer.current) clearTimeout(saveTimer.current);
       setSaveStatus("saving");
-      saveTimer.current = setTimeout(async () => {
-        try {
-          if (user && activeId) {
-            await repo.updateDocument(activeId, { data: next });
-            setDocuments((prev) =>
-              prev.map((d) =>
-                d.id === activeId
-                  ? {
-                      ...d,
-                      customerName: next.customer?.name || "",
-                      projectName: next.projectName || "",
-                      updatedAt: new Date().toISOString(),
-                    }
-                  : d
-              )
-            );
-          } else if (!user) {
-            saveLocalDraft(next);
-          }
-          setSaveStatus("saved");
-          setTimeout(() => setSaveStatus(null), 1500);
-        } catch (e) {
-          console.error("save failed", e);
-          setSaveStatus(null);
-        }
+      saveTimer.current = setTimeout(() => {
+        performSave(next);
       }, 500);
     },
-    [user, activeId]
+    [performSave]
   );
+
+  const flushSave = useCallback(async () => {
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+    }
+    await performSave(data);
+  }, [performSave, data]);
 
   const setProfile = useCallback(
     (next: Profile) => {
@@ -487,6 +517,7 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
         newDocument,
         deleteDocument,
         refreshList,
+        flushSave,
         refreshClients,
         attachClient,
         saveCurrentCustomerAsClient,

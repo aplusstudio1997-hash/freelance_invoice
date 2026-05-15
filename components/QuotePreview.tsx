@@ -78,7 +78,7 @@ export default function QuotePreview({
                   <div className="text-base sm:text-lg font-bold text-gray-800 truncate">
                     {profile.studioName || "So1o Freelancer"}
                   </div>
-                  <div className="text-[10px] text-gray-500 mt-0.5 leading-tight line-clamp-2">
+                  <div className="text-xs text-gray-500 mt-0.5 leading-tight line-clamp-2">
                     {profile.tagline}
                   </div>
                 </div>
@@ -87,7 +87,7 @@ export default function QuotePreview({
                 <div className="inline-block text-brand-600 font-bold text-sm whitespace-nowrap">
                   {docLabel}
                 </div>
-                <div className="text-[10px] text-gray-700 mt-1.5 space-y-0.5">
+                <div className="text-xs text-gray-700 mt-1.5 space-y-0.5">
                   {data.quoteNumber && (
                     <div>
                       <span className="text-gray-400">เลขที่: </span>
@@ -123,63 +123,63 @@ export default function QuotePreview({
 
           <section className="grid grid-cols-2 gap-3">
             <div className="min-w-0">
-              <div className="text-[10px] text-gray-500 mb-0.5">จาก</div>
+              <div className="text-xs text-gray-500 mb-0.5">จาก</div>
               <div className="font-medium truncate">
                 {profile.ownerName || profile.studioName || "—"}
               </div>
               {profile.phone && (
-                <div className="text-gray-600 text-[11px] truncate">
+                <div className="text-gray-600 text-xs truncate">
                   โทร. {profile.phone}
                 </div>
               )}
               {profile.email && (
-                <div className="text-gray-600 text-[11px] truncate">
+                <div className="text-gray-600 text-xs truncate">
                   {profile.email}
                 </div>
               )}
               {profile.address && (
-                <div className="text-gray-600 text-[11px] mt-1 whitespace-pre-line">
+                <div className="text-gray-600 text-xs mt-1 whitespace-pre-line">
                   {profile.address}
                 </div>
               )}
               {profile.taxId && (
-                <div className="text-gray-600 text-[11px] mt-1">
+                <div className="text-gray-600 text-xs mt-1">
                   เลขประจำตัว: {profile.taxId}
                 </div>
               )}
               {profile.socialLink && (
-                <div className="text-brand-600 text-[11px] mt-1 truncate">
+                <div className="text-brand-600 text-xs mt-1 truncate">
                   {profile.socialLink.replace(/^https?:\/\//, "")}
                 </div>
               )}
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] text-gray-500 mb-0.5">เรียน/สำหรับ</div>
+              <div className="text-xs text-gray-500 mb-0.5">เรียน/สำหรับ</div>
               <div className="font-medium truncate">
                 {data.customer.name || "—"}
               </div>
               {data.customer.phone && (
-                <div className="text-gray-600 text-[11px] truncate">
+                <div className="text-gray-600 text-xs truncate">
                   โทร. {data.customer.phone}
                 </div>
               )}
               {data.customer.email && (
-                <div className="text-gray-600 text-[11px] truncate">
+                <div className="text-gray-600 text-xs truncate">
                   {data.customer.email}
                 </div>
               )}
               {data.customer.lineId && (
-                <div className="text-gray-600 text-[11px] truncate">
+                <div className="text-gray-600 text-xs truncate">
                   Line: {data.customer.lineId}
                 </div>
               )}
               {data.customer.address && (
-                <div className="text-gray-600 text-[11px] mt-1 whitespace-pre-line">
+                <div className="text-gray-600 text-xs mt-1 whitespace-pre-line">
                   {data.customer.address}
                 </div>
               )}
               {data.customer.taxId && (
-                <div className="text-gray-600 text-[11px] mt-1">
+                <div className="text-gray-600 text-xs mt-1">
                   เลขประจำตัว: {data.customer.taxId}
                 </div>
               )}
@@ -187,12 +187,12 @@ export default function QuotePreview({
           </section>
 
           <section className="pt-2 border-t border-gray-100">
-            <div className="text-[10px] text-gray-500 mb-0.5">โครงการ</div>
+            <div className="text-xs text-gray-500 mb-0.5">โครงการ</div>
             <div className="font-medium break-words">
               {data.projectName || "—"}
             </div>
             {data.startDate && (
-              <div className="text-gray-600 text-[11px] mt-1">
+              <div className="text-gray-600 text-xs mt-1">
                 {fmtDate(data.startDate)} — {fmtDate(data.endDate)}
               </div>
             )}
@@ -201,12 +201,12 @@ export default function QuotePreview({
           <section>
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200 text-[10px] text-gray-500">
+                <tr className="border-b border-gray-200 text-xs text-gray-500">
                   <th className="text-left py-1.5 font-medium">รายการ</th>
                   <th className="text-right py-1.5 font-medium">ราคา</th>
                 </tr>
               </thead>
-              <tbody className="text-[11px]">
+              <tbody className="text-xs">
                 {data.services.length === 0 ? (
                   <tr>
                     <td colSpan={2} className="py-4 text-center text-gray-400">
@@ -226,7 +226,7 @@ export default function QuotePreview({
                               </span>
                             ) : (
                               s.quantity > 1 && (
-                                <span className="text-[10px] text-gray-400 whitespace-nowrap">
+                                <span className="text-xs text-gray-400 whitespace-nowrap">
                                   @ {currencySymbol}
                                   {fmt(s.adjustedUnitPrice)} × {s.quantity}
                                 </span>
@@ -234,7 +234,7 @@ export default function QuotePreview({
                             )}
                           </div>
                           {s.description && (
-                            <div className="text-[10px] text-gray-500 italic mt-0.5">
+                            <div className="text-xs text-gray-500 italic mt-0.5">
                               {s.description}
                             </div>
                           )}
@@ -321,7 +321,7 @@ export default function QuotePreview({
               />
             )}
             {type === "invoice" && (
-              <div className="flex justify-between items-center px-2 py-1.5 bg-amber-50 border border-amber-200 rounded text-amber-700 font-semibold text-[11px]">
+              <div className="flex justify-between items-center px-2 py-1.5 bg-amber-50 border border-amber-200 rounded text-amber-700 font-semibold text-xs">
                 <span>ยอดที่ต้องชำระ</span>
                 <span className="tabular-nums">
                   {currencySymbol}
@@ -330,7 +330,7 @@ export default function QuotePreview({
               </div>
             )}
             {type === "receipt" && (
-              <div className="flex justify-between items-center px-2 py-1.5 bg-green-50 border border-green-200 rounded text-green-700 font-semibold text-[11px]">
+              <div className="flex justify-between items-center px-2 py-1.5 bg-green-50 border border-green-200 rounded text-green-700 font-semibold text-xs">
                 <span>ได้รับเงินแล้ว</span>
                 <span className="tabular-nums">
                   {currencySymbol}
@@ -346,19 +346,19 @@ export default function QuotePreview({
 
           {type === "receipt" && data.paymentMethod && (
             <section className="bg-green-50 border-l-4 border-green-500 px-3 py-2 rounded">
-              <div className="text-[10px] text-gray-500 mb-0.5">
+              <div className="text-xs text-gray-500 mb-0.5">
                 วิธีการชำระเงิน
               </div>
-              <div className="text-[11px] font-medium">{data.paymentMethod}</div>
+              <div className="text-xs font-medium">{data.paymentMethod}</div>
             </section>
           )}
 
           {type !== "receipt" && (
             <section className="bg-orange-50 border-l-4 border-brand-500 px-3 py-2 rounded">
-              <div className="text-[10px] text-gray-500 mb-0.5">
+              <div className="text-xs text-gray-500 mb-0.5">
                 เงื่อนไขการชำระ
               </div>
-              <div className="text-[11px] font-medium">
+              <div className="text-xs font-medium">
                 {data.paymentCondition} (มัดจำ {termLabel[data.paymentTerm]})
               </div>
             </section>
@@ -366,7 +366,7 @@ export default function QuotePreview({
 
           {hasPayment && (
             <section className="border border-gray-200 rounded-lg p-3">
-              <div className="text-[10px] text-gray-500 mb-2 font-medium uppercase tracking-wide">
+              <div className="text-xs text-gray-500 mb-2 font-medium uppercase tracking-wide">
                 ช่องทางการชำระเงิน
               </div>
               <div className="flex items-start gap-3">
@@ -378,7 +378,7 @@ export default function QuotePreview({
                     className="w-20 h-20 rounded border border-gray-200 object-contain bg-white shrink-0"
                   />
                 )}
-                <div className="flex-1 min-w-0 space-y-0.5 text-[11px]">
+                <div className="flex-1 min-w-0 space-y-0.5 text-xs">
                   {pay.bankName && (
                     <div>
                       <span className="text-gray-500">ธนาคาร: </span>
@@ -410,12 +410,12 @@ export default function QuotePreview({
 
           <section className="flex items-end justify-between pt-6">
             <div className="min-w-0">
-              <div className="text-[10px] text-gray-500">เตรียมโดย</div>
+              <div className="text-xs text-gray-500">เตรียมโดย</div>
               <div className="font-semibold text-sm truncate">
                 {profile.ownerName || profile.studioName}
               </div>
               {profile.socialLink && (
-                <div className="flex items-center gap-1 mt-0.5 text-[10px] text-brand-600 truncate">
+                <div className="flex items-center gap-1 mt-0.5 text-xs text-brand-600 truncate">
                   <Link2 size={10} />
                   <span className="truncate">
                     {profile.socialLink.replace(/^https?:\/\//, "")}
@@ -425,16 +425,16 @@ export default function QuotePreview({
             </div>
             <div className="text-right shrink-0">
               <div className="border-b border-gray-400 w-24 sm:w-28 mb-1"></div>
-              <div className="text-[10px] text-gray-500">ลงนาม</div>
+              <div className="text-xs text-gray-500">ลงนาม</div>
             </div>
           </section>
 
           {termsLines.length > 0 && (
             <section className="pt-2 border-t border-gray-100">
-              <div className="text-[10px] text-gray-500 mb-1">
+              <div className="text-xs text-gray-500 mb-1">
                 หมายเหตุและเงื่อนไข
               </div>
-              <ul className="text-[10px] text-gray-600 space-y-0.5 list-disc list-inside">
+              <ul className="text-xs text-gray-600 space-y-0.5 list-disc list-inside">
                 {termsLines.map((l, i) => (
                   <li key={i}>{l}</li>
                 ))}
@@ -484,7 +484,7 @@ function SummaryRow({
   tone?: "discount";
 }) {
   return (
-    <div className="flex justify-between items-center text-[11px] text-gray-600">
+    <div className="flex justify-between items-center text-xs text-gray-600">
       <span>{label}</span>
       <span
         className={`tabular-nums ${tone === "discount" ? "text-green-600" : ""}`}
@@ -512,7 +512,7 @@ function Row({
           : "text-gray-700"
       }`}
     >
-      <span className="text-[11px]">{label}</span>
+      <span className="text-xs">{label}</span>
       <span className="text-sm tabular-nums whitespace-nowrap">{value}</span>
     </div>
   );

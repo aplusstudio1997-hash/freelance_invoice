@@ -214,12 +214,12 @@ export default function IncomePage() {
                           {i.description}
                         </span>
                         <span
-                          className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${cat?.color}`}
+                          className={`text-xs px-1.5 py-0.5 rounded-full border font-medium ${cat?.color}`}
                         >
                           {cat?.label}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 text-[11px] text-ink-400 mt-0.5 flex-wrap">
+                      <div className="flex items-center gap-2 text-xs text-ink-400 mt-0.5 flex-wrap">
                         <span>{fmtDateDisplay(i.received_at)}</span>
                         {clientName && (
                           <>
@@ -244,7 +244,7 @@ export default function IncomePage() {
                       <div className="font-bold text-green-600 tabular-nums">
                         ฿{fmtMoney(Number(i.amount))}
                       </div>
-                      <div className="text-[10px] text-ink-400 tabular-nums">
+                      <div className="text-xs text-ink-400 tabular-nums">
                         สุทธิ ฿{fmtMoney(Number(i.amount) - Number(i.wht_amount))}
                       </div>
                     </div>
@@ -298,7 +298,7 @@ function Stat({
 }) {
   return (
     <div className="bg-orange-50/40 border border-orange-100 rounded-2xl px-3 py-2.5">
-      <div className="text-[10px] text-ink-400 uppercase tracking-wide truncate">
+      <div className="text-xs text-ink-400 uppercase tracking-wide truncate">
         {label}
       </div>
       <div

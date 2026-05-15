@@ -141,7 +141,7 @@ export default function LandingHero() {
                   <Sparkles size={14} />
                 </div>
                 <div>
-                  <div className="text-[10px] text-ink-200">AI ช่วยประเมิน</div>
+                  <div className="text-xs text-ink-200">AI ช่วยประเมิน</div>
                   <div className="text-xs font-semibold">฿42,000 — ฿58,000</div>
                 </div>
               </div>
@@ -171,7 +171,7 @@ function MiniStat({
   return (
     <div className={`rounded-xl border ${cls} p-3`}>
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-medium opacity-80">{label}</span>
+        <span className="text-xs font-medium opacity-80">{label}</span>
         {icon}
       </div>
       <div className="text-base font-bold mt-1">{value}</div>
@@ -195,7 +195,7 @@ function MiniRow({
       <div className="min-w-0">
         <div className="text-xs font-medium text-ink-800 truncate">{title}</div>
         <div
-          className={`text-[10px] mt-0.5 ${
+          className={`text-xs mt-0.5 ${
             positive ? "text-green-600" : "text-ink-400"
           }`}
         >

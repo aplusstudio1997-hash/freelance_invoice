@@ -60,7 +60,7 @@ export default function ClientPicker() {
         {active && (
           <button
             onClick={() => onPick(null)}
-            className="text-[10px] text-ink-400 hover:text-red-500 inline-flex items-center gap-1 transition"
+            className="text-xs text-ink-400 hover:text-red-500 inline-flex items-center gap-1 transition"
           >
             <X size={10} />
             เลิกผูก
@@ -84,7 +84,7 @@ export default function ClientPicker() {
         </button>
 
         {open && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-orange-100 rounded-2xl shadow-soft-lg z-30 max-h-72 overflow-y-auto scrollbar-thin">
+          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-orange-100 rounded-2xl shadow-soft-lg z-50 max-h-72 overflow-y-auto scrollbar-thin">
             {clients.length === 0 ? (
               <div className="px-4 py-6 text-center text-xs text-ink-400">
                 ยังไม่มีลูกค้าในระบบ
@@ -118,7 +118,7 @@ export default function ClientPicker() {
                     >
                       {c.name}
                     </span>
-                    <span className="text-[10px] text-ink-400 shrink-0">
+                    <span className="text-xs text-ink-400 shrink-0">
                       {c.documentCount} เอกสาร
                     </span>
                   </button>
@@ -157,7 +157,7 @@ export default function ClientPicker() {
       )}
 
       {active && (
-        <div className="text-[11px] text-ink-400 bg-orange-50/30 border border-orange-100 rounded-xl px-3 py-2 flex items-start gap-1.5">
+        <div className="text-xs text-ink-400 bg-orange-50/30 border border-orange-100 rounded-xl px-3 py-2 flex items-start gap-1.5">
           <Save size={11} className="mt-0.5 text-brand-500 shrink-0" />
           เอกสารผูกกับ &ldquo;{active.name}&rdquo; — ข้อมูลด้านล่างจะถูกใช้ในเอกสารใบนี้
         </div>

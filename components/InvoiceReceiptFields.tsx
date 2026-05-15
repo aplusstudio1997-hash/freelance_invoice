@@ -55,7 +55,7 @@ export default function InvoiceReceiptFields({
             value={data.dueDate || ""}
             onChange={(v) => update({ dueDate: v })}
           />
-          <p className="text-[11px] text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 mt-1">
             วันที่ลูกค้าต้องชำระเงินภายใน
           </p>
         </div>

@@ -52,7 +52,7 @@ export default function AdminLayout({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-xl font-bold">Admin Panel</h2>
-              <span className="text-[10px] inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-300 font-medium">
+              <span className="text-xs inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-300 font-medium">
                 <span className="w-1.5 h-1.5 rounded-full bg-brand-400" />
                 Admin Access
               </span>

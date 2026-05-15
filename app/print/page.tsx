@@ -627,7 +627,7 @@ export default function PrintPage() {
         <section className="grid grid-cols-2 gap-6 mt-4 mb-3">
           {visibility.contactFrom ? (
             <div>
-              <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">
+              <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
                 จาก / From
               </div>
               <div className="font-semibold text-gray-800 mb-0.5">
@@ -660,7 +660,7 @@ export default function PrintPage() {
           )}
           {visibility.contactTo ? (
             <div>
-              <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">
+              <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
                 เรียน / สำหรับ
               </div>
               <div className="font-semibold text-gray-800 mb-0.5">
@@ -700,7 +700,7 @@ export default function PrintPage() {
         <section className="flex items-start justify-between gap-4 pt-3 pb-3 mb-3 border-t border-gray-100">
           {visibility.project ? (
             <div className="min-w-0">
-              <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">
+              <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
                 โครงการ
               </div>
               <div className="font-semibold text-gray-800">
@@ -712,14 +712,14 @@ export default function PrintPage() {
           )}
           {visibility.duration && data.startDate && (
             <div className="text-right shrink-0">
-              <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">
+              <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
                 ระยะเวลา
               </div>
               <div className="text-xs text-gray-700">
                 {fmtDate(data.startDate)} — {fmtDate(data.endDate)}
               </div>
               {calc.workingDays > 0 && (
-                <div className="text-[11px] text-gray-500">
+                <div className="text-xs text-gray-500">
                   รวม {calc.workingDays} วันทำงาน
                 </div>
               )}
@@ -754,12 +754,12 @@ export default function PrintPage() {
                         <div className="flex items-baseline gap-2 flex-wrap">
                           <span className="font-medium">{s.name}</span>
                           {s.free ? (
-                            <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded">
+                            <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded">
                               แถมฟรี
                             </span>
                           ) : (
                             s.quantity > 1 && (
-                              <span className="text-[11px] text-gray-400 whitespace-nowrap">
+                              <span className="text-xs text-gray-400 whitespace-nowrap">
                                 @ {currencySymbol}
                                 {fmt(s.adjustedUnitPrice)} × {s.quantity}
                               </span>
@@ -767,7 +767,7 @@ export default function PrintPage() {
                           )}
                         </div>
                         {s.description && (
-                          <div className="text-[11px] text-gray-500 italic mt-0.5">
+                          <div className="text-xs text-gray-500 italic mt-0.5">
                             {s.description}
                           </div>
                         )}
@@ -936,7 +936,7 @@ export default function PrintPage() {
             }}
           >
             <div
-              className="text-[10px] text-gray-500"
+              className="text-xs text-gray-500"
               style={{ marginBottom: "4px", lineHeight: 1 }}
             >
               วิธีการชำระเงิน
@@ -960,7 +960,7 @@ export default function PrintPage() {
             paddingBottom: "8px",
           }}
         >
-          <div className="text-[10px] text-gray-500" style={{ marginBottom: "4px", lineHeight: 1 }}>
+          <div className="text-xs text-gray-500" style={{ marginBottom: "4px", lineHeight: 1 }}>
             เงื่อนไขการชำระ
           </div>
           <div className="text-xs font-medium text-gray-800" style={{ lineHeight: 1 }}>
@@ -971,7 +971,7 @@ export default function PrintPage() {
 
         {visibility.paymentChannel && hasPayment && (
           <section className="border border-gray-200 rounded-lg p-3 mb-4">
-            <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-2">
+            <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">
               ช่องทางการชำระเงิน
             </div>
             <div className="flex items-start gap-4">
@@ -1016,29 +1016,29 @@ export default function PrintPage() {
         {visibility.signature && (
         <section className="flex items-end justify-between mt-8 mb-4">
           <div>
-            <div className="text-[10px] text-gray-500 mb-0.5">เตรียมโดย</div>
+            <div className="text-xs text-gray-500 mb-0.5">เตรียมโดย</div>
             <div className="font-semibold text-gray-800 text-sm">
               {profile.ownerName || profile.studioName}
             </div>
             {profile.taxId && (
-              <div className="text-[10px] text-gray-500 mt-0.5">
+              <div className="text-xs text-gray-500 mt-0.5">
                 เลขประจำตัว: {profile.taxId}
               </div>
             )}
           </div>
           <div className="text-right">
             <div className="border-b border-gray-400 w-48 mb-1"></div>
-            <div className="text-[10px] text-gray-500">ลงนามผู้เสนอราคา</div>
+            <div className="text-xs text-gray-500">ลงนามผู้เสนอราคา</div>
           </div>
         </section>
         )}
 
         {visibility.notes && termsLines.length > 0 && (
           <section className="pt-3 border-t border-gray-200">
-            <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-1.5">
+            <div className="text-xs text-gray-500 uppercase tracking-wide mb-1.5">
               หมายเหตุและเงื่อนไข
             </div>
-            <ul className="text-[11px] text-gray-600 space-y-0.5 list-disc list-inside leading-relaxed">
+            <ul className="text-xs text-gray-600 space-y-0.5 list-disc list-inside leading-relaxed">
               {termsLines.map((l, i) => (
                 <li key={i}>{l}</li>
               ))}

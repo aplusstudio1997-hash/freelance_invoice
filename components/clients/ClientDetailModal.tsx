@@ -174,7 +174,7 @@ export default function ClientDetailModal({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span
-                          className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${
+                          className={`text-xs px-1.5 py-0.5 rounded-full border font-medium ${
                             TYPE_COLORS[d.type]
                           }`}
                         >
@@ -184,7 +184,7 @@ export default function ClientDetailModal({
                           {d.number}
                         </span>
                       </div>
-                      <div className="text-[11px] text-ink-400 truncate mt-0.5">
+                      <div className="text-xs text-ink-400 truncate mt-0.5">
                         {d.projectName || "ไม่ระบุชื่อโครงการ"}
                       </div>
                     </div>
@@ -259,7 +259,7 @@ function DetailRow({
         {icon}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-[10px] text-ink-400 uppercase tracking-wide">
+        <div className="text-xs text-ink-400 uppercase tracking-wide">
           {label}
         </div>
         <div

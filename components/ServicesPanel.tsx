@@ -171,7 +171,7 @@ export default function ServicesPanel({
               />
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] text-gray-500 block mb-1">
+                  <label className="text-xs text-gray-500 block mb-1">
                     ราคา/หน่วย
                   </label>
                   <input
@@ -184,7 +184,7 @@ export default function ServicesPanel({
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-gray-500 block mb-1">
+                  <label className="text-xs text-gray-500 block mb-1">
                     จำนวน (ชิ้นงาน)
                   </label>
                   <input
@@ -231,13 +231,13 @@ export default function ServicesPanel({
                               {s.name}
                             </span>
                             {s.free && (
-                              <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded">
+                              <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded">
                                 ฟรี
                               </span>
                             )}
                           </div>
                           {s.description && (
-                            <div className="text-[11px] text-gray-500 italic mt-0.5 line-clamp-2">
+                            <div className="text-xs text-gray-500 italic mt-0.5 line-clamp-2">
                               {s.description}
                             </div>
                           )}

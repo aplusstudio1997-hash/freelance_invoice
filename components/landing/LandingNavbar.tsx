@@ -45,7 +45,7 @@ export default function LandingNavbar() {
           </div>
           <div className="leading-tight">
             <div className="font-bold text-ink-900 text-sm">So1o Freelancer</div>
-            <div className="text-[10px] text-ink-400">หลังบ้านฟรีแลนซ์ของคุณ</div>
+            <div className="text-xs text-ink-400">หลังบ้านฟรีแลนซ์ของคุณ</div>
           </div>
         </Link>
 

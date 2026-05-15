@@ -172,7 +172,7 @@ export default function SettingsPage() {
             </span>
             <ChevronRight size={14} />
           </button>
-          <div className="text-[11px] text-ink-400">
+          <div className="text-xs text-ink-400">
             ลบบัญชีถาวร — ติดต่อทีมงานผ่านปุ่ม &ldquo;ส่งข้อเสนอแนะ&rdquo; ด้านบน
           </div>
         </div>
@@ -237,7 +237,7 @@ function ActionRow({
           {label}
         </div>
         {description && (
-          <div className="text-[11px] text-ink-400 truncate">{description}</div>
+          <div className="text-xs text-ink-400 truncate">{description}</div>
         )}
       </div>
       <ChevronRight size={14} className="text-ink-300 shrink-0" />

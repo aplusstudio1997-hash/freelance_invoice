@@ -84,7 +84,7 @@ export default function AdminFeedbackPage() {
       <section className="bg-white/85 backdrop-blur border border-orange-100/80 rounded-3xl shadow-soft p-5 sm:p-6">
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <div className="text-[11px] text-ink-400 uppercase tracking-wide">
+            <div className="text-xs text-ink-400 uppercase tracking-wide">
               คะแนนเฉลี่ย
             </div>
             <div className="flex items-baseline gap-2 mt-1">
@@ -106,7 +106,7 @@ export default function AdminFeedbackPage() {
                 />
               ))}
             </div>
-            <div className="text-[11px] text-ink-400 mt-2">
+            <div className="text-xs text-ink-400 mt-2">
               จาก {stats.total} ความคิดเห็น
             </div>
           </div>
@@ -224,7 +224,7 @@ export default function AdminFeedbackPage() {
                       {f.rating}/5
                     </span>
                   </div>
-                  <div className="text-[11px] text-ink-400">
+                  <div className="text-xs text-ink-400">
                     {fmtDateDisplay(f.created_at)}
                   </div>
                 </div>
@@ -238,7 +238,7 @@ export default function AdminFeedbackPage() {
                   </p>
                 )}
                 {f.email && (
-                  <div className="text-[11px] text-ink-400 mt-2">
+                  <div className="text-xs text-ink-400 mt-2">
                     {f.email}
                   </div>
                 )}

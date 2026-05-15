@@ -76,7 +76,7 @@ export default function ClientsPage() {
   });
 
   const handleCreate = async (f: ClientFormData) => {
-    await createClient(formDataToCustomer(f));
+    await createClient(formDataToCustomer(f), f.note);
     await refreshClients();
   };
 
@@ -192,20 +192,20 @@ export default function ClientsPage() {
                       {c.name}
                     </div>
                     {c.email && (
-                      <div className="flex items-center gap-1 text-[11px] text-ink-400 mt-0.5 truncate">
+                      <div className="flex items-center gap-1 text-xs text-ink-400 mt-0.5 truncate">
                         <Mail size={10} />
                         {c.email}
                       </div>
                     )}
                     {c.phone && (
-                      <div className="flex items-center gap-1 text-[11px] text-ink-400 mt-0.5 truncate">
+                      <div className="flex items-center gap-1 text-xs text-ink-400 mt-0.5 truncate">
                         <Phone size={10} />
                         {c.phone}
                       </div>
                     )}
                   </div>
                 </div>
-                <div className="mt-3 pt-3 border-t border-orange-100/70 flex items-center justify-between text-[11px]">
+                <div className="mt-3 pt-3 border-t border-orange-100/70 flex items-center justify-between text-xs">
                   <span className="inline-flex items-center gap-1 text-ink-500">
                     <FileText size={11} />
                     {c.documentCount} เอกสาร
@@ -247,7 +247,7 @@ export default function ClientsPage() {
 function SmallStat({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-orange-50/40 border border-orange-100 rounded-2xl px-4 py-2.5">
-      <div className="text-[10px] text-ink-400 uppercase tracking-wide">
+      <div className="text-xs text-ink-400 uppercase tracking-wide">
         {label}
       </div>
       <div className="text-lg font-bold text-ink-900 tabular-nums mt-0.5">

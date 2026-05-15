@@ -46,7 +46,7 @@ export default function LandingFooter() {
                 <div className="font-bold text-ink-900 text-sm">
                   So1o Freelancer
                 </div>
-                <div className="text-[10px] text-ink-400">
+                <div className="text-xs text-ink-400">
                   หลังบ้านฟรีแลนซ์ของคุณ
                 </div>
               </div>

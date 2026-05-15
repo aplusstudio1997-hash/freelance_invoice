@@ -3,7 +3,6 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import {
   QuoteSettings,
-  Profile,
   DEFAULT_QUOTE,
   getCurrencySymbol,
 } from "@/lib/types";
@@ -20,7 +19,6 @@ import StressReliefModal from "@/components/StressReliefModal";
 import FeedbackModal from "@/components/FeedbackModal";
 import DonationModal from "@/components/DonationModal";
 import ShareModal from "@/components/ShareModal";
-import ProfileModal from "@/components/ProfileModal";
 import SuccessModal from "@/components/SuccessModal";
 import DocumentTabs from "@/components/DocumentTabs";
 import InvoiceReceiptFields from "@/components/InvoiceReceiptFields";
@@ -29,18 +27,10 @@ import {
   Dice5,
   Smile,
   RotateCcw,
-  Save,
   Settings,
   ListPlus,
   Calendar,
   FileText,
-  MessageSquare,
-  Heart,
-  Share2,
-  UserCog,
-  Wallet,
-  TrendingUp,
-  TrendingDown,
 } from "lucide-react";
 
 type Tab = "settings" | "services" | "timeline" | "preview";
@@ -53,8 +43,8 @@ export default function FinancePage() {
     shouldShowMigration,
     dismissMigration,
     completeMigration,
-    setData: ctxSetData,
-    setProfile: ctxSetProfile,
+    setData,
+    flushSave,
   } = useDocuments();
 
   const [promptOpen, setPromptOpen] = useState(false);
@@ -62,7 +52,6 @@ export default function FinancePage() {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [donationOpen, setDonationOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
   const [, setStats] = useState<{
     totalQuotes: number | null;
@@ -71,9 +60,6 @@ export default function FinancePage() {
 
   const [downloading, setDownloading] = useState(false);
   const [mobileTab, setMobileTab] = useState<Tab>("settings");
-
-  const setData = ctxSetData;
-  const setProfile = ctxSetProfile;
 
   useEffect(() => {
     let cancelled = false;
@@ -102,10 +88,6 @@ export default function FinancePage() {
     [data, setData]
   );
 
-  const updateProfile = (p: Profile) => {
-    setProfile(p);
-  };
-
   const calc = useMemo(() => calculate(data), [data]);
   const currencySymbol = getCurrencySymbol(profile.currency);
 
@@ -118,6 +100,11 @@ export default function FinancePage() {
 
   const downloadPDF = async () => {
     setDownloading(true);
+    try {
+      await flushSave();
+    } catch (e) {
+      console.error("flushSave failed", e);
+    }
     try {
       await sendQuote(data, calc, profile);
     } catch (e) {
@@ -133,15 +120,18 @@ export default function FinancePage() {
     }, 250);
   };
 
-  const openPDF = () => {
+  const openPDF = async () => {
     setSuccessOpen(false);
+    try {
+      await flushSave();
+    } catch {}
     window.open("/print", "_blank");
   };
 
   return (
     <div className="space-y-4 sm:space-y-5">
       <section className="hidden lg:flex flex-wrap items-center gap-1.5 bg-white/85 backdrop-blur border border-orange-100/80 rounded-3xl shadow-soft p-3 px-4">
-        <span className="text-xs text-ink-400 mr-2">เครื่องมือ</span>
+        <span className="text-xs text-ink-400 mr-2">เครื่องมือเอกสาร</span>
         <button
           onClick={resetAll}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-ink-600 hover:text-red-500 hover:bg-red-50 rounded-full transition"
@@ -158,31 +148,6 @@ export default function FinancePage() {
           icon={<Smile size={12} />}
           label="คลายเครียด"
           onClick={() => setReliefOpen(true)}
-        />
-        <div className="w-px h-4 bg-orange-100 mx-1" />
-        <FinHeaderBtn
-          icon={<MessageSquare size={12} />}
-          label="Feedback"
-          onClick={() => setFeedbackOpen(true)}
-          ghost
-        />
-        <FinHeaderBtn
-          icon={<Heart size={12} />}
-          label="Donation"
-          onClick={() => setDonationOpen(true)}
-          ghost
-        />
-        <FinHeaderBtn
-          icon={<Share2 size={12} />}
-          label="Share"
-          onClick={() => setShareOpen(true)}
-          ghost
-        />
-        <FinHeaderBtn
-          icon={<UserCog size={12} />}
-          label="ตั้งค่าส่วนตัว"
-          onClick={() => setProfileOpen(true)}
-          ghost
         />
       </section>
 
@@ -305,12 +270,6 @@ export default function FinancePage() {
         onClose={() => setDonationOpen(false)}
       />
       <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} />
-      <ProfileModal
-        open={profileOpen}
-        profile={profile}
-        onClose={() => setProfileOpen(false)}
-        onSave={updateProfile}
-      />
       <SuccessModal
         open={successOpen}
         onClose={() => setSuccessOpen(false)}
@@ -395,7 +354,7 @@ function FinTabBtn({
     >
       {icon}
       <span
-        className={`text-[10px] mt-0.5 ${
+        className={`text-xs mt-0.5 ${
           highlight && !active ? "text-brand-600 font-semibold" : ""
         }`}
       >

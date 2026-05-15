@@ -33,7 +33,7 @@ export default function StatCard({
       <div className="flex items-start justify-between">
         <div className="min-w-0">
           <div
-            className={`text-[11px] font-medium uppercase tracking-wide truncate ${
+            className={`text-xs font-medium uppercase tracking-wide truncate ${
               highlight ? "text-white/80" : "text-ink-400"
             }`}
           >
@@ -44,7 +44,7 @@ export default function StatCard({
           </div>
           {hint && (
             <div
-              className={`text-[11px] mt-2 truncate ${
+              className={`text-xs mt-2 truncate ${
                 highlight ? "text-white/80" : "text-ink-400"
               }`}
             >
@@ -65,7 +65,7 @@ export default function StatCard({
 
       {trend && (
         <div
-          className={`absolute top-3 right-12 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
+          className={`absolute top-3 right-12 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-semibold ${
             highlight ? "bg-white/15 text-white" : "bg-green-50 text-green-700"
           }`}
         >

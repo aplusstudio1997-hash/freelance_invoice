@@ -204,7 +204,7 @@ function DataRow({
         {icon}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-[10px] text-ink-400 uppercase tracking-wide">
+        <div className="text-xs text-ink-400 uppercase tracking-wide">
           {label}
         </div>
         <div
