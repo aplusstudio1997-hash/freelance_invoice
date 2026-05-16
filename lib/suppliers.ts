@@ -1,4 +1,5 @@
 import { getSupabase } from "./supabase";
+import { isSchemaMissing } from "./repository";
 
 export type SupplierCategory =
   | "photographer"
@@ -60,7 +61,10 @@ export async function listSuppliers(): Promise<SupplierRecord[]> {
     .select("*")
     .eq("user_id", auth.user.id)
     .order("name", { ascending: true });
-  if (error) throw error;
+  if (error) {
+    if (isSchemaMissing(error)) return [];
+    throw error;
+  }
   return (data || []).map((r) => ({
     ...r,
     files: Array.isArray(r.files) ? r.files : [],

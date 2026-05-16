@@ -1,4 +1,5 @@
 import { getSupabase } from "./supabase";
+import { isSchemaMissing } from "./repository";
 
 export type BillingCycle = "monthly" | "yearly" | "quarterly" | "weekly";
 
@@ -53,7 +54,10 @@ export async function listSubscriptions(): Promise<SubscriptionRecord[]> {
     .select("*")
     .eq("user_id", auth.user.id)
     .order("next_billing_at", { ascending: true, nullsFirst: false });
-  if (error) throw error;
+  if (error) {
+    if (isSchemaMissing(error)) return [];
+    throw error;
+  }
   return (data || []) as SubscriptionRecord[];
 }
 

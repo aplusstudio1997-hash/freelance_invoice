@@ -7,6 +7,37 @@ import {
   DEFAULT_PROFILE,
 } from "./types";
 
+// ============================================================================
+// Schema error detection — table/column ยังไม่ได้สร้างใน Supabase
+// ============================================================================
+export interface SchemaIssue {
+  code: string;
+  message: string;
+}
+
+let schemaIssueWarned = new Set<string>();
+
+export function isSchemaMissing(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const e = error as { code?: string; message?: string };
+  if (!e.code && !e.message) return false;
+  // PGRST205 = table not in schema cache
+  // 42P01    = relation does not exist
+  // 42703    = column does not exist
+  if (e.code === "PGRST205" || e.code === "42P01" || e.code === "42703") {
+    const key = `${e.code}:${e.message || ""}`;
+    if (!schemaIssueWarned.has(key)) {
+      schemaIssueWarned.add(key);
+      console.warn(
+        "[so1o] Database schema issue detected — รัน supabase/schema.sql ใน Supabase SQL Editor เพื่อแก้ไข\n",
+        e.message || e.code
+      );
+    }
+    return true;
+  }
+  return false;
+}
+
 export type DocumentType = "quote" | "invoice" | "receipt";
 export type DocumentStatus = "draft" | "issued" | "paid" | "cancelled";
 export type UserRole = "user" | "admin";
@@ -161,23 +192,30 @@ export async function listClients(): Promise<ClientSummary[]> {
     .select("*")
     .eq("user_id", auth.user.id)
     .order("name", { ascending: true });
-  if (error) throw error;
+  if (error) {
+    if (isSchemaMissing(error)) return [];
+    throw error;
+  }
   if (!clients || clients.length === 0) return [];
 
   const ids = clients.map((c) => c.id);
-  const { data: docs } = await sb
+  const { data: docs, error: docErr } = await sb
     .from("documents")
     .select("client_id, type, data")
     .eq("user_id", auth.user.id)
     .in("client_id", ids);
 
   const stats = new Map<string, { count: number; total: number }>();
-  (docs || []).forEach((d) => {
-    if (!d.client_id) return;
-    const cur = stats.get(d.client_id as string) || { count: 0, total: 0 };
-    cur.count += 1;
-    stats.set(d.client_id as string, cur);
-  });
+  if (!docErr) {
+    (docs || []).forEach((d) => {
+      if (!d.client_id) return;
+      const cur = stats.get(d.client_id as string) || { count: 0, total: 0 };
+      cur.count += 1;
+      stats.set(d.client_id as string, cur);
+    });
+  } else {
+    isSchemaMissing(docErr);
+  }
 
   return (clients as ClientRecord[]).map((c) => {
     const s = stats.get(c.id) || { count: 0, total: 0 };
@@ -289,7 +327,25 @@ export async function listDocuments(
     .eq("user_id", auth.user.id)
     .order("created_at", { ascending: false });
   if (type) q = q.eq("type", type);
-  const { data, error } = await q;
+  let { data, error } = await q;
+  if (error && isSchemaMissing(error)) {
+    // Fallback: try without client_id column
+    let q2 = sb
+      .from("documents")
+      .select(
+        "id, type, number, status, data, created_at, updated_at, linked_from_id"
+      )
+      .eq("user_id", auth.user.id)
+      .order("created_at", { ascending: false });
+    if (type) q2 = q2.eq("type", type);
+    const fallback = await q2;
+    if (fallback.error) {
+      if (isSchemaMissing(fallback.error)) return [];
+      throw fallback.error;
+    }
+    data = fallback.data;
+    error = null;
+  }
   if (error) throw error;
   return (data || []).map((row) => {
     const d = row.data as QuoteSettings;
@@ -304,7 +360,7 @@ export async function listDocuments(
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       linkedFromId: row.linked_from_id,
-      clientId: row.client_id || null,
+      clientId: (row as { client_id?: string }).client_id || null,
     };
   });
 }
@@ -323,7 +379,10 @@ export async function listDocumentsByClient(
     .eq("user_id", auth.user.id)
     .eq("client_id", clientId)
     .order("created_at", { ascending: false });
-  if (error) throw error;
+  if (error) {
+    if (isSchemaMissing(error)) return [];
+    throw error;
+  }
   return (data || []).map((row) => {
     const d = row.data as QuoteSettings;
     return {

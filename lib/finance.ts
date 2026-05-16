@@ -1,4 +1,5 @@
 import { getSupabase } from "./supabase";
+import { isSchemaMissing } from "./repository";
 
 export type IncomeCategory =
   | "service"
@@ -99,7 +100,10 @@ export async function listIncomes(
   if (fromIso) q = q.gte("received_at", fromIso);
   if (toIso) q = q.lte("received_at", toIso);
   const { data, error } = await q;
-  if (error) throw error;
+  if (error) {
+    if (isSchemaMissing(error)) return [];
+    throw error;
+  }
   return (data || []) as IncomeRecord[];
 }
 
@@ -173,7 +177,10 @@ export async function listExpenses(
   if (fromIso) q = q.gte("paid_at", fromIso);
   if (toIso) q = q.lte("paid_at", toIso);
   const { data, error } = await q;
-  if (error) throw error;
+  if (error) {
+    if (isSchemaMissing(error)) return [];
+    throw error;
+  }
   return (data || []) as ExpenseRecord[];
 }
 
@@ -258,7 +265,10 @@ export async function listGoals(year: number): Promise<RevenueGoalRecord[]> {
     .eq("user_id", auth.user.id)
     .eq("year", year)
     .order("month", { ascending: true });
-  if (error) throw error;
+  if (error) {
+    if (isSchemaMissing(error)) return [];
+    throw error;
+  }
   return (data || []) as RevenueGoalRecord[];
 }
 

@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth";
 import AppHeader from "@/components/app-shell/AppHeader";
 import AppTabs from "@/components/app-shell/AppTabs";
 import BetaBanner from "@/components/app-shell/BetaBanner";
+import SchemaWarningBanner from "@/components/app-shell/SchemaWarningBanner";
 
 export default function AppLayout({
   children,
@@ -31,6 +32,7 @@ export default function AppLayout({
     <div className="min-h-[100dvh] bg-app pb-12">
       <AppHeader />
       <BetaBanner />
+      <SchemaWarningBanner />
       <AppTabs />
       <main className="px-3 sm:px-6 pt-4 sm:pt-6">{children}</main>
     </div>

@@ -1,4 +1,5 @@
 import { getSupabase } from "./supabase";
+import { isSchemaMissing } from "./repository";
 
 export interface AdminUserSummary {
   user_id: string;
@@ -58,7 +59,10 @@ export async function listAllUsers(): Promise<AdminUserSummary[]> {
     .from("profiles")
     .select("user_id, data, role, created_at, updated_at")
     .order("created_at", { ascending: false });
-  if (pErr) throw pErr;
+  if (pErr) {
+    if (isSchemaMissing(pErr)) return [];
+    throw pErr;
+  }
   if (!profiles || profiles.length === 0) return [];
 
   const ids = profiles.map((p) => p.user_id);
@@ -139,7 +143,10 @@ export async function listAllFeedback(): Promise<AdminFeedback[]> {
     .from("feedback")
     .select("*")
     .order("created_at", { ascending: false });
-  if (error) throw error;
+  if (error) {
+    if (isSchemaMissing(error)) return [];
+    throw error;
+  }
   return (data || []) as AdminFeedback[];
 }
 
