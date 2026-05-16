@@ -53,25 +53,35 @@ export default function IncomePage() {
 
   const filtered = useMemo(() => {
     return incomes.filter((i) => {
+      // parse "YYYY-MM-DD" as a local date string — `new Date(str)` reads it
+      // as UTC midnight and shifts the month for non-UTC timezones
+      const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(i.received_at);
+      if (m) {
+        return Number(m[1]) === year && Number(m[2]) === month;
+      }
       const d = new Date(i.received_at);
       return d.getFullYear() === year && d.getMonth() + 1 === month;
     });
   }, [incomes, year, month]);
 
   const monthStats = useMemo(() => {
-    const gross = filtered.reduce((a, i) => a + Number(i.amount), 0);
-    const wht = filtered.reduce((a, i) => a + Number(i.wht_amount), 0);
-    const vat = filtered.reduce((a, i) => a + Number(i.vat_amount), 0);
+    const gross = filtered.reduce((a, i) => a + Number(i.amount ?? 0), 0);
+    const wht = filtered.reduce((a, i) => a + Number(i.wht_amount ?? 0), 0);
+    const vat = filtered.reduce((a, i) => a + Number(i.vat_amount ?? 0), 0);
     return { gross, wht, vat, net: gross - wht };
   }, [filtered]);
 
   const yearStats = useMemo(() => {
-    const gross = incomes.reduce((a, i) => a + Number(i.amount), 0);
-    const wht = incomes.reduce((a, i) => a + Number(i.wht_amount), 0);
+    const gross = incomes.reduce((a, i) => a + Number(i.amount ?? 0), 0);
+    const wht = incomes.reduce((a, i) => a + Number(i.wht_amount ?? 0), 0);
     return { gross, wht };
   }, [incomes]);
 
-  const clientMap = new Map(clients.map((c) => [c.id, c.name]));
+  // memo so we don't rebuild the lookup on every keystroke / parent rerender
+  const clientMap = useMemo(
+    () => new Map(clients.map((c) => [c.id, c.name])),
+    [clients]
+  );
 
   const onCreate = async (data: Parameters<typeof createIncome>[0]) => {
     await createIncome(data);

@@ -17,6 +17,14 @@ interface Props {
 }
 
 const MAX_IMAGE_SIZE = 500 * 1024;
+// Allow raster formats only. SVGs can carry embedded JavaScript that executes
+// when re-rendered in an <img> from a data: URL, so we reject them.
+const ALLOWED_IMAGE_MIMES = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "image/gif",
+]);
 
 export default function ProfileModal({
   open,
@@ -40,6 +48,10 @@ export default function ProfileModal({
 
   const pickImage = (file: File | null, field: "logo" | "qr") => {
     if (!file) return;
+    if (!ALLOWED_IMAGE_MIMES.has(file.type)) {
+      alert("รองรับเฉพาะ PNG, JPG, WEBP, GIF เท่านั้น");
+      return;
+    }
     if (file.size > MAX_IMAGE_SIZE) {
       alert(`ขนาดไฟล์ต้องไม่เกิน ${Math.round(MAX_IMAGE_SIZE / 1024)}KB`);
       return;
@@ -47,6 +59,11 @@ export default function ProfileModal({
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = String(reader.result || "");
+      // belt-and-suspenders: sniff the data: prefix in case file.type lied
+      if (!ALLOWED_IMAGE_MIMES.has(extractMimeFromDataUrl(dataUrl))) {
+        alert("รองรับเฉพาะ PNG, JPG, WEBP, GIF เท่านั้น");
+        return;
+      }
       if (field === "logo") set({ logo: dataUrl });
       else setPayment({ qrCode: dataUrl });
     };
@@ -123,7 +140,7 @@ export default function ProfileModal({
               <input
                 ref={logoRef}
                 type="file"
-                accept="image/*"
+                accept="image/png,image/jpeg,image/webp,image/gif"
                 className="hidden"
                 onChange={(e) => pickImage(e.target.files?.[0] || null, "logo")}
               />
@@ -274,7 +291,7 @@ export default function ProfileModal({
               <input
                 ref={qrRef}
                 type="file"
-                accept="image/*"
+                accept="image/png,image/jpeg,image/webp,image/gif"
                 className="hidden"
                 onChange={(e) => pickImage(e.target.files?.[0] || null, "qr")}
               />
@@ -330,6 +347,11 @@ export default function ProfileModal({
       </div>
     </div>
   );
+}
+
+function extractMimeFromDataUrl(url: string): string {
+  const m = /^data:([^;,]+)[;,]/.exec(url);
+  return m ? m[1].toLowerCase() : "";
 }
 
 function Field({

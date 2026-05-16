@@ -25,7 +25,11 @@ export default function BillableRevisionModal({
   if (!open) return null;
 
   const save = () => {
-    const n = Math.max(1, Math.floor(Number(value) || 1));
+    // explicit Number.isFinite guard so NaN ("abc") doesn't slip through the
+    // `Number(value) || 1` short-circuit and to clamp negative values
+    const raw = parseFloat(value.replace(/,/g, ""));
+    const n =
+      Number.isFinite(raw) && raw > 0 ? Math.max(1, Math.floor(raw)) : 1;
     onSave(n);
     onClose();
   };

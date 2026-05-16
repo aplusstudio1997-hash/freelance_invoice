@@ -34,17 +34,41 @@ export interface CalcResult {
   hourlyRate: number;
 }
 
+// Parses "YYYY-MM-DD" as a LOCAL date (not UTC, which is what `new Date(str)` does).
+// Avoids off-by-one bugs for users east/west of UTC.
+function parseLocalDate(iso: string): Date | null {
+  if (!iso) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  if (m) {
+    const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    return isNaN(d.getTime()) ? null : d;
+  }
+  const d = new Date(iso);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+// Formats a Date back to "YYYY-MM-DD" using LOCAL date parts.
+function formatLocalDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
+}
+
 function workingDaysBetween(start: string, end: string): number {
-  if (!start || !end) return 0;
-  const s = new Date(start);
-  const e = new Date(end);
-  if (isNaN(s.getTime()) || isNaN(e.getTime()) || e < s) return 0;
+  const s = parseLocalDate(start);
+  const e = parseLocalDate(end);
+  if (!s || !e || e < s) return 0;
   let count = 0;
-  const cur = new Date(s);
-  while (cur <= e) {
-    const d = cur.getDay();
-    if (d !== 0 && d !== 6) count++;
-    cur.setDate(cur.getDate() + 1);
+  // iterate by UTC day-count to avoid DST 23h/25h jumps producing wrong counts
+  // or infinite loops in DST locales
+  const startUtc = Date.UTC(s.getFullYear(), s.getMonth(), s.getDate());
+  const endUtc = Date.UTC(e.getFullYear(), e.getMonth(), e.getDate());
+  const days = Math.round((endUtc - startUtc) / 86400000);
+  for (let i = 0; i <= days; i++) {
+    const cur = new Date(s.getFullYear(), s.getMonth(), s.getDate() + i);
+    const dow = cur.getDay();
+    if (dow !== 0 && dow !== 6) count++;
   }
   return count;
 }
@@ -62,7 +86,11 @@ export function calculate(q: QuoteSettings): CalcResult {
     let adjustedUnitPrice = unitPrice;
     if (!s.free && totalDifficultyPercent > 0 && unitPrice > 0) {
       const raised = unitPrice * difficultyMultiplier;
-      adjustedUnitPrice = Math.ceil(raised / 10) * 10;
+      // Round up to nearest 10 for nicer-looking numbers, but ONLY when the raw
+      // price is already >= 10. For cheap items (e.g. ฿5) rounding to ฿10 would
+      // double the price, which is much worse than the small-difficulty adjustment.
+      adjustedUnitPrice =
+        raised >= 10 ? Math.ceil(raised / 10) * 10 : Math.round(raised * 100) / 100;
     }
     return {
       id: s.id,
@@ -186,14 +214,13 @@ export function buildMilestones(
   const findExisting = (id: string) => existing.find((m) => m.id === id);
 
   const getAutoDate = (idx: number, total: number): string => {
-    if (!startDate || !endDate) return "";
-    const s = new Date(startDate);
-    const e = new Date(endDate);
-    if (isNaN(s.getTime()) || isNaN(e.getTime()) || e < s) return "";
+    const s = parseLocalDate(startDate);
+    const e = parseLocalDate(endDate);
+    if (!s || !e || e < s) return "";
     if (total <= 1) return startDate;
     const ratio = idx / (total - 1);
     const t = s.getTime() + (e.getTime() - s.getTime()) * ratio;
-    return new Date(t).toISOString().slice(0, 10);
+    return formatLocalDate(new Date(t));
   };
 
   const total = 3;

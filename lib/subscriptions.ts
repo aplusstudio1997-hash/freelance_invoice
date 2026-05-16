@@ -156,35 +156,75 @@ export function yearlyEquivalent(s: SubscriptionRecord): number {
   }
 }
 
+// Parse "YYYY-MM-DD" as a LOCAL date so timezone offset doesn't shift the day.
+function parseLocalDate(iso: string): Date | null {
+  if (!iso) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  if (m) {
+    const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    return isNaN(d.getTime()) ? null : d;
+  }
+  const d = new Date(iso);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function formatLocalDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
+}
+
 export function daysUntil(iso: string | null): number | null {
   if (!iso) return null;
-  const target = new Date(iso);
-  if (isNaN(target.getTime())) return null;
+  const target = parseLocalDate(iso);
+  if (!target) return null;
   const now = new Date();
-  const a = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const b = new Date(target.getFullYear(), target.getMonth(), target.getDate());
-  return Math.round((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24));
+  const a = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  const b = Date.UTC(
+    target.getFullYear(),
+    target.getMonth(),
+    target.getDate()
+  );
+  return Math.round((b - a) / (1000 * 60 * 60 * 24));
 }
 
 export function nextBillingAfter(
   current: string,
   cycle: BillingCycle
 ): string {
-  const d = new Date(current);
-  if (isNaN(d.getTime())) return current;
+  const d = parseLocalDate(current);
+  if (!d) return current;
+  // Clamp the day-of-month after incrementing the month so e.g. Jan 31 + 1
+  // month becomes Feb 28/29 instead of overflowing to March 3.
+  const addMonths = (date: Date, n: number): Date => {
+    const originalDay = date.getDate();
+    const candidate = new Date(date.getFullYear(), date.getMonth() + n, 1);
+    const lastDay = new Date(
+      candidate.getFullYear(),
+      candidate.getMonth() + 1,
+      0
+    ).getDate();
+    candidate.setDate(Math.min(originalDay, lastDay));
+    return candidate;
+  };
+
+  let next: Date;
   switch (cycle) {
     case "monthly":
-      d.setMonth(d.getMonth() + 1);
+      next = addMonths(d, 1);
       break;
     case "yearly":
-      d.setFullYear(d.getFullYear() + 1);
+      next = addMonths(d, 12);
       break;
     case "quarterly":
-      d.setMonth(d.getMonth() + 3);
+      next = addMonths(d, 3);
       break;
     case "weekly":
-      d.setDate(d.getDate() + 7);
+      next = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7);
       break;
+    default:
+      next = d;
   }
-  return d.toISOString().slice(0, 10);
+  return formatLocalDate(next);
 }

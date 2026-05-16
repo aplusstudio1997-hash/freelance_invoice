@@ -42,12 +42,19 @@ export default function ServicesPanel({
   const addService = () => {
     const name = newName.trim();
     if (!name) return;
+    // Accept "1,500.50" as a localized number; isFinite guard prevents NaN
+    // from flowing into the calculation.
+    const parsedPrice = parseFloat(newPrice.replace(/,/g, ""));
+    const parsedQty = parseFloat(newQuantity.replace(/,/g, ""));
     const service: Service = {
       id: `s_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
       name,
       description: newDescription.trim(),
-      price: Number(newPrice) || 0,
-      quantity: Math.max(1, Number(newQuantity) || 1),
+      price: Number.isFinite(parsedPrice) && parsedPrice >= 0 ? parsedPrice : 0,
+      quantity:
+        Number.isFinite(parsedQty) && parsedQty > 0
+          ? Math.max(1, Math.floor(parsedQty))
+          : 1,
       free: false,
     };
     update({ services: [...data.services, service] });
@@ -399,13 +406,15 @@ export default function ServicesPanel({
                     type="number"
                     inputMode="decimal"
                     placeholder="0"
+                    min={0}
                     value={data.discount === 0 ? "" : data.discount}
-                    onChange={(e) =>
-                      update({
-                        discount:
-                          e.target.value === "" ? 0 : Number(e.target.value),
-                      })
-                    }
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      if (raw === "") return update({ discount: 0 });
+                      const n = parseFloat(raw.replace(/,/g, ""));
+                      // ignore NaN / negative so totals don't render as "NaN"
+                      if (Number.isFinite(n) && n >= 0) update({ discount: n });
+                    }}
                     className="flex-1 border border-gray-200 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200 text-sm"
                   />
                   <select

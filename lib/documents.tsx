@@ -29,6 +29,7 @@ import {
 } from "./storage";
 import * as repo from "./repository";
 import * as fin from "./finance";
+import { calculate } from "./calc";
 import { useAuth } from "./auth";
 
 interface DocumentContextValue {
@@ -85,7 +86,26 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
   const [shouldShowMigration, setShouldShowMigration] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const profileTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const savedStatusTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initRef = useRef(false);
+
+  // refs that always reflect the latest values so debounced saves don't get stale closures
+  const activeIdRef = useRef<string | null>(null);
+  const activeTypeRef = useRef<DocumentType>("quote");
+  const activeClientIdRef = useRef<string | null>(null);
+  const userRef = useRef<typeof user>(null);
+  const dataRef = useRef<QuoteSettings>(DEFAULT_QUOTE);
+  const profileRef = useRef<Profile>(DEFAULT_PROFILE);
+  const creatingRef = useRef(false);
+  const mountedRef = useRef(true);
+
+  // keep refs in sync with state on every render
+  activeIdRef.current = activeId;
+  activeTypeRef.current = activeType;
+  activeClientIdRef.current = activeClientId;
+  userRef.current = user;
+  dataRef.current = data;
+  profileRef.current = profile;
 
   const refreshList = useCallback(async () => {
     if (!user) {
@@ -113,9 +133,29 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
+  // track mount/unmount so async writes don't fire on a dead component
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      if (profileTimer.current) clearTimeout(profileTimer.current);
+      if (savedStatusTimer.current) clearTimeout(savedStatusTimer.current);
+    };
+  }, []);
+
   useEffect(() => {
     if (authLoading) return;
     if (initRef.current && !user) {
+      // logout: cancel any pending debounced save so it doesn't fire after auth ends
+      if (saveTimer.current) {
+        clearTimeout(saveTimer.current);
+        saveTimer.current = null;
+      }
+      if (profileTimer.current) {
+        clearTimeout(profileTimer.current);
+        profileTimer.current = null;
+      }
       setActiveId(null);
       setActiveClientId(null);
       setDataState(loadLocalDraft());
@@ -205,57 +245,80 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
     })();
   }, [user, authLoading]);
 
-  const performSave = useCallback(
-    async (next: QuoteSettings) => {
-      try {
-        if (user && activeId) {
-          await repo.updateDocument(activeId, { data: next });
-          setDocuments((prev) =>
-            prev.map((d) =>
-              d.id === activeId
-                ? {
-                    ...d,
-                    customerName: next.customer?.name || "",
-                    projectName: next.projectName || "",
-                    updatedAt: new Date().toISOString(),
-                  }
-                : d
-            )
-          );
-        } else if (user && !activeId) {
-          // ยังไม่มี activeId — สร้าง document ใหม่ก่อน
+  // performSave reads ALL state from refs, so it never has a stale closure on
+  // activeId / activeType / activeClientId / user. The doc id captured at the
+  // start of save is used for the entire write to avoid clobbering a different
+  // document if the user clicks away mid-debounce.
+  const performSave = useCallback(async (next: QuoteSettings) => {
+    const currentUser = userRef.current;
+    const targetId = activeIdRef.current;
+    const targetType = activeTypeRef.current;
+    const targetClientId = activeClientIdRef.current;
+
+    try {
+      if (currentUser && targetId) {
+        await repo.updateDocument(targetId, { data: next });
+        if (!mountedRef.current) return;
+        setDocuments((prev) =>
+          prev.map((d) =>
+            d.id === targetId
+              ? {
+                  ...d,
+                  customerName: next.customer?.name || "",
+                  projectName: next.projectName || "",
+                  updatedAt: new Date().toISOString(),
+                }
+              : d
+          )
+        );
+      } else if (currentUser && !targetId) {
+        // first save for a brand-new doc — guard against concurrent debounce
+        // firings creating duplicate rows
+        if (creatingRef.current) return;
+        creatingRef.current = true;
+        try {
           const rec = await repo.createDocument({
-            type: activeType,
-            number: next.quoteNumber || generateDocumentNumber(activeType),
+            type: targetType,
+            number: next.quoteNumber || generateDocumentNumber(targetType),
             data: next,
-            clientId: activeClientId,
+            clientId: targetClientId,
           });
+          if (!mountedRef.current) return;
           setActiveId(rec.id);
+          activeIdRef.current = rec.id;
           try {
             localStorage.setItem(ACTIVE_KEY, rec.id);
           } catch {}
           const list = await repo.listDocuments();
+          if (!mountedRef.current) return;
           setDocuments(list);
-        } else if (!user) {
-          saveLocalDraft(next);
+        } finally {
+          creatingRef.current = false;
         }
-        setSaveStatus("saved");
-        setTimeout(() => setSaveStatus(null), 1500);
-      } catch (e) {
-        console.error("save failed", e);
-        setSaveStatus(null);
+      } else if (!currentUser) {
+        saveLocalDraft(next);
       }
-    },
-    [user, activeId, activeType, activeClientId]
-  );
+      if (!mountedRef.current) return;
+      setSaveStatus("saved");
+      if (savedStatusTimer.current) clearTimeout(savedStatusTimer.current);
+      savedStatusTimer.current = setTimeout(() => {
+        if (mountedRef.current) setSaveStatus(null);
+      }, 1500);
+    } catch (e) {
+      console.error("save failed", e);
+      if (mountedRef.current) setSaveStatus(null);
+    }
+  }, []);
 
   const setData = useCallback(
     (next: QuoteSettings) => {
       setDataState(next);
+      dataRef.current = next;
       if (saveTimer.current) clearTimeout(saveTimer.current);
       setSaveStatus("saving");
       saveTimer.current = setTimeout(() => {
-        performSave(next);
+        // always save the most recent data, not whatever was captured 500ms ago
+        performSave(dataRef.current);
       }, 500);
     },
     [performSave]
@@ -266,27 +329,25 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
       clearTimeout(saveTimer.current);
       saveTimer.current = null;
     }
-    await performSave(data);
-  }, [performSave, data]);
+    await performSave(dataRef.current);
+  }, [performSave]);
 
-  const setProfile = useCallback(
-    (next: Profile) => {
-      setProfileState(next);
-      if (profileTimer.current) clearTimeout(profileTimer.current);
-      profileTimer.current = setTimeout(async () => {
-        try {
-          if (user) {
-            await repo.saveProfile(next);
-          } else {
-            saveLocalProfile(next);
-          }
-        } catch (e) {
-          console.error("save profile failed", e);
+  const setProfile = useCallback((next: Profile) => {
+    setProfileState(next);
+    profileRef.current = next;
+    if (profileTimer.current) clearTimeout(profileTimer.current);
+    profileTimer.current = setTimeout(async () => {
+      try {
+        if (userRef.current) {
+          await repo.saveProfile(profileRef.current);
+        } else {
+          saveLocalProfile(profileRef.current);
         }
-      }, 400);
-    },
-    [user]
-  );
+      } catch (e) {
+        console.error("save profile failed", e);
+      }
+    }, 400);
+  }, []);
 
   const switchType = useCallback((type: DocumentType) => {
     setActiveType(type);
@@ -449,28 +510,36 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
   const recordIncomeFromCurrent = useCallback(async (): Promise<
     fin.IncomeRecord | null
   > => {
-    if (!user) return null;
-    const calc = (await import("./calc")).calculate(data);
+    const currentUser = userRef.current;
+    if (!currentUser) return null;
+    const d = dataRef.current;
+    const calc = calculate(d);
     const amount =
-      Number(data.paidAmount) > 0 ? Number(data.paidAmount) : calc.total;
+      Number(d.paidAmount) > 0 ? Number(d.paidAmount) : calc.total;
     if (!amount || amount <= 0) return null;
-    const wht = data.tax3Percent ? calc.taxDeduction : 0;
-    const vat = data.vat7 ? calc.vatAmount : 0;
-    const receivedAt =
-      data.paidDate ||
-      new Date().toISOString().slice(0, 10);
+    const wht = d.tax3Percent ? calc.taxDeduction : 0;
+    const vat = d.vat7 ? calc.vatAmount : 0;
+    // use local-date today instead of UTC slice to avoid timezone off-by-one
+    const today = (() => {
+      const n = new Date();
+      const y = n.getFullYear();
+      const m = String(n.getMonth() + 1).padStart(2, "0");
+      const dd = String(n.getDate()).padStart(2, "0");
+      return `${y}-${m}-${dd}`;
+    })();
+    const receivedAt = d.paidDate || today;
     try {
       const rec = await fin.createIncome({
-        clientId: activeClientId,
-        documentId: activeId,
+        clientId: activeClientIdRef.current,
+        documentId: activeIdRef.current,
         category: "service",
         description:
-          data.projectName ||
-          data.customer?.name ||
-          data.quoteNumber ||
+          d.projectName ||
+          d.customer?.name ||
+          d.quoteNumber ||
           "รายรับ",
         amount,
-        currency: profile.currency,
+        currency: profileRef.current.currency,
         whtAmount: wht,
         vatAmount: vat,
         receivedAt,
@@ -480,7 +549,7 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
       console.error("recordIncomeFromCurrent failed", e);
       return null;
     }
-  }, [user, data, activeClientId, activeId, profile.currency]);
+  }, []);
 
   const dismissMigration = useCallback(() => {
     if (user) setMigrationStatus(user.id);

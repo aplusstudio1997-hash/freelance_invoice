@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2, UploadCloud, X, Check } from "lucide-react";
 import { loadDraft, loadProfile, clearDraft } from "@/lib/storage";
 import {
@@ -21,22 +21,32 @@ export default function MigrationModal({ onClose, onDone }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<string>("");
+  // mount flag so async setState calls don't fire after unmount
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+  const safeSet = <T,>(setter: (v: T) => void, value: T) => {
+    if (mountedRef.current) setter(value);
+  };
 
   const upload = async () => {
     setBusy(true);
     setError(null);
     try {
-      setStep("กำลังบันทึกโปรไฟล์...");
+      safeSet(setStep, "กำลังบันทึกโปรไฟล์...");
       const profile = loadProfile();
       await saveProfileRemote(profile);
 
-      setStep("กำลังบันทึกเอกสาร...");
+      safeSet(setStep, "กำลังบันทึกเอกสาร...");
       const draft = loadDraft();
       const number = draft.quoteNumber || generateDocumentNumber("quote");
 
       let clientId: string | null = null;
       if (draft.customer?.name?.trim()) {
-        setStep("กำลังบันทึกลูกค้า...");
+        safeSet(setStep, "กำลังบันทึกลูกค้า...");
         const existing = await findClientByName(draft.customer.name);
         if (existing) {
           clientId = existing.id;
@@ -53,15 +63,18 @@ export default function MigrationModal({ onClose, onDone }: Props) {
         clientId,
       });
 
-      setStep("กำลังจัดระเบียบเอกสารเดิม...");
+      safeSet(setStep, "กำลังจัดระเบียบเอกสารเดิม...");
       await migrateEmbeddedCustomersToClients();
 
       clearDraft();
-      onDone();
+      if (mountedRef.current) onDone();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "อัปโหลดไม่สำเร็จ";
-      setError(msg);
-      setBusy(false);
+      safeSet(setError, msg);
+    } finally {
+      // always reset busy so the user can retry after an error and the button
+      // doesn't stay disabled forever if onDone doesn't unmount
+      safeSet(setBusy, false);
     }
   };
 

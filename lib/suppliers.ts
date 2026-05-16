@@ -147,66 +147,99 @@ export async function deleteSupplier(id: string): Promise<void> {
 // FILE UPLOADS
 // ========================================================================
 
+// Keep unicode word chars (covers Thai) so uploaded filenames stay readable.
+function buildSafeName(name: string): string {
+  return name.replace(/[\\/:*?"<>|]/g, "_").replace(/\s+/g, "_");
+}
+
+// Module-level lock per supplier id so concurrent upload/remove on the same
+// supplier can't read-modify-write `files` in parallel and lose entries.
+const supplierLocks = new Map<string, Promise<unknown>>();
+
+async function withSupplierLock<T>(
+  supplierId: string,
+  fn: () => Promise<T>
+): Promise<T> {
+  const prev = supplierLocks.get(supplierId) || Promise.resolve();
+  const next = prev.then(fn, fn);
+  supplierLocks.set(
+    supplierId,
+    next.catch(() => undefined)
+  );
+  try {
+    return await next;
+  } finally {
+    // clean up so the map doesn't grow forever
+    if (supplierLocks.get(supplierId) === next) {
+      supplierLocks.delete(supplierId);
+    }
+  }
+}
+
 export async function uploadSupplierFile(
   supplierId: string,
   file: File
 ): Promise<SupplierFile> {
-  const sb = getSupabase();
-  const { data: auth } = await sb.auth.getUser();
-  if (!auth.user) throw new Error("Not authenticated");
+  return withSupplierLock(supplierId, async () => {
+    const sb = getSupabase();
+    const { data: auth } = await sb.auth.getUser();
+    if (!auth.user) throw new Error("Not authenticated");
 
-  const supplier = await getSupplier(supplierId);
-  if (!supplier) throw new Error("Supplier not found");
+    const supplier = await getSupplier(supplierId);
+    if (!supplier) throw new Error("Supplier not found");
 
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const fileId =
-    typeof crypto !== "undefined" && crypto.randomUUID
-      ? crypto.randomUUID()
-      : `${Date.now()}_${Math.random().toString(36).slice(2)}`;
-  const path = `${auth.user.id}/${supplierId}/${fileId}-${safeName}`;
+    const safeName = buildSafeName(file.name);
+    const fileId =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const path = `${auth.user.id}/${supplierId}/${fileId}-${safeName}`;
 
-  const { error: upErr } = await sb.storage
-    .from(BUCKET)
-    .upload(path, file, { cacheControl: "3600", upsert: false });
-  if (upErr) throw upErr;
+    const { error: upErr } = await sb.storage
+      .from(BUCKET)
+      .upload(path, file, { cacheControl: "3600", upsert: false });
+    if (upErr) throw upErr;
 
-  const meta: SupplierFile = {
-    id: fileId,
-    name: file.name,
-    path,
-    size: file.size,
-    type: file.type || "application/octet-stream",
-    uploaded_at: new Date().toISOString(),
-  };
+    const meta: SupplierFile = {
+      id: fileId,
+      name: file.name,
+      path,
+      size: file.size,
+      type: file.type || "application/octet-stream",
+      uploaded_at: new Date().toISOString(),
+    };
 
-  const nextFiles = [...supplier.files, meta];
-  const { error: updErr } = await sb
-    .from("suppliers")
-    .update({ files: nextFiles, updated_at: new Date().toISOString() })
-    .eq("id", supplierId);
-  if (updErr) {
-    await sb.storage.from(BUCKET).remove([path]).catch(() => {});
-    throw updErr;
-  }
+    const nextFiles = [...supplier.files, meta];
+    const { error: updErr } = await sb
+      .from("suppliers")
+      .update({ files: nextFiles, updated_at: new Date().toISOString() })
+      .eq("id", supplierId);
+    if (updErr) {
+      await sb.storage.from(BUCKET).remove([path]).catch(() => {});
+      throw updErr;
+    }
 
-  return meta;
+    return meta;
+  });
 }
 
 export async function removeSupplierFile(
   supplierId: string,
   fileId: string
 ): Promise<void> {
-  const sb = getSupabase();
-  const supplier = await getSupplier(supplierId);
-  if (!supplier) return;
-  const target = supplier.files.find((f) => f.id === fileId);
-  if (!target) return;
-  await sb.storage.from(BUCKET).remove([target.path]).catch(() => {});
-  const nextFiles = supplier.files.filter((f) => f.id !== fileId);
-  await sb
-    .from("suppliers")
-    .update({ files: nextFiles, updated_at: new Date().toISOString() })
-    .eq("id", supplierId);
+  return withSupplierLock(supplierId, async () => {
+    const sb = getSupabase();
+    const supplier = await getSupplier(supplierId);
+    if (!supplier) return;
+    const target = supplier.files.find((f) => f.id === fileId);
+    if (!target) return;
+    await sb.storage.from(BUCKET).remove([target.path]).catch(() => {});
+    const nextFiles = supplier.files.filter((f) => f.id !== fileId);
+    await sb
+      .from("suppliers")
+      .update({ files: nextFiles, updated_at: new Date().toISOString() })
+      .eq("id", supplierId);
+  });
 }
 
 export async function getSupplierFileUrl(

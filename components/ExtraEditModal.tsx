@@ -34,10 +34,15 @@ export default function ExtraEditModal({
   const save = () => {
     const l = label.trim();
     if (!l) return;
+    // clamp 0..1000% — block NaN and negatives that would silently subtract
+    // from the total instead of adding to it
+    const raw = parseFloat(percent.replace(/,/g, ""));
+    const safePercent =
+      Number.isFinite(raw) ? Math.max(0, Math.min(1000, raw)) : 0;
     onSave({
       ...extra,
       label: l,
-      percent: Number(percent) || 0,
+      percent: safePercent,
     });
     onClose();
   };
@@ -85,6 +90,8 @@ export default function ExtraEditModal({
               <input
                 type="number"
                 inputMode="decimal"
+                min={0}
+                max={1000}
                 value={percent}
                 onChange={(e) => setPercent(e.target.value)}
                 className="flex-1 border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200"

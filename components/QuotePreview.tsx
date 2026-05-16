@@ -280,7 +280,9 @@ export default function QuotePreview({
             {calc.discountValue > 0 && (
               <SummaryRow
                 label={`ส่วนลด${
-                  data.discountUnit === "percent" ? ` (${data.discount}%)` : ""
+                  data.discountUnit === "percent"
+                    ? ` (${data.discount}%)`
+                    : ` (${currencySymbol})`
                 }`}
                 value={`−${currencySymbol}${fmt(calc.discountValue)}`}
                 tone="discount"
@@ -359,7 +361,7 @@ export default function QuotePreview({
                 เงื่อนไขการชำระ
               </div>
               <div className="text-xs font-medium">
-                {data.paymentCondition} (มัดจำ {termLabel[data.paymentTerm]})
+                {data.paymentCondition} (มัดจำ {termLabel[data.paymentTerm] ?? "50%"})
               </div>
             </section>
           )}

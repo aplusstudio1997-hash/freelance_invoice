@@ -6,6 +6,14 @@ import {
   DEFAULT_QUOTE,
   DEFAULT_PROFILE,
 } from "./types";
+import { calculate } from "./calc";
+
+// Escape "%" and "_" so an ilike() filter built from user-supplied text only
+// matches the literal string, not arbitrary wildcards (e.g. a customer named
+// "%" would otherwise match every client).
+function escapeIlike(s: string): string {
+  return s.replace(/([\\%_])/g, "\\$1");
+}
 
 // ============================================================================
 // Schema error detection — table/column ยังไม่ได้สร้างใน Supabase
@@ -15,7 +23,9 @@ export interface SchemaIssue {
   message: string;
 }
 
-let schemaIssueWarned = new Set<string>();
+// Bounded so HMR / long sessions don't leak memory by accumulating warnings.
+const SCHEMA_WARN_MAX = 50;
+const schemaIssueWarned = new Set<string>();
 
 export function isSchemaMissing(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
@@ -36,6 +46,11 @@ export function isSchemaMissing(error: unknown): boolean {
   if (isSchemaErr) {
     const key = `${e.code}:${e.message || ""}`;
     if (!schemaIssueWarned.has(key)) {
+      if (schemaIssueWarned.size >= SCHEMA_WARN_MAX) {
+        // drop the oldest entry to keep the set bounded
+        const first = schemaIssueWarned.values().next().value;
+        if (first !== undefined) schemaIssueWarned.delete(first);
+      }
       schemaIssueWarned.add(key);
       console.warn(
         "[so1o] Database schema issue detected — รัน supabase/schema.sql ใน Supabase SQL Editor เพื่อแก้ไข\n",
@@ -135,7 +150,16 @@ export async function fetchProfile(): Promise<Profile> {
     .maybeSingle();
   if (error) throw error;
   if (!data) return DEFAULT_PROFILE;
-  return { ...DEFAULT_PROFILE, ...(data.data as Profile) };
+  // Deep-merge `payment` so partial stored profiles don't lose default sub-fields.
+  const stored = (data.data as Partial<Profile>) || {};
+  return {
+    ...DEFAULT_PROFILE,
+    ...stored,
+    payment: {
+      ...DEFAULT_PROFILE.payment,
+      ...(stored.payment || {}),
+    },
+  };
 }
 
 export async function fetchUserRole(): Promise<UserRole> {
@@ -220,6 +244,14 @@ export async function listClients(): Promise<ClientSummary[]> {
       if (!d.client_id) return;
       const cur = stats.get(d.client_id as string) || { count: 0, total: 0 };
       cur.count += 1;
+      // accumulate the calculated total from the embedded quote settings so
+      // ClientSummary.totalAmount actually reflects revenue per client
+      try {
+        const calc = calculate(d.data as QuoteSettings);
+        cur.total += calc.total;
+      } catch {
+        // ignore malformed rows
+      }
       stats.set(d.client_id as string, cur);
     });
   } else {
@@ -247,12 +279,18 @@ export async function listClients(): Promise<ClientSummary[]> {
 
 export async function getClient(id: string): Promise<ClientRecord | null> {
   const sb = getSupabase();
+  const { data: auth } = await sb.auth.getUser();
+  if (!auth.user) return null;
   const { data, error } = await sb
     .from("clients")
     .select("*")
     .eq("id", id)
+    .eq("user_id", auth.user.id)
     .maybeSingle();
-  if (error) throw error;
+  if (error) {
+    if (isSchemaMissing(error)) return null;
+    throw error;
+  }
   return data as ClientRecord | null;
 }
 
@@ -279,6 +317,8 @@ export async function updateClient(
   patch: Partial<Customer> & { note?: string }
 ): Promise<void> {
   const sb = getSupabase();
+  const { data: auth } = await sb.auth.getUser();
+  if (!auth.user) throw new Error("Not authenticated");
   const update: Record<string, unknown> = {
     updated_at: new Date().toISOString(),
   };
@@ -289,13 +329,23 @@ export async function updateClient(
   if (patch.address !== undefined) update.address = patch.address;
   if (patch.taxId !== undefined) update.tax_id = patch.taxId;
   if (patch.note !== undefined) update.note = patch.note;
-  const { error } = await sb.from("clients").update(update).eq("id", id);
+  const { error } = await sb
+    .from("clients")
+    .update(update)
+    .eq("id", id)
+    .eq("user_id", auth.user.id);
   if (error) throw error;
 }
 
 export async function deleteClient(id: string): Promise<void> {
   const sb = getSupabase();
-  const { error } = await sb.from("clients").delete().eq("id", id);
+  const { data: auth } = await sb.auth.getUser();
+  if (!auth.user) throw new Error("Not authenticated");
+  const { error } = await sb
+    .from("clients")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", auth.user.id);
   if (error) throw error;
 }
 
@@ -311,7 +361,7 @@ export async function findClientByName(
     .from("clients")
     .select("*")
     .eq("user_id", auth.user.id)
-    .ilike("name", trimmed)
+    .ilike("name", escapeIlike(trimmed))
     .limit(1);
   if (error) return null;
   if (!data || data.length === 0) return null;
@@ -358,6 +408,10 @@ export async function listDocuments(
   if (error) throw error;
   return (data || []).map((row) => {
     const d = row.data as QuoteSettings;
+    let total = 0;
+    try {
+      total = calculate(d).total;
+    } catch {}
     return {
       id: row.id,
       type: row.type as DocumentType,
@@ -365,7 +419,7 @@ export async function listDocuments(
       status: row.status as DocumentStatus,
       customerName: d?.customer?.name || "",
       projectName: d?.projectName || "",
-      total: 0,
+      total,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       linkedFromId: row.linked_from_id,
@@ -394,6 +448,10 @@ export async function listDocumentsByClient(
   }
   return (data || []).map((row) => {
     const d = row.data as QuoteSettings;
+    let total = 0;
+    try {
+      total = calculate(d).total;
+    } catch {}
     return {
       id: row.id,
       type: row.type as DocumentType,
@@ -401,7 +459,7 @@ export async function listDocumentsByClient(
       status: row.status as DocumentStatus,
       customerName: d?.customer?.name || "",
       projectName: d?.projectName || "",
-      total: 0,
+      total,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       linkedFromId: row.linked_from_id,
@@ -414,12 +472,18 @@ export async function getDocument(
   id: string
 ): Promise<DocumentRecord | null> {
   const sb = getSupabase();
+  const { data: auth } = await sb.auth.getUser();
+  if (!auth.user) return null;
   const { data, error } = await sb
     .from("documents")
     .select("*")
     .eq("id", id)
+    .eq("user_id", auth.user.id)
     .maybeSingle();
-  if (error) throw error;
+  if (error) {
+    if (isSchemaMissing(error)) return null;
+    throw error;
+  }
   return data as DocumentRecord | null;
 }
 
@@ -461,6 +525,8 @@ export async function updateDocument(
   }
 ): Promise<void> {
   const sb = getSupabase();
+  const { data: auth } = await sb.auth.getUser();
+  if (!auth.user) throw new Error("Not authenticated");
   const update: Record<string, unknown> = {
     updated_at: new Date().toISOString(),
   };
@@ -468,13 +534,23 @@ export async function updateDocument(
   if (patch.number) update.number = patch.number;
   if (patch.status) update.status = patch.status;
   if (patch.clientId !== undefined) update.client_id = patch.clientId;
-  const { error } = await sb.from("documents").update(update).eq("id", id);
+  const { error } = await sb
+    .from("documents")
+    .update(update)
+    .eq("id", id)
+    .eq("user_id", auth.user.id);
   if (error) throw error;
 }
 
 export async function deleteDocument(id: string): Promise<void> {
   const sb = getSupabase();
-  const { error } = await sb.from("documents").delete().eq("id", id);
+  const { data: auth } = await sb.auth.getUser();
+  if (!auth.user) throw new Error("Not authenticated");
+  const { error } = await sb
+    .from("documents")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", auth.user.id);
   if (error) throw error;
 }
 

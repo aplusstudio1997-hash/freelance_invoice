@@ -78,7 +78,7 @@ export default function AiPriceCheckModal({ open, onClose }: Props) {
                 AI Quick Price Check
               </h3>
               <div className="text-xs text-ink-400">
-                ขั้นตอน {step} / 3
+                {step <= 3 ? `ขั้นตอน ${step} / 3` : "ผลลัพธ์"}
               </div>
             </div>
           </div>
@@ -96,6 +96,7 @@ export default function AiPriceCheckModal({ open, onClose }: Props) {
               <div
                 key={n}
                 className={`flex-1 h-1 rounded-full transition ${
+                  // step 4 = results page → show all bars as complete
                   n <= step ? "bg-brand-500" : "bg-orange-100"
                 }`}
               />

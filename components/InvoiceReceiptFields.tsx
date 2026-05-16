@@ -98,12 +98,19 @@ export default function InvoiceReceiptFields({
             </label>
             <input
               type="number"
+              inputMode="decimal"
+              min={0}
               value={data.paidAmount ?? ""}
-              onChange={(e) =>
-                update({
-                  paidAmount: e.target.value ? Number(e.target.value) : undefined,
-                })
-              }
+              onChange={(e) => {
+                const raw = e.target.value;
+                if (!raw) {
+                  update({ paidAmount: undefined });
+                  return;
+                }
+                const n = parseFloat(raw.replace(/,/g, ""));
+                // reject NaN / negatives so paidAmount can never become NaN
+                if (Number.isFinite(n) && n >= 0) update({ paidAmount: n });
+              }}
               placeholder="ปล่อยว่าง = เต็ม"
               className="w-full border border-gray-200 rounded-md px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200 text-sm tabular-nums"
             />

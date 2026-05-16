@@ -36,7 +36,10 @@ export default function SettingsPage() {
     setSigningOut(true);
     try {
       await signOut();
-      router.push("/");
+      // use replace so the back button doesn't return to the protected page,
+      // and rely on AppLayout's redirect to /auth instead of racing it with
+      // a push to "/"
+      router.replace("/auth");
     } finally {
       setSigningOut(false);
     }

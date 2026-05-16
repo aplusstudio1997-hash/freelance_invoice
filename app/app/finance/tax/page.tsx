@@ -27,12 +27,28 @@ import {
   Loader2,
 } from "lucide-react";
 
+// Parse "YYYY-MM-DD" using local components so the month bucket isn't shifted
+// by UTC conversion for users east/west of UTC.
+function monthOfIso(iso: string): number {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  if (m) return Number(m[2]) - 1;
+  const d = new Date(iso);
+  return isNaN(d.getTime()) ? 0 : d.getMonth();
+}
+
 export default function TaxPage() {
   const [year, setYear] = useState(new Date().getFullYear());
   const [incomes, setIncomes] = useState<IncomeRecord[]>([]);
   const [expenses, setExpenses] = useState<ExpenseRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [inputs, setInputs] = useState<TaxInputs>(DEFAULT_TAX_INPUTS);
+  // remember which auto-populated fields the user manually overrode so we
+  // don't clobber their typed-in values on a year reload
+  const [touched, setTouched] = useState<{
+    actualExpense?: boolean;
+    whtPaid?: boolean;
+    income?: boolean;
+  }>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -47,14 +63,25 @@ export default function TaxPage() {
         setIncomes(i);
         setExpenses(e);
 
-        const totalIncome = i.reduce((acc, x) => acc + Number(x.amount), 0);
-        const totalWHT = i.reduce((acc, x) => acc + Number(x.wht_amount), 0);
-        const totalExpense = e.reduce((acc, x) => acc + Number(x.amount), 0);
+        const totalIncome = i.reduce(
+          (acc, x) => acc + Number(x.amount ?? 0),
+          0
+        );
+        const totalWHT = i.reduce(
+          (acc, x) => acc + Number(x.wht_amount ?? 0),
+          0
+        );
+        const totalExpense = e.reduce(
+          (acc, x) => acc + Number(x.amount ?? 0),
+          0
+        );
         setInputs((prev) => ({
           ...prev,
-          income: totalIncome,
-          actualExpense: totalExpense,
-          whtPaid: totalWHT,
+          income: touched.income ? prev.income : totalIncome,
+          actualExpense: touched.actualExpense
+            ? prev.actualExpense
+            : totalExpense,
+          whtPaid: touched.whtPaid ? prev.whtPaid : totalWHT,
         }));
       } finally {
         if (!cancelled) setLoading(false);
@@ -64,6 +91,9 @@ export default function TaxPage() {
     return () => {
       cancelled = true;
     };
+    // we intentionally exclude `touched` from deps — it should affect only the
+    // next year-load, not retrigger fetches when the user types
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [year]);
 
   const monthlySum = useMemo(() => {
@@ -74,13 +104,13 @@ export default function TaxPage() {
       wht: 0,
     }));
     incomes.forEach((i) => {
-      const m = new Date(i.received_at).getMonth();
-      rows[m].income += Number(i.amount);
-      rows[m].wht += Number(i.wht_amount);
+      const m = monthOfIso(i.received_at);
+      rows[m].income += Number(i.amount ?? 0);
+      rows[m].wht += Number(i.wht_amount ?? 0);
     });
     expenses.forEach((e) => {
-      const m = new Date(e.paid_at).getMonth();
-      rows[m].expense += Number(e.amount);
+      const m = monthOfIso(e.paid_at);
+      rows[m].expense += Number(e.amount ?? 0);
     });
     return rows;
   }, [incomes, expenses]);
@@ -92,8 +122,17 @@ export default function TaxPage() {
 
   const standard = computeStandardExpenseDeduction(inputs.income);
 
-  const set = (patch: Partial<TaxInputs>) =>
+  const set = (patch: Partial<TaxInputs>) => {
+    // any manual edit to an auto-populated field marks it as user-touched so
+    // the next year-reload doesn't overwrite it
+    setTouched((t) => ({
+      ...t,
+      ...(patch.income !== undefined ? { income: true } : {}),
+      ...(patch.actualExpense !== undefined ? { actualExpense: true } : {}),
+      ...(patch.whtPaid !== undefined ? { whtPaid: true } : {}),
+    }));
     setInputs((p) => ({ ...p, ...patch }));
+  };
 
   const exportFull = () => {
     const rows: string[][] = [

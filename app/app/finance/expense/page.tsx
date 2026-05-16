@@ -51,25 +51,30 @@ export default function ExpensePage() {
 
   const filtered = useMemo(() => {
     return expenses.filter((e) => {
+      // parse "YYYY-MM-DD" as local — see income/page.tsx for rationale
+      const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(e.paid_at);
+      if (m) {
+        return Number(m[1]) === year && Number(m[2]) === month;
+      }
       const d = new Date(e.paid_at);
       return d.getFullYear() === year && d.getMonth() + 1 === month;
     });
   }, [expenses, year, month]);
 
   const monthStats = useMemo(() => {
-    const total = filtered.reduce((a, e) => a + Number(e.amount), 0);
-    const vat = filtered.reduce((a, e) => a + Number(e.vat_amount), 0);
+    const total = filtered.reduce((a, e) => a + Number(e.amount ?? 0), 0);
+    const vat = filtered.reduce((a, e) => a + Number(e.vat_amount ?? 0), 0);
     return { total, vat };
   }, [filtered]);
 
   const yearStats = useMemo(() => {
-    return expenses.reduce((a, e) => a + Number(e.amount), 0);
+    return expenses.reduce((a, e) => a + Number(e.amount ?? 0), 0);
   }, [expenses]);
 
   const byCategory = useMemo(() => {
     const m = new Map<string, number>();
     filtered.forEach((e) => {
-      m.set(e.category, (m.get(e.category) || 0) + Number(e.amount));
+      m.set(e.category, (m.get(e.category) || 0) + Number(e.amount ?? 0));
     });
     return Array.from(m.entries())
       .map(([cat, total]) => ({ cat, total }))

@@ -7,7 +7,7 @@ import {
   Circle,
   CheckCircle2,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import DateInput from "./DateInput";
 
 interface Props {
@@ -29,13 +29,20 @@ export default function TimelinePanel({
     [data.startDate, data.endDate, data.milestones]
   );
 
+  // Keep `update` in a ref so it doesn't drive the effect — the parent passes
+  // a fresh function reference every render, which would otherwise re-trigger
+  // the effect and risk an infinite update loop. Compare every milestone
+  // field (id/date/label/type) so divergence in any of them is corrected.
+  const updateRef = useRef(update);
+  updateRef.current = update;
+
   useEffect(() => {
     const serialize = (m: Milestone[]) =>
-      m.map((x) => `${x.id}|${x.date}`).join(",");
+      m.map((x) => `${x.id}|${x.date}|${x.label}|${x.type}`).join(",");
     if (serialize(data.milestones) !== serialize(computedMilestones)) {
-      update({ milestones: computedMilestones });
+      updateRef.current({ milestones: computedMilestones });
     }
-  }, [computedMilestones, data.milestones, update]);
+  }, [computedMilestones, data.milestones]);
 
   const updateMilestoneDate = (id: string, date: string) => {
     const patch: Partial<typeof data> = {

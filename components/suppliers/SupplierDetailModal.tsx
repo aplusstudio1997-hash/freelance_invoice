@@ -37,6 +37,25 @@ interface Props {
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
 
+// Whitelist of types that make sense as a supplier work-sample. Executables,
+// scripts, archives etc. are blocked to limit hosted-malware risk in storage.
+const ALLOWED_SUPPLIER_FILE_TYPES =
+  "image/png,image/jpeg,image/webp,image/gif,image/svg+xml,application/pdf," +
+  "video/mp4,video/quicktime,video/webm,audio/mpeg,audio/wav,audio/mp4," +
+  ".png,.jpg,.jpeg,.webp,.gif,.svg,.pdf,.mp4,.mov,.webm,.mp3,.wav";
+
+const ALLOWED_SUPPLIER_MIME_PREFIXES = [
+  "image/",
+  "video/",
+  "audio/",
+  "application/pdf",
+];
+
+function isAllowedSupplierFile(file: File): boolean {
+  if (!file.type) return false;
+  return ALLOWED_SUPPLIER_MIME_PREFIXES.some((p) => file.type.startsWith(p));
+}
+
 export default function SupplierDetailModal({
   supplier,
   onClose,
@@ -62,6 +81,11 @@ export default function SupplierDetailModal({
         const f = files[i];
         if (f.size > MAX_FILE_SIZE) {
           throw new Error(`ไฟล์ "${f.name}" เกิน 20 MB`);
+        }
+        if (!isAllowedSupplierFile(f)) {
+          throw new Error(
+            `ไฟล์ "${f.name}" รองรับเฉพาะรูป / วิดีโอ / เสียง / PDF เท่านั้น`
+          );
         }
         await uploadSupplierFile(supplier.id, f);
       }
@@ -180,6 +204,7 @@ export default function SupplierDetailModal({
               type="file"
               multiple
               hidden
+              accept={ALLOWED_SUPPLIER_FILE_TYPES}
               onChange={onFilesChange}
             />
 

@@ -55,9 +55,12 @@ export default function DocumentListModal({
 
   useEffect(() => {
     if ((filterType === "invoice" || filterType === "receipt") && user) {
+      // cancelled flag prevents setQuoteList from firing after the modal closes
+      let cancelled = false;
       (async () => {
         try {
           const docs = await listDocuments();
+          if (cancelled) return;
           setQuoteList(
             docs.filter(
               (d) =>
@@ -66,9 +69,12 @@ export default function DocumentListModal({
             )
           );
         } catch (e) {
-          console.error(e);
+          if (!cancelled) console.error(e);
         }
       })();
+      return () => {
+        cancelled = true;
+      };
     }
   }, [filterType, user]);
 

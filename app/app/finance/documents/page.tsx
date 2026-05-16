@@ -111,14 +111,19 @@ export default function FinancePage() {
     } catch (e) {
       console.error("sendQuote failed", e);
     }
-    setTimeout(() => {
-      setDownloading(false);
-      setSuccessOpen(true);
-      fetchStats().then((s) => {
+    // No arbitrary setTimeout — flip state immediately now that both async
+    // calls have settled. Stats refresh runs in the background.
+    setDownloading(false);
+    setSuccessOpen(true);
+    fetchStats()
+      .then((s) => {
         if (s)
-          setStats({ totalQuotes: s.totalQuotes, activeUsers: s.activeUsers });
-      });
-    }, 250);
+          setStats({
+            totalQuotes: s.totalQuotes,
+            activeUsers: s.activeUsers,
+          });
+      })
+      .catch(() => {});
   };
 
   const openPDF = async () => {

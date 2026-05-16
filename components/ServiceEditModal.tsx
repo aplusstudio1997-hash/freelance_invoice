@@ -4,6 +4,15 @@ import { Service } from "@/lib/types";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 
+function parseMoney(s: string): number {
+  const n = parseFloat(s.replace(/,/g, ""));
+  return Number.isFinite(n) && n >= 0 ? n : 0;
+}
+function parseQty(s: string): number {
+  const n = parseFloat(s.replace(/,/g, ""));
+  return Number.isFinite(n) && n > 0 ? Math.max(1, Math.floor(n)) : 1;
+}
+
 interface Props {
   open: boolean;
   service: Service | null;
@@ -42,8 +51,9 @@ export default function ServiceEditModal({
       ...service,
       name: n,
       description: description.trim(),
-      price: Number(price) || 0,
-      quantity: Math.max(1, Number(quantity) || 1),
+      // sanitize so NaN / negative input can't poison the calculation
+      price: parseMoney(price),
+      quantity: parseQty(quantity),
     });
     onClose();
   };
@@ -118,9 +128,7 @@ export default function ServiceEditModal({
           </div>
           <div className="bg-orange-50 rounded-md px-3 py-2 text-sm text-brand-600 font-medium">
             รวม: {currencySymbol}
-            {(
-              (Number(price) || 0) * Math.max(1, Number(quantity) || 1)
-            ).toLocaleString("th-TH")}
+            {(parseMoney(price) * parseQty(quantity)).toLocaleString("th-TH")}
           </div>
         </div>
 

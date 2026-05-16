@@ -195,7 +195,22 @@ export function generateDocumentNumber(type: DocumentType): string {
   const d = new Date();
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const random = Math.floor(Math.random() * 900 + 100);
+  // 6 hex chars from crypto.getRandomValues — ~1 in 16M collision rate per month
+  // instead of ~10% per 100 docs from the previous 3-digit decimal random.
+  let suffix: string;
+  if (typeof crypto !== "undefined" && "getRandomValues" in crypto) {
+    const buf = new Uint8Array(3);
+    crypto.getRandomValues(buf);
+    suffix = Array.from(buf)
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("")
+      .toUpperCase();
+  } else {
+    suffix = Math.floor(Math.random() * 0xffffff)
+      .toString(16)
+      .padStart(6, "0")
+      .toUpperCase();
+  }
   const prefix = type === "invoice" ? "IV" : type === "receipt" ? "RE" : "QT";
-  return `${prefix}-${yyyy}${mm}-${random}`;
+  return `${prefix}-${yyyy}${mm}-${suffix}`;
 }

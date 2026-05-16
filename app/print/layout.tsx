@@ -1,4 +1,5 @@
 import type { Viewport } from "next";
+import PrintAuthGate from "./PrintAuthGate";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -13,5 +14,5 @@ export default function PrintLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return <PrintAuthGate>{children}</PrintAuthGate>;
 }

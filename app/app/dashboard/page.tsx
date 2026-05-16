@@ -51,9 +51,13 @@ export default function DashboardPage() {
 
   const sym = getCurrencySymbol(profile.currency);
 
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
+  // year/month live in state so they recompute when the user keeps the
+  // dashboard open across midnight / month rollover (previously frozen at
+  // mount, so stats showed last month after a daily-open kiosk session)
+  const [{ year, month }, setYm] = useState(() => {
+    const n = new Date();
+    return { year: n.getFullYear(), month: n.getMonth() + 1 };
+  });
 
   const [goal, setGoal] = useState<RevenueGoalRecord | null>(null);
   const [subs, setSubs] = useState<SubscriptionRecord[]>([]);
@@ -66,6 +70,20 @@ export default function DashboardPage() {
   });
   const [goalOpen, setGoalOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
+
+  // poll every 5 minutes so a long-running tab updates its month/year buckets
+  useEffect(() => {
+    const tick = () => {
+      const n = new Date();
+      const y = n.getFullYear();
+      const m = n.getMonth() + 1;
+      setYm((cur) =>
+        cur.year === y && cur.month === m ? cur : { year: y, month: m }
+      );
+    };
+    const id = setInterval(tick, 5 * 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
 
   const refresh = async () => {
     try {
@@ -81,17 +99,18 @@ export default function DashboardPage() {
         incomeNet: sum.incomeNet,
         expenseTotal: sum.expenseTotal,
         profit: sum.profit,
-        whtTotal: incs.reduce((a, i) => a + Number(i.wht_amount), 0),
+        whtTotal: incs.reduce((a, i) => a + Number(i.wht_amount ?? 0), 0),
       });
       setGoal(g);
       setSubs(s);
     } catch {}
   };
 
+  // re-fetch when year/month changes so the cards stay aligned with the period
   useEffect(() => {
     refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [year, month]);
 
   const counts = useMemo(() => {
     const invoices = documents.filter((d) => d.type === "invoice").length;

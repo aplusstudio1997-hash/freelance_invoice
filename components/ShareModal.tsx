@@ -1,7 +1,7 @@
 "use client";
 
 import { X, Facebook, Send, Link2, Check } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface Props {
   open: boolean;
@@ -10,6 +10,20 @@ interface Props {
 
 export default function ShareModal({ open, onClose }: Props) {
   const [copied, setCopied] = useState(false);
+  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // clear the "copied" timer on unmount so it doesn't setState on a dead modal
+  useEffect(() => {
+    return () => {
+      if (copyTimer.current) clearTimeout(copyTimer.current);
+    };
+  }, []);
+
+  const markCopied = () => {
+    setCopied(true);
+    if (copyTimer.current) clearTimeout(copyTimer.current);
+    copyTimer.current = setTimeout(() => setCopied(false), 2000);
+  };
 
   if (!open) return null;
 
@@ -30,8 +44,7 @@ export default function ShareModal({ open, onClose }: Props) {
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      markCopied();
     } catch {
       const input = document.createElement("input");
       input.value = url;
@@ -39,8 +52,7 @@ export default function ShareModal({ open, onClose }: Props) {
       input.select();
       document.execCommand("copy");
       document.body.removeChild(input);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      markCopied();
     }
   };
 

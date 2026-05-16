@@ -317,20 +317,32 @@ export function summarizeMonth(
   year: number,
   month: number
 ): MonthlyFinanceSummary {
+  // Parse "YYYY-MM-DD" as LOCAL date — `new Date(str)` would interpret it as
+  // UTC midnight and shift the month for users in non-UTC timezones (e.g. a
+  // Bangkok user logging income on day 1 would see it bucket into the prior
+  // month at midnight local time).
   const inMonth = (iso: string) => {
+    if (!iso) return false;
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+    if (m) {
+      return Number(m[1]) === year && Number(m[2]) === month;
+    }
     const d = new Date(iso);
     return d.getFullYear() === year && d.getMonth() + 1 === month;
   };
   const incs = incomes.filter((i) => inMonth(i.received_at));
   const exps = expenses.filter((e) => inMonth(e.paid_at));
 
-  const incomeGross = incs.reduce((acc, i) => acc + Number(i.amount), 0);
-  const whtTotal = incs.reduce((acc, i) => acc + Number(i.wht_amount), 0);
-  const vatCollected = incs.reduce((acc, i) => acc + Number(i.vat_amount), 0);
+  const incomeGross = incs.reduce((acc, i) => acc + Number(i.amount ?? 0), 0);
+  const whtTotal = incs.reduce((acc, i) => acc + Number(i.wht_amount ?? 0), 0);
+  const vatCollected = incs.reduce(
+    (acc, i) => acc + Number(i.vat_amount ?? 0),
+    0
+  );
   const incomeNet = incomeGross - whtTotal;
 
-  const expenseTotal = exps.reduce((acc, e) => acc + Number(e.amount), 0);
-  const vatPaid = exps.reduce((acc, e) => acc + Number(e.vat_amount), 0);
+  const expenseTotal = exps.reduce((acc, e) => acc + Number(e.amount ?? 0), 0);
+  const vatPaid = exps.reduce((acc, e) => acc + Number(e.vat_amount ?? 0), 0);
 
   return {
     year,
@@ -413,6 +425,7 @@ export interface TaxResult {
   taxTotal: number;
   whtPaid: number;
   taxOwed: number;
+  taxRefund: number;
   effectiveRate: number;
   netAfterTax: number;
 }
@@ -457,7 +470,11 @@ export function calculateThaiTax(inputs: TaxInputs): TaxResult {
     lower = b.upTo;
   }
 
-  const taxOwed = Math.max(0, taxTotal - inputs.whtPaid);
+  // If WHT paid is more than the actual tax, the user is owed a refund — surface
+  // both numbers so the UI can show "ขอคืน" instead of always showing ฿0 owed.
+  const diff = taxTotal - inputs.whtPaid;
+  const taxOwed = Math.max(0, diff);
+  const taxRefund = diff < 0 ? -diff : 0;
   const effectiveRate = inputs.income > 0 ? taxTotal / inputs.income : 0;
   const netAfterTax = inputs.income - taxTotal;
 
@@ -469,6 +486,7 @@ export function calculateThaiTax(inputs: TaxInputs): TaxResult {
     taxTotal,
     whtPaid: inputs.whtPaid,
     taxOwed,
+    taxRefund,
     effectiveRate,
     netAfterTax,
   };

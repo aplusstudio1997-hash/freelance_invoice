@@ -154,6 +154,12 @@ export async function listAllFeedback(): Promise<AdminFeedback[]> {
 // SYSTEM-WIDE STATS
 // ========================================================================
 export async function fetchAdminStats(): Promise<AdminStats> {
+  // Guard against accidental calls from non-admin code paths. Without this a
+  // regular user would see totalUsers=1 (their own row) and zeros elsewhere
+  // and no error would be surfaced — looks like a broken dashboard.
+  if (!(await isAdmin())) {
+    throw new Error("Not authorized");
+  }
   const sb = getSupabase();
   const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
   const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();

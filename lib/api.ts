@@ -76,18 +76,26 @@ export async function fetchStats(): Promise<StatsResponse | null> {
 // ========================================================================
 // FEEDBACK — บันทึกลง public.feedback
 // ========================================================================
-export async function sendFeedback(payload: FeedbackPayload): Promise<void> {
+// Returns true on success, false on failure so callers can surface an error
+// to the user instead of silently dropping the message.
+export async function sendFeedback(payload: FeedbackPayload): Promise<boolean> {
   try {
     const sb = getSupabase();
     const { data: auth } = await sb.auth.getUser();
-    await sb.from("feedback").insert({
+    const { error } = await sb.from("feedback").insert({
       user_id: auth.user?.id || null,
       email: payload.email || auth.user?.email || "",
       rating: payload.rating,
       message: payload.message,
     });
+    if (error) {
+      console.warn("sendFeedback failed", error);
+      return false;
+    }
+    return true;
   } catch (e) {
     console.warn("sendFeedback failed", e);
+    return false;
   }
 }
 
