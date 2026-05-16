@@ -10,11 +10,11 @@ import {
   CreditCard,
   Plus,
   Settings2,
-  Sliders,
+  UserPlus,
 } from "lucide-react";
 import { useState } from "react";
 import ExtraEditModal from "./ExtraEditModal";
-import ClientPicker from "./clients/ClientPicker";
+import ClientSelectModal from "./clients/ClientSelectModal";
 
 interface Props {
   data: QuoteSettings;
@@ -27,8 +27,8 @@ export default function SettingsPanel({
   update,
   currencySymbol,
 }: Props) {
-  const [collapsed, setCollapsed] = useState(false);
   const [customerOpen, setCustomerOpen] = useState(true);
+  const [clientPickerOpen, setClientPickerOpen] = useState(false);
   const [difficultyOpen, setDifficultyOpen] = useState(true);
   const [editingDifficulty, setEditingDifficulty] = useState<ExtraOption | null>(null);
 
@@ -74,23 +74,7 @@ export default function SettingsPanel({
 
   return (
     <>
-      <section className="bg-white/85 backdrop-blur border border-orange-100/80 rounded-3xl shadow-soft overflow-hidden">
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="w-full flex items-center justify-between px-5 py-4 border-b border-orange-100 hover:bg-orange-50/30 transition"
-        >
-          <h2 className="font-semibold text-ink-900 flex items-center gap-2 text-base">
-            <Sliders size={16} className="text-brand-500" />
-            ตั้งค่าใบเสนอราคา
-          </h2>
-          <ChevronDown
-            size={18}
-            className={`text-ink-400 transition ${collapsed ? "-rotate-90" : ""}`}
-          />
-        </button>
-
-        {!collapsed && (
-        <div className="p-5 space-y-5 text-sm">
+      <div className="space-y-5 text-sm">
           <section>
             <SectionHeader
               icon={<Briefcase size={15} className="text-brand-500" />}
@@ -126,8 +110,18 @@ export default function SettingsPanel({
             />
             {customerOpen && (
               <div className="space-y-3">
-                <div className="w-full sm:max-w-md">
-                  <ClientPicker />
+                <div className="w-full sm:max-w-md space-y-2">
+                  <div className="px-4 py-2.5 bg-orange-50/40 border border-orange-100 rounded-full text-sm text-ink-500 italic">
+                    {data.customer.name || "ยังไม่ได้เลือกลูกค้า"}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setClientPickerOpen(true)}
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-orange-200 hover:bg-orange-50 rounded-full text-sm text-ink-700 font-medium transition"
+                  >
+                    <UserPlus size={14} />
+                    เลือกหรือเพิ่มลูกค้า
+                  </button>
                 </div>
                 <div className="border-t border-orange-100 -mx-1" />
                 <div className="flex flex-wrap gap-3">
@@ -321,9 +315,7 @@ export default function SettingsPanel({
               </select>
             </div>
           </section>
-        </div>
-        )}
-      </section>
+      </div>
 
       <ExtraEditModal
         open={editingDifficulty !== null}
@@ -331,6 +323,10 @@ export default function SettingsPanel({
         onClose={() => setEditingDifficulty(null)}
         onSave={saveDifficulty}
         onDelete={deleteDifficulty}
+      />
+      <ClientSelectModal
+        open={clientPickerOpen}
+        onClose={() => setClientPickerOpen(false)}
       />
     </>
   );

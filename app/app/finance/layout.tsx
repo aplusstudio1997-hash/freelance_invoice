@@ -167,9 +167,9 @@ export default function FinanceLayout({
           );
         })}
         </div>
-      </div>
 
-      {children}
+        {children}
+      </div>
     </div>
   );
 }

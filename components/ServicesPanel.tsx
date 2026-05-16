@@ -5,7 +5,6 @@ import { CalcResult } from "@/lib/calc";
 import {
   Plus,
   Trash2,
-  ChevronDown,
   Pencil,
   Gift,
   Settings2,
@@ -14,7 +13,6 @@ import {
   Sparkles,
   Tag,
   Receipt,
-  Package,
 } from "lucide-react";
 import { useState } from "react";
 import ServiceEditModal from "./ServiceEditModal";
@@ -33,7 +31,6 @@ export default function ServicesPanel({
   currencySymbol,
   calc,
 }: Props) {
-  const [collapsed, setCollapsed] = useState(false);
   const [newName, setNewName] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const [newPrice, setNewPrice] = useState("");
@@ -118,23 +115,7 @@ export default function ServicesPanel({
 
   return (
     <>
-      <section className="bg-white/85 backdrop-blur border border-orange-100/80 rounded-3xl shadow-soft overflow-hidden">
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="w-full flex items-center justify-between px-5 py-4 border-b border-orange-100 hover:bg-orange-50/30 transition"
-        >
-          <h2 className="font-semibold text-ink-900 flex items-center gap-2 text-base">
-            <Package size={16} className="text-brand-500" />
-            จัดการบริการ
-          </h2>
-          <ChevronDown
-            size={18}
-            className={`text-ink-400 transition ${collapsed ? "-rotate-90" : ""}`}
-          />
-        </button>
-
-        {!collapsed && (
-        <div className="p-5 space-y-5 text-sm">
+      <div className="space-y-5 text-sm">
           <section>
             <h3 className="font-medium text-gray-700 mb-2 flex items-center gap-1.5">
               <PackagePlus size={15} className="text-brand-500" /> เพิ่มใหม่
@@ -463,9 +444,7 @@ export default function ServicesPanel({
               </div>
             </div>
           </section>
-        </div>
-        )}
-      </section>
+      </div>
 
       <ServiceEditModal
         open={editingService !== null}

@@ -29,6 +29,9 @@ import {
   RotateCcw,
   FileText,
   Loader2,
+  Settings2,
+  ListPlus,
+  Calendar,
 } from "lucide-react";
 
 export default function FinancePage() {
@@ -55,6 +58,9 @@ export default function FinancePage() {
   }>({ totalQuotes: null, activeUsers: null });
 
   const [downloading, setDownloading] = useState(false);
+  const [panelTab, setPanelTab] = useState<"settings" | "services" | "timeline">(
+    "settings"
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -162,25 +168,58 @@ export default function FinancePage() {
           </div>
         )}
 
-        <SettingsPanel
-          data={data}
-          update={update}
-          currencySymbol={currencySymbol}
-        />
+        <div className="bg-white/85 backdrop-blur border border-orange-100 rounded-full shadow-soft p-1 flex items-center gap-1 overflow-x-auto scrollbar-thin">
+          {(
+            [
+              { id: "settings", label: "ตั้งค่าใบเสนอราคา", icon: Settings2 },
+              { id: "services", label: "จัดการบริการ", icon: ListPlus },
+              { id: "timeline", label: "ไทม์ไลน์", icon: Calendar },
+            ] as const
+          ).map((t) => {
+            const Icon = t.icon;
+            const active = panelTab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setPanelTab(t.id)}
+                className={`shrink-0 inline-flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-medium transition ${
+                  active
+                    ? "bg-brand-500 text-white shadow-soft"
+                    : "text-ink-600 hover:text-ink-900 hover:bg-orange-50"
+                }`}
+              >
+                <Icon size={14} />
+                <span className="whitespace-nowrap">{t.label}</span>
+              </button>
+            );
+          })}
+        </div>
 
-        <ServicesPanel
-          data={data}
-          update={update}
-          currencySymbol={currencySymbol}
-          calc={calc}
-        />
-
-        <TimelinePanel
-          data={data}
-          update={update}
-          calc={calc}
-          currencySymbol={currencySymbol}
-        />
+        <div className="bg-white/85 backdrop-blur border border-orange-100/80 rounded-3xl shadow-soft p-5 sm:p-6">
+          {panelTab === "settings" && (
+            <SettingsPanel
+              data={data}
+              update={update}
+              currencySymbol={currencySymbol}
+            />
+          )}
+          {panelTab === "services" && (
+            <ServicesPanel
+              data={data}
+              update={update}
+              currencySymbol={currencySymbol}
+              calc={calc}
+            />
+          )}
+          {panelTab === "timeline" && (
+            <TimelinePanel
+              data={data}
+              update={update}
+              calc={calc}
+              currencySymbol={currencySymbol}
+            />
+          )}
+        </div>
 
         <QuotePreview
           data={data}

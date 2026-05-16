@@ -4,10 +4,8 @@ import { QuoteSettings, Milestone } from "@/lib/types";
 import { CalcResult, fmt, fmtDateShort, buildMilestones } from "@/lib/calc";
 import {
   Clock,
-  ChevronDown,
   Circle,
   CheckCircle2,
-  CalendarDays,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import DateInput from "./DateInput";
@@ -25,7 +23,6 @@ export default function TimelinePanel({
   calc,
   currencySymbol,
 }: Props) {
-  const [collapsed, setCollapsed] = useState(false);
 
   const computedMilestones = useMemo(
     () => buildMilestones(data.startDate, data.endDate, data.milestones),
@@ -56,23 +53,7 @@ export default function TimelinePanel({
     data.paymentTerm === "full" ? "100%" : `${data.paymentTerm}%`;
 
   return (
-    <section className="bg-white/85 backdrop-blur border border-orange-100/80 rounded-3xl shadow-soft overflow-hidden">
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="w-full flex items-center justify-between px-5 py-4 border-b border-orange-100 hover:bg-orange-50/30 transition"
-      >
-        <h2 className="font-semibold text-ink-900 flex items-center gap-2 text-base">
-          <CalendarDays size={16} className="text-indigo-500" />
-          ไทม์ไลน์
-        </h2>
-        <ChevronDown
-          size={18}
-          className={`text-ink-400 transition ${collapsed ? "-rotate-90" : ""}`}
-        />
-      </button>
-
-      {!collapsed && (
-      <div className="p-5 space-y-5">
+    <div className="space-y-5">
         <section>
           <h3 className="font-medium text-gray-700 mb-3">ไทม์ไลน์โครงการ</h3>
           <div className="flex flex-wrap gap-3">
@@ -189,8 +170,6 @@ export default function TimelinePanel({
             </div>
           </div>
         </section>
-      </div>
-      )}
-    </section>
+    </div>
   );
 }
