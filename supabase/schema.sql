@@ -1,9 +1,27 @@
 -- ============================================================================
--- So1o Freelancer — Database Schema (idempotent)
+-- So1o Freelancer — Database Schema (idempotent + no RLS recursion)
 -- ============================================================================
 -- รันทั้งไฟล์นี้ใน Supabase SQL Editor
 -- รันซ้ำได้ปลอดภัย (จะไม่ลบข้อมูลเดิม)
 -- ============================================================================
+
+-- ============================================================================
+-- 0. is_admin() — SECURITY DEFINER เพื่อหลีกเลี่ยง RLS recursion
+-- ============================================================================
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select coalesce(
+    (select role = 'admin' from public.profiles where user_id = auth.uid()),
+    false
+  );
+$$;
+
+grant execute on function public.is_admin() to authenticated, anon;
 
 -- ============================================================================
 -- 1. profiles
@@ -28,7 +46,9 @@ drop policy if exists "profiles_select_own" on public.profiles;
 drop policy if exists "profiles_insert_own" on public.profiles;
 drop policy if exists "profiles_update_own" on public.profiles;
 drop policy if exists "profiles_select_admin" on public.profiles;
+drop policy if exists "profiles_admin_all" on public.profiles;
 
+-- own row
 create policy "profiles_select_own" on public.profiles
   for select using (auth.uid() = user_id);
 
@@ -38,13 +58,9 @@ create policy "profiles_insert_own" on public.profiles
 create policy "profiles_update_own" on public.profiles
   for update using (auth.uid() = user_id);
 
-create policy "profiles_select_admin" on public.profiles
-  for select using (
-    exists (
-      select 1 from public.profiles p
-      where p.user_id = auth.uid() and p.role = 'admin'
-    )
-  );
+-- admin sees all (uses is_admin() to avoid recursion)
+create policy "profiles_admin_all" on public.profiles
+  for select using (public.is_admin());
 
 -- ============================================================================
 -- 2. clients
@@ -73,6 +89,7 @@ drop policy if exists "clients_insert_own" on public.clients;
 drop policy if exists "clients_update_own" on public.clients;
 drop policy if exists "clients_delete_own" on public.clients;
 drop policy if exists "clients_select_admin" on public.clients;
+drop policy if exists "clients_admin_all" on public.clients;
 
 create policy "clients_select_own" on public.clients
   for select using (auth.uid() = user_id);
@@ -86,13 +103,8 @@ create policy "clients_update_own" on public.clients
 create policy "clients_delete_own" on public.clients
   for delete using (auth.uid() = user_id);
 
-create policy "clients_select_admin" on public.clients
-  for select using (
-    exists (
-      select 1 from public.profiles p
-      where p.user_id = auth.uid() and p.role = 'admin'
-    )
-  );
+create policy "clients_admin_all" on public.clients
+  for select using (public.is_admin());
 
 -- ============================================================================
 -- 3. documents
@@ -123,6 +135,7 @@ drop policy if exists "documents_insert_own" on public.documents;
 drop policy if exists "documents_update_own" on public.documents;
 drop policy if exists "documents_delete_own" on public.documents;
 drop policy if exists "documents_select_admin" on public.documents;
+drop policy if exists "documents_admin_all" on public.documents;
 
 create policy "documents_select_own" on public.documents
   for select using (auth.uid() = user_id);
@@ -136,13 +149,8 @@ create policy "documents_update_own" on public.documents
 create policy "documents_delete_own" on public.documents
   for delete using (auth.uid() = user_id);
 
-create policy "documents_select_admin" on public.documents
-  for select using (
-    exists (
-      select 1 from public.profiles p
-      where p.user_id = auth.uid() and p.role = 'admin'
-    )
-  );
+create policy "documents_admin_all" on public.documents
+  for select using (public.is_admin());
 
 -- ============================================================================
 -- 4. incomes
@@ -172,6 +180,7 @@ drop policy if exists "incomes_insert_own" on public.incomes;
 drop policy if exists "incomes_update_own" on public.incomes;
 drop policy if exists "incomes_delete_own" on public.incomes;
 drop policy if exists "incomes_select_admin" on public.incomes;
+drop policy if exists "incomes_admin_all" on public.incomes;
 
 create policy "incomes_select_own" on public.incomes
   for select using (auth.uid() = user_id);
@@ -185,13 +194,8 @@ create policy "incomes_update_own" on public.incomes
 create policy "incomes_delete_own" on public.incomes
   for delete using (auth.uid() = user_id);
 
-create policy "incomes_select_admin" on public.incomes
-  for select using (
-    exists (
-      select 1 from public.profiles p
-      where p.user_id = auth.uid() and p.role = 'admin'
-    )
-  );
+create policy "incomes_admin_all" on public.incomes
+  for select using (public.is_admin());
 
 -- ============================================================================
 -- 5. expenses
@@ -218,6 +222,7 @@ drop policy if exists "expenses_insert_own" on public.expenses;
 drop policy if exists "expenses_update_own" on public.expenses;
 drop policy if exists "expenses_delete_own" on public.expenses;
 drop policy if exists "expenses_select_admin" on public.expenses;
+drop policy if exists "expenses_admin_all" on public.expenses;
 
 create policy "expenses_select_own" on public.expenses
   for select using (auth.uid() = user_id);
@@ -231,13 +236,8 @@ create policy "expenses_update_own" on public.expenses
 create policy "expenses_delete_own" on public.expenses
   for delete using (auth.uid() = user_id);
 
-create policy "expenses_select_admin" on public.expenses
-  for select using (
-    exists (
-      select 1 from public.profiles p
-      where p.user_id = auth.uid() and p.role = 'admin'
-    )
-  );
+create policy "expenses_admin_all" on public.expenses
+  for select using (public.is_admin());
 
 -- ============================================================================
 -- 6. revenue_goals
@@ -288,11 +288,15 @@ create table if not exists public.subscriptions (
   currency text not null default 'THB',
   billing_cycle text not null default 'monthly' check (billing_cycle in ('monthly', 'yearly', 'weekly', 'quarterly')),
   next_billing_date date,
+  next_billing_at date,
   is_active boolean not null default true,
   note text default '',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.subscriptions
+  add column if not exists next_billing_at date;
 
 create index if not exists subscriptions_user_id_idx on public.subscriptions(user_id);
 
@@ -374,17 +378,13 @@ alter table public.feedback enable row level security;
 
 drop policy if exists "feedback_insert_anyone" on public.feedback;
 drop policy if exists "feedback_select_admin" on public.feedback;
+drop policy if exists "feedback_admin_all" on public.feedback;
 
 create policy "feedback_insert_anyone" on public.feedback
   for insert with check (true);
 
-create policy "feedback_select_admin" on public.feedback
-  for select using (
-    exists (
-      select 1 from public.profiles p
-      where p.user_id = auth.uid() and p.role = 'admin'
-    )
-  );
+create policy "feedback_admin_all" on public.feedback
+  for select using (public.is_admin());
 
 -- ============================================================================
 -- 10. activity_log
@@ -405,6 +405,7 @@ alter table public.activity_log enable row level security;
 drop policy if exists "activity_log_insert_anyone" on public.activity_log;
 drop policy if exists "activity_log_select_own" on public.activity_log;
 drop policy if exists "activity_log_select_admin" on public.activity_log;
+drop policy if exists "activity_log_admin_all" on public.activity_log;
 
 create policy "activity_log_insert_anyone" on public.activity_log
   for insert with check (true);
@@ -412,13 +413,8 @@ create policy "activity_log_insert_anyone" on public.activity_log
 create policy "activity_log_select_own" on public.activity_log
   for select using (auth.uid() = user_id);
 
-create policy "activity_log_select_admin" on public.activity_log
-  for select using (
-    exists (
-      select 1 from public.profiles p
-      where p.user_id = auth.uid() and p.role = 'admin'
-    )
-  );
+create policy "activity_log_admin_all" on public.activity_log
+  for select using (public.is_admin());
 
 -- ============================================================================
 -- 11. active_sessions (heartbeat)
@@ -436,6 +432,7 @@ alter table public.active_sessions enable row level security;
 drop policy if exists "active_sessions_upsert_anyone" on public.active_sessions;
 drop policy if exists "active_sessions_select_admin" on public.active_sessions;
 drop policy if exists "active_sessions_update_anyone" on public.active_sessions;
+drop policy if exists "active_sessions_admin_all" on public.active_sessions;
 
 create policy "active_sessions_upsert_anyone" on public.active_sessions
   for insert with check (true);
@@ -443,13 +440,8 @@ create policy "active_sessions_upsert_anyone" on public.active_sessions
 create policy "active_sessions_update_anyone" on public.active_sessions
   for update using (true);
 
-create policy "active_sessions_select_admin" on public.active_sessions
-  for select using (
-    exists (
-      select 1 from public.profiles p
-      where p.user_id = auth.uid() and p.role = 'admin'
-    )
-  );
+create policy "active_sessions_admin_all" on public.active_sessions
+  for select using (public.is_admin());
 
 -- ============================================================================
 -- 12. Storage: supplier-files bucket
@@ -554,6 +546,21 @@ create trigger on_auth_user_created
   for each row execute function public.handle_new_user();
 
 -- ============================================================================
--- 15. Reload PostgREST schema cache (สำคัญ!)
+-- 15. Backfill — สร้าง profile สำหรับ user เก่าที่ยังไม่มี
+-- ============================================================================
+insert into public.profiles (user_id, data, role)
+select
+  u.id,
+  jsonb_build_object(
+    'email', u.email,
+    'studioName', coalesce(u.raw_user_meta_data->>'studio_name', split_part(u.email, '@', 1))
+  ),
+  'user'
+from auth.users u
+left join public.profiles p on p.user_id = u.id
+where p.user_id is null;
+
+-- ============================================================================
+-- 16. Reload PostgREST schema cache (สำคัญ!)
 -- ============================================================================
 notify pgrst, 'reload schema';

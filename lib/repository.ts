@@ -24,7 +24,16 @@ export function isSchemaMissing(error: unknown): boolean {
   // PGRST205 = table not in schema cache
   // 42P01    = relation does not exist
   // 42703    = column does not exist
-  if (e.code === "PGRST205" || e.code === "42P01" || e.code === "42703") {
+  // 42P17    = infinite recursion in policy (RLS misconfigured)
+  // 500/null = generic server error from broken RLS
+  const isSchemaErr =
+    e.code === "PGRST205" ||
+    e.code === "42P01" ||
+    e.code === "42703" ||
+    e.code === "42P17" ||
+    (e.message?.includes("infinite recursion") ?? false) ||
+    (e.message?.includes("policy for relation") ?? false);
+  if (isSchemaErr) {
     const key = `${e.code}:${e.message || ""}`;
     if (!schemaIssueWarned.has(key)) {
       schemaIssueWarned.add(key);

@@ -37,7 +37,10 @@ export default function SchemaWarningBanner() {
             error &&
             (error.code === "PGRST205" ||
               error.code === "42P01" ||
-              error.code === "42703")
+              error.code === "42703" ||
+              error.code === "42P17" ||
+              error.message?.includes("infinite recursion") ||
+              error.message?.includes("policy for relation"))
           ) {
             return t;
           }
@@ -76,13 +79,16 @@ export default function SchemaWarningBanner() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-bold text-amber-900 text-sm sm:text-base">
-              ต้องตั้งค่า Database ก่อนใช้งาน
+              ต้องตั้งค่า / อัปเดต Database ก่อนใช้งาน
             </div>
             <div className="text-xs sm:text-sm text-amber-800 mt-1 leading-relaxed">
-              ตอนนี้ Supabase ยังไม่มีตาราง:{" "}
+              ตอนนี้ Supabase ยังตอบ error สำหรับตาราง:{" "}
               <span className="font-mono font-semibold">
                 {missing.join(", ")}
               </span>
+              <br />
+              สาเหตุที่เป็นไปได้: ตารางยังไม่ถูกสร้าง / คอลัมน์หาย / RLS policy
+              ขัดข้อง (infinite recursion)
             </div>
             <div className="text-xs text-amber-700 mt-2">
               <strong>วิธีแก้:</strong> เปิด Supabase Dashboard →{" "}
