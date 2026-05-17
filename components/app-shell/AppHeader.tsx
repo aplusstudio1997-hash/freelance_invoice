@@ -9,6 +9,7 @@ import FeedbackModal from "@/components/FeedbackModal";
 import DonationModal from "@/components/DonationModal";
 import ShareModal from "@/components/ShareModal";
 import AiPriceCheckModal from "@/components/dashboard/AiPriceCheckModal";
+import StressReliefModal from "@/components/StressReliefModal";
 import {
   Bell,
   MessageCircle,
@@ -17,6 +18,7 @@ import {
   MessageSquare,
   Heart,
   Share2,
+  Smile,
 } from "lucide-react";
 
 const LINE_OA_URL = "https://lin.ee/";
@@ -37,6 +39,7 @@ export default function AppHeader() {
   const [shareOpen, setShareOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [reliefOpen, setReliefOpen] = useState(false);
 
   return (
     <>
@@ -121,6 +124,15 @@ export default function AppHeader() {
               <Sparkles size={16} />
             </button>
 
+            <button
+              onClick={() => setReliefOpen(true)}
+              aria-label="คลายเครียด"
+              title="คลายเครียด"
+              className="w-9 h-9 rounded-full bg-white text-amber-500 hover:bg-amber-50 border border-orange-100 flex items-center justify-center transition shadow-soft"
+            >
+              <Smile size={16} />
+            </button>
+
             <div className="w-px h-5 bg-orange-100 mx-0.5 hidden sm:block" />
 
             <button
@@ -184,6 +196,10 @@ export default function AppHeader() {
       />
       <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} />
       <AiPriceCheckModal open={aiOpen} onClose={() => setAiOpen(false)} />
+      <StressReliefModal
+        open={reliefOpen}
+        onClose={() => setReliefOpen(false)}
+      />
     </>
   );
 }

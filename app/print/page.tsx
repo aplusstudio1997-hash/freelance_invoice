@@ -913,30 +913,71 @@ export default function PrintPage() {
           )}
         </section>
 
-        {activeType === "receipt" && data.paymentMethod && (
+        {activeType === "invoice" && data.dueDate && (
           <section
-            className="bg-green-50 border-l-4 border-green-500 rounded mb-4"
+            className="bg-amber-50/60 border border-amber-200 rounded mb-4 flex items-center justify-between"
             style={{
               paddingLeft: "12px",
               paddingRight: "12px",
-              paddingTop: "12px",
+              paddingTop: "8px",
               paddingBottom: "8px",
+              fontSize: "12px",
             }}
           >
-            <div
-              className="text-xs text-gray-500"
-              style={{ marginBottom: "4px", lineHeight: 1 }}
-            >
-              วิธีการชำระเงิน
-            </div>
-            <div
-              className="text-xs font-medium text-gray-800"
-              style={{ lineHeight: 1 }}
-            >
-              {data.paymentMethod}
-            </div>
+            <span className="text-amber-700 font-medium">
+              ครบกำหนดชำระภายใน
+            </span>
+            <span className="font-semibold text-amber-800 tabular-nums">
+              {fmtDate(data.dueDate)}
+            </span>
           </section>
         )}
+
+        {activeType === "receipt" &&
+          (data.paymentMethod || data.paidDate) && (
+            <section
+              className="bg-green-50 border-l-4 border-green-500 rounded mb-4 grid grid-cols-2 gap-3"
+              style={{
+                paddingLeft: "12px",
+                paddingRight: "12px",
+                paddingTop: "10px",
+                paddingBottom: "8px",
+              }}
+            >
+              {data.paidDate && (
+                <div>
+                  <div
+                    className="text-xs text-gray-500"
+                    style={{ marginBottom: "3px", lineHeight: 1 }}
+                  >
+                    วันที่รับเงิน
+                  </div>
+                  <div
+                    className="text-xs font-semibold text-gray-800 tabular-nums"
+                    style={{ lineHeight: 1 }}
+                  >
+                    {fmtDate(data.paidDate)}
+                  </div>
+                </div>
+              )}
+              {data.paymentMethod && (
+                <div>
+                  <div
+                    className="text-xs text-gray-500"
+                    style={{ marginBottom: "3px", lineHeight: 1 }}
+                  >
+                    วิธีการชำระเงิน
+                  </div>
+                  <div
+                    className="text-xs font-semibold text-gray-800"
+                    style={{ lineHeight: 1 }}
+                  >
+                    {data.paymentMethod}
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
 
         {visibility.paymentCondition && activeType !== "receipt" && (
         <section

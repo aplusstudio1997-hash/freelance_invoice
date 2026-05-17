@@ -56,10 +56,12 @@ export default function QuotePreview({
   const sheetRef = useRef<HTMLDivElement>(null);
   const [pageBreakYs, setPageBreakYs] = useState<number[]>([]);
 
-  // The preview "sheet" is rendered at whatever width its container gives it;
-  // a real A4 page is 210mm × 297mm (ratio 1:1.4143). We treat the rendered
-  // width as 210mm and compute equivalent page heights from there, then place
-  // dashed indicators at each boundary. Re-measure on size and on data changes.
+  // PDF generation slices each rendered page to fit the printable content area
+  // of A4 (margins 15mm/15mm top/bottom = 22mm, sides = 15mm). The clone is
+  // resized from 210mm-wide source down to a 180mm-wide content area, so one
+  // PDF page captures 260mm of clone height = 260 × (210/180) = 303mm of the
+  // ORIGINAL source height. Use ratio 1.444 (260/180) against the sheet width
+  // so the dashed indicators match where /print actually breaks the PDF.
   useLayoutEffect(() => {
     const sheet = sheetRef.current;
     if (!sheet) return;
@@ -67,7 +69,7 @@ export default function QuotePreview({
       const w = sheet.offsetWidth;
       const h = sheet.offsetHeight;
       if (w === 0) return;
-      const pageHeightPx = w * (297 / 210);
+      const pageHeightPx = w * (260 / 180);
       const breaks: number[] = [];
       let pos = pageHeightPx;
       while (pos < h - 6) {

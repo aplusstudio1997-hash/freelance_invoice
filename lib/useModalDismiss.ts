@@ -33,8 +33,11 @@ export function useModalDismiss(
   }, [open]);
 
   return {
-    onBackdropClick: (e: React.MouseEvent) => {
-      if (e.target === e.currentTarget) closeRef.current();
+    // Backdrop click intentionally does nothing — modal closes only via the
+    // explicit X / Cancel button or Escape key. Many call sites pass this to
+    // their backdrop div's onClick, so keep the no-op signature for compat.
+    onBackdropClick: (_e: React.MouseEvent) => {
+      // no-op
     },
   };
 }

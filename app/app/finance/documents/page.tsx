@@ -15,7 +15,6 @@ import ServicesPanel from "@/components/ServicesPanel";
 import TimelinePanel from "@/components/TimelinePanel";
 import QuotePreview from "@/components/QuotePreview";
 import RandomPromptModal from "@/components/RandomPromptModal";
-import StressReliefModal from "@/components/StressReliefModal";
 import FeedbackModal from "@/components/FeedbackModal";
 import DonationModal from "@/components/DonationModal";
 import ShareModal from "@/components/ShareModal";
@@ -32,7 +31,6 @@ import {
 } from "@/components/PdfSettingsSidebar";
 import {
   Dice5,
-  Smile,
   RotateCcw,
   FileText,
   Loader2,
@@ -54,7 +52,6 @@ export default function FinancePage() {
   } = useDocuments();
 
   const [promptOpen, setPromptOpen] = useState(false);
-  const [reliefOpen, setReliefOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [donationOpen, setDonationOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
@@ -151,11 +148,6 @@ export default function FinancePage() {
           icon={<Dice5 size={12} />}
           label="สุ่มโจทย์"
           onClick={() => setPromptOpen(true)}
-        />
-        <FinHeaderBtn
-          icon={<Smile size={12} />}
-          label="คลายเครียด"
-          onClick={() => setReliefOpen(true)}
         />
       </section>
 
@@ -269,10 +261,6 @@ export default function FinancePage() {
         open={promptOpen}
         onClose={() => setPromptOpen(false)}
         onOpenShare={() => setShareOpen(true)}
-      />
-      <StressReliefModal
-        open={reliefOpen}
-        onClose={() => setReliefOpen(false)}
       />
       <FeedbackModal
         open={feedbackOpen}

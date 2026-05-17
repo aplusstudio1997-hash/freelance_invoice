@@ -18,6 +18,22 @@ interface Props {
   disabled?: boolean;
 }
 
+function pad(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+function dateToIso(d: Date): string {
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function dateToTime(d: Date): string {
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function dateToIsoTime(d: Date): string {
+  return `${dateToIso(d)} ${dateToTime(d)}`;
+}
+
 export default function FlatpickrInput({
   value,
   onChange,
@@ -43,11 +59,22 @@ export default function FlatpickrInput({
       time_24hr: true,
       enableTime: withTime || timeOnly,
       noCalendar: timeOnly,
-      dateFormat: timeOnly ? "H:i" : withTime ? "Y-m-d H:i" : "Y-m-d",
-      altInput: !timeOnly,
-      altFormat: withTime ? "j M Y · H:i" : "j M Y",
-      onChange: (_dates, dateStr) => {
-        onChangeRef.current(dateStr);
+      // Single input — no altInput — display in Thai-friendly format and
+      // convert back to ISO ourselves so external onChange always sees ISO.
+      dateFormat: timeOnly ? "H:i" : withTime ? "j M Y H:i" : "j M Y",
+      onChange: (dates) => {
+        if (!dates.length) {
+          onChangeRef.current("");
+          return;
+        }
+        const d = dates[0];
+        onChangeRef.current(
+          timeOnly
+            ? dateToTime(d)
+            : withTime
+              ? dateToIsoTime(d)
+              : dateToIso(d)
+        );
       },
     }) as Instance;
     fpRef.current = fp;
@@ -61,6 +88,7 @@ export default function FlatpickrInput({
     const fp = fpRef.current;
     if (!fp) return;
     if (value) {
+      // Accept ISO ("2026-05-17" or "2026-05-17 14:30") and time ("14:30").
       fp.setDate(value, false);
     } else {
       fp.clear(false);
@@ -77,7 +105,7 @@ export default function FlatpickrInput({
         placeholder={placeholder || (timeOnly ? "HH:mm" : "เลือกวันที่")}
         required={required}
         disabled={disabled}
-        className="w-full pl-3 pr-10 py-2.5 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-200 tabular-nums cursor-pointer disabled:opacity-50"
+        className="w-full pl-3 pr-10 py-2.5 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-200 tabular-nums cursor-pointer disabled:opacity-50 text-sm"
       />
       <Icon
         size={16}
