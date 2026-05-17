@@ -147,9 +147,18 @@ export async function deleteSupplier(id: string): Promise<void> {
 // FILE UPLOADS
 // ========================================================================
 
-// Keep unicode word chars (covers Thai) so uploaded filenames stay readable.
+// Supabase Storage object keys must be ASCII; Thai/unicode characters cause
+// "Invalid key" errors at upload time. Strip everything outside a safe ASCII
+// subset to "_" but preserve the extension. Original Thai filename is kept in
+// the file metadata (file.name) so the UI still shows it nicely.
 function buildSafeName(name: string): string {
-  return name.replace(/[\\/:*?"<>|]/g, "_").replace(/\s+/g, "_");
+  const lastDot = name.lastIndexOf(".");
+  const base = lastDot > 0 ? name.slice(0, lastDot) : name;
+  const ext = lastDot > 0 ? name.slice(lastDot) : "";
+  const safeBase =
+    base.replace(/[^A-Za-z0-9._-]+/g, "_").replace(/^_+|_+$/g, "") || "file";
+  const safeExt = ext.replace(/[^A-Za-z0-9.]+/g, "");
+  return safeBase + safeExt;
 }
 
 // Module-level lock per supplier id so concurrent upload/remove on the same

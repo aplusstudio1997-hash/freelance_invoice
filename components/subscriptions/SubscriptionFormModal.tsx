@@ -19,6 +19,7 @@ import {
 import { fmtDateInput } from "@/lib/finance-utils";
 import { CURRENCIES } from "@/lib/types";
 import { useModalDismiss } from "@/lib/useModalDismiss";
+import FlatpickrInput from "@/components/FlatpickrInput";
 
 const SUB_CATEGORIES: Record<SubCategory, string> = {
   software: "ซอฟต์แวร์",
@@ -163,7 +164,7 @@ export default function SubscriptionFormModal({
               onChange={(v) => set({ currency: v })}
               options={CURRENCIES.map((c) => ({
                 value: c.code,
-                label: `${c.code} (${c.symbol}) ${c.label}`,
+                label: `${c.code} (${c.symbol})`,
               }))}
             />
           </div>
@@ -191,13 +192,15 @@ export default function SubscriptionFormModal({
             />
           </div>
 
-          <Field
-            label="วันต่ออายุถัดไป"
-            icon={<Calendar size={13} />}
-            type="date"
-            value={form.nextBillingAt || ""}
-            onChange={(v) => set({ nextBillingAt: v || null })}
-          />
+          <div>
+            <label className="block text-xs font-medium text-ink-700 mb-1.5">
+              วันต่ออายุถัดไป
+            </label>
+            <FlatpickrInput
+              value={form.nextBillingAt || ""}
+              onChange={(v) => set({ nextBillingAt: v || null })}
+            />
+          </div>
 
           <div className="grid sm:grid-cols-2 gap-3">
             <NumberField

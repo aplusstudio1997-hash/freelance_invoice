@@ -18,6 +18,7 @@ import {
 import { INCOME_CATEGORIES, fmtDateInput } from "@/lib/finance-utils";
 import { useDocuments } from "@/lib/documents";
 import { useModalDismiss } from "@/lib/useModalDismiss";
+import FlatpickrInput from "@/components/FlatpickrInput";
 
 interface Props {
   open: boolean;
@@ -211,13 +212,15 @@ export default function IncomeFormModal({
             ]}
           />
 
-          <Field
-            label="วันที่ได้รับ"
-            icon={<Calendar size={13} />}
-            type="date"
-            value={form.receivedAt}
-            onChange={(v) => set({ receivedAt: v })}
-          />
+          <div>
+            <label className="block text-xs font-medium text-ink-700 mb-1.5">
+              วันที่ได้รับ
+            </label>
+            <FlatpickrInput
+              value={form.receivedAt}
+              onChange={(v) => set({ receivedAt: v })}
+            />
+          </div>
 
           {error && (
             <div className="text-xs text-red-700 bg-red-50 border border-red-100 rounded-xl px-3 py-2">

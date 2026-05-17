@@ -286,7 +286,10 @@ export default function SuppliersPage() {
         <SupplierDetailModal
           supplier={detail}
           onClose={() => setDetail(null)}
-          onEdit={() => setEditing(detail)}
+          onEdit={() => {
+            setEditing(detail);
+            setDetail(null);
+          }}
           onDelete={onDelete}
           onChanged={refresh}
         />

@@ -17,6 +17,7 @@ import {
 } from "@/lib/finance";
 import { EXPENSE_CATEGORIES, fmtDateInput } from "@/lib/finance-utils";
 import { useModalDismiss } from "@/lib/useModalDismiss";
+import FlatpickrInput from "@/components/FlatpickrInput";
 
 interface Props {
   open: boolean;
@@ -157,13 +158,15 @@ export default function ExpenseFormModal({
             placeholder="ไม่บังคับ"
           />
 
-          <Field
-            label="วันที่จ่าย"
-            icon={<Calendar size={13} />}
-            type="date"
-            value={form.paidAt}
-            onChange={(v) => set({ paidAt: v })}
-          />
+          <div>
+            <label className="block text-xs font-medium text-ink-700 mb-1.5">
+              วันที่จ่าย
+            </label>
+            <FlatpickrInput
+              value={form.paidAt}
+              onChange={(v) => set({ paidAt: v })}
+            />
+          </div>
 
           {error && (
             <div className="text-xs text-red-700 bg-red-50 border border-red-100 rounded-xl px-3 py-2">

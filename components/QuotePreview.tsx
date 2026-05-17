@@ -3,6 +3,7 @@
 import { QuoteSettings, Profile, DocumentType } from "@/lib/types";
 import { CalcResult, fmt, fmtDate } from "@/lib/calc";
 import { FileText, Link2 } from "lucide-react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 interface Props {
   data: QuoteSettings;
@@ -52,6 +53,35 @@ export default function QuotePreview({
   const hasPayment =
     pay.qrCode || pay.bankName || pay.accountName || pay.accountNumber;
 
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const [pageBreakYs, setPageBreakYs] = useState<number[]>([]);
+
+  // The preview "sheet" is rendered at whatever width its container gives it;
+  // a real A4 page is 210mm × 297mm (ratio 1:1.4143). We treat the rendered
+  // width as 210mm and compute equivalent page heights from there, then place
+  // dashed indicators at each boundary. Re-measure on size and on data changes.
+  useLayoutEffect(() => {
+    const sheet = sheetRef.current;
+    if (!sheet) return;
+    const compute = () => {
+      const w = sheet.offsetWidth;
+      const h = sheet.offsetHeight;
+      if (w === 0) return;
+      const pageHeightPx = w * (297 / 210);
+      const breaks: number[] = [];
+      let pos = pageHeightPx;
+      while (pos < h - 6) {
+        breaks.push(pos);
+        pos += pageHeightPx;
+      }
+      setPageBreakYs(breaks);
+    };
+    compute();
+    const ro = new ResizeObserver(compute);
+    ro.observe(sheet);
+    return () => ro.disconnect();
+  }, [data, profile, type]);
+
   return (
     <section className="bg-white/85 backdrop-blur border border-orange-100/80 rounded-3xl shadow-soft overflow-hidden">
       <div className="hidden sm:flex items-center justify-between px-5 py-4 border-b border-orange-100 no-print">
@@ -62,7 +92,23 @@ export default function QuotePreview({
       </div>
 
       <div className="p-3 sm:p-6 bg-gray-50/60">
-        <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 space-y-4 text-xs shadow-sm">
+        <div
+          ref={sheetRef}
+          className="max-w-3xl mx-auto bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 space-y-4 text-xs shadow-sm relative"
+        >
+          {pageBreakYs.map((y, i) => (
+            <div
+              key={`pb-${i}`}
+              aria-hidden="true"
+              className="pointer-events-none absolute left-0 right-0 select-none"
+              style={{ top: `${y}px` }}
+            >
+              <div className="border-t border-dashed border-gray-400" />
+              <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-white px-2 text-[10px] text-gray-500 font-medium rounded-full border border-gray-200 whitespace-nowrap">
+                — ขอบหน้า {i + 1} / {i + 2} —
+              </div>
+            </div>
+          ))}
           <header className="pb-3 border-b-2 border-brand-500">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-2.5 flex-1 min-w-0">
