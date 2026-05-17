@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   X,
   Plus,
@@ -80,8 +81,10 @@ export default function DocumentListModal({
     }
   }, [filterType, user]);
 
+  if (typeof document === "undefined") return null;
+
   if (!user) {
-    return (
+    return createPortal(
       <div
         className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
         onClick={onBackdropClick}
@@ -100,7 +103,8 @@ export default function DocumentListModal({
             ต้องเข้าสู่ระบบก่อนถึงจะดู/บันทึกเอกสารหลายใบได้
           </p>
         </div>
-      </div>
+      </div>,
+      document.body
     );
   }
 
@@ -117,7 +121,7 @@ export default function DocumentListModal({
         d.customerName.toLowerCase().includes(q)
     );
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm"
       onClick={onBackdropClick}
@@ -319,6 +323,7 @@ export default function DocumentListModal({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

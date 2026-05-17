@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   QuoteSettings,
   DEFAULT_QUOTE,
@@ -23,6 +23,13 @@ import SuccessModal from "@/components/SuccessModal";
 import DocumentTabs from "@/components/DocumentTabs";
 import InvoiceReceiptFields from "@/components/InvoiceReceiptFields";
 import MigrationModal from "@/components/MigrationModal";
+import {
+  PdfSettingsPanel,
+  loadPdfVisibility,
+  savePdfVisibility,
+  DEFAULT_VISIBILITY,
+  PdfVisibility,
+} from "@/components/PdfSettingsSidebar";
 import {
   Dice5,
   Smile,
@@ -57,6 +64,21 @@ export default function FinancePage() {
   const [panelTab, setPanelTab] = useState<"settings" | "services" | "timeline">(
     "settings"
   );
+  const [pdfVisibility, setPdfVisibilityState] =
+    useState<PdfVisibility>(DEFAULT_VISIBILITY);
+
+  useEffect(() => {
+    setPdfVisibilityState(loadPdfVisibility());
+  }, []);
+
+  const setPdfVisibility = (v: PdfVisibility) => {
+    setPdfVisibilityState(v);
+    savePdfVisibility(v);
+  };
+  const resetPdfVisibility = () => {
+    setPdfVisibilityState(DEFAULT_VISIBILITY);
+    savePdfVisibility(DEFAULT_VISIBILITY);
+  };
 
   const update = useCallback(
     (patch: Partial<QuoteSettings>) => {
@@ -91,12 +113,27 @@ export default function FinancePage() {
     setSuccessOpen(true);
   };
 
+  const [downloadIframe, setDownloadIframe] = useState(false);
+
+  useEffect(() => {
+    if (!downloadIframe) return;
+    const onMessage = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin) return;
+      const t = (e.data as { type?: string } | null)?.type;
+      if (t === "so1o:pdf-downloaded" || t === "so1o:pdf-failed") {
+        setDownloadIframe(false);
+        setSuccessOpen(false);
+      }
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, [downloadIframe]);
+
   const openPDF = async () => {
-    setSuccessOpen(false);
     try {
       await flushSave();
     } catch {}
-    window.open("/print", "_blank");
+    setDownloadIframe(true);
   };
 
   return (
@@ -201,6 +238,12 @@ export default function FinancePage() {
           type={activeType}
         />
 
+        <PdfSettingsPanel
+          visibility={pdfVisibility}
+          onChange={setPdfVisibility}
+          onReset={resetPdfVisibility}
+        />
+
         <div className="flex justify-center pt-2 pb-4">
           <button
             onClick={downloadPDF}
@@ -272,6 +315,29 @@ export default function FinancePage() {
             <div className="text-xs text-ink-400">บันทึกข้อมูลและสร้าง PDF</div>
           </div>
         </div>
+      )}
+
+      {downloadIframe && (
+        <>
+          <div className="fixed inset-0 bg-black/40 z-[100] flex items-center justify-center backdrop-blur-sm">
+            <div className="bg-white rounded-3xl px-8 py-6 shadow-soft-lg flex flex-col items-center gap-3">
+              <div className="w-12 h-12 border-4 border-brand-100 border-t-brand-500 rounded-full animate-spin" />
+              <div className="text-sm text-ink-800 font-medium">
+                กำลังเตรียมไฟล์ดาวน์โหลด...
+              </div>
+              <div className="text-xs text-ink-400">
+                เบราว์เซอร์จะถามให้บันทึกไฟล์ในอีกสักครู่
+              </div>
+            </div>
+          </div>
+          <iframe
+            src="/print?auto=1"
+            title="pdf-generator"
+            className="fixed pointer-events-none opacity-0"
+            style={{ width: 1, height: 1, left: -9999, top: -9999 }}
+            aria-hidden="true"
+          />
+        </>
       )}
     </div>
   );

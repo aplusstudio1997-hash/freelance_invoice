@@ -1,8 +1,29 @@
 "use client";
 
-import { Eye, EyeOff, Settings2, X } from "lucide-react";
+import { Eye, EyeOff, Settings2, X, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { useModalDismiss } from "@/lib/useModalDismiss";
+
+const VIS_STORAGE_KEY = "freelance-solo-pdf-visibility";
+
+export function loadPdfVisibility(): PdfVisibility {
+  if (typeof window === "undefined") return DEFAULT_VISIBILITY;
+  try {
+    const raw = localStorage.getItem(VIS_STORAGE_KEY);
+    if (!raw) return DEFAULT_VISIBILITY;
+    const parsed = JSON.parse(raw);
+    return { ...DEFAULT_VISIBILITY, ...parsed };
+  } catch {
+    return DEFAULT_VISIBILITY;
+  }
+}
+
+export function savePdfVisibility(v: PdfVisibility) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(VIS_STORAGE_KEY, JSON.stringify(v));
+  } catch {}
+}
 
 export interface PdfVisibility {
   contactFrom: boolean;
@@ -97,7 +118,7 @@ interface BodyProps {
   onReset: () => void;
 }
 
-function Body({ visibility, onChange, onReset }: BodyProps) {
+export function PdfVisibilityBody({ visibility, onChange, onReset }: BodyProps) {
   const toggle = (key: keyof PdfVisibility) => {
     onChange({ ...visibility, [key]: !visibility[key] });
   };
@@ -188,7 +209,7 @@ export default function PdfSettingsSidebar({
           </span>
         </div>
         <div className="lg:max-h-[calc(100vh-280px)] lg:overflow-y-auto">
-          <Body
+          <PdfVisibilityBody
             visibility={visibility}
             onChange={onChange}
             onReset={onReset}
@@ -247,7 +268,7 @@ export function PdfSettingsButton({
               </button>
             </div>
             <div className="flex-1 overflow-y-auto px-4 pb-4">
-              <Body
+              <PdfVisibilityBody
                 visibility={visibility}
                 onChange={onChange}
                 onReset={onReset}
@@ -265,5 +286,46 @@ export function PdfSettingsButton({
         </div>
       )}
     </>
+  );
+}
+
+export function PdfSettingsPanel({ visibility, onChange, onReset }: Props) {
+  const [open, setOpen] = useState(false);
+  const visibleCount = Object.values(visibility).filter(Boolean).length;
+  const totalCount = Object.values(visibility).length;
+
+  return (
+    <div className="bg-white/85 backdrop-blur border border-orange-100/80 rounded-3xl shadow-soft overflow-hidden">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center gap-2 px-5 py-3.5 text-left hover:bg-orange-50/40 transition"
+        aria-expanded={open}
+      >
+        <div className="w-8 h-8 rounded-xl bg-orange-50 text-brand-500 flex items-center justify-center shrink-0">
+          <Settings2 size={14} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-semibold text-ink-900">แสดงใน PDF</div>
+          <div className="text-xs text-ink-400">
+            เลือกว่าจะแสดงส่วนไหนใน PDF ที่ดาวน์โหลด ({visibleCount}/{totalCount})
+          </div>
+        </div>
+        <ChevronDown
+          size={16}
+          className={`text-ink-400 shrink-0 transition-transform ${
+            open ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+      {open && (
+        <div className="px-5 pb-4 border-t border-orange-100">
+          <PdfVisibilityBody
+            visibility={visibility}
+            onChange={onChange}
+            onReset={onReset}
+          />
+        </div>
+      )}
+    </div>
   );
 }

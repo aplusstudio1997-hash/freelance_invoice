@@ -9,33 +9,12 @@ import {
 } from "@/lib/types";
 import { calculate, fmt, fmtDate, buildMilestones } from "@/lib/calc";
 import { useDocuments } from "@/lib/documents";
-import PdfSettingsSidebar, {
+import {
   PdfVisibility,
   DEFAULT_VISIBILITY,
-  PdfSettingsButton,
+  loadPdfVisibility,
 } from "@/components/PdfSettingsSidebar";
 import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
-
-const VIS_STORAGE_KEY = "freelance-solo-pdf-visibility";
-
-function loadVisibility(): PdfVisibility {
-  if (typeof window === "undefined") return DEFAULT_VISIBILITY;
-  try {
-    const raw = localStorage.getItem(VIS_STORAGE_KEY);
-    if (!raw) return DEFAULT_VISIBILITY;
-    const parsed = JSON.parse(raw);
-    return { ...DEFAULT_VISIBILITY, ...parsed };
-  } catch {
-    return DEFAULT_VISIBILITY;
-  }
-}
-
-function saveVisibility(v: PdfVisibility) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(VIS_STORAGE_KEY, JSON.stringify(v));
-  } catch {}
-}
 
 function sanitizeForFilename(s: string): string {
   return s
@@ -83,18 +62,9 @@ export default function PrintPage() {
     useState<PdfVisibility>(DEFAULT_VISIBILITY);
   const [zoom, setZoom] = useState(1);
 
-  const setVisibility = (v: PdfVisibility) => {
-    setVisibilityState(v);
-    saveVisibility(v);
-  };
-  const resetVisibility = () => {
-    setVisibilityState(DEFAULT_VISIBILITY);
-    saveVisibility(DEFAULT_VISIBILITY);
-  };
-
   useEffect(() => {
     if (docLoading) return;
-    setVisibilityState(loadVisibility());
+    setVisibilityState(loadPdfVisibility());
     setReady(true);
   }, [docLoading]);
 
@@ -357,13 +327,43 @@ export default function PrintPage() {
       pdf.save(filename);
 
       document.body.removeChild(offscreen);
+
+      if (window.parent !== window) {
+        try {
+          window.parent.postMessage(
+            { type: "so1o:pdf-downloaded" },
+            window.location.origin
+          );
+        } catch {}
+      }
     } catch (err) {
       console.error("PDF generation failed", err);
-      alert("สร้าง PDF ไม่สำเร็จ ลองใหม่อีกครั้ง");
+      if (window.parent !== window) {
+        try {
+          window.parent.postMessage(
+            { type: "so1o:pdf-failed" },
+            window.location.origin
+          );
+        } catch {}
+      } else {
+        alert("สร้าง PDF ไม่สำเร็จ ลองใหม่อีกครั้ง");
+      }
     } finally {
       setGenerating(false);
     }
   };
+
+  useEffect(() => {
+    if (!ready) return;
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("auto") !== "1") return;
+    const t = setTimeout(() => {
+      downloadPdf();
+    }, 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
 
   useEffect(() => {
     if (!ready) return;
@@ -491,13 +491,6 @@ export default function PrintPage() {
             </div>
           </div>
           <div className="flex gap-1.5 sm:gap-2 shrink-0 items-center">
-            <div className="lg:hidden">
-              <PdfSettingsButton
-                visibility={visibility}
-                onChange={setVisibility}
-                onReset={resetVisibility}
-              />
-            </div>
             <button
               onClick={downloadPdf}
               disabled={generating}
@@ -549,11 +542,6 @@ export default function PrintPage() {
       </div>
 
       <div className="print-layout">
-        <PdfSettingsSidebar
-          visibility={visibility}
-          onChange={setVisibility}
-          onReset={resetVisibility}
-        />
         <div className="print-pages-scroll">
           <div
             className="print-pages-area"

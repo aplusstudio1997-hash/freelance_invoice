@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, MessageSquare, Coffee, FileText, X } from "lucide-react";
+import { CheckCircle2, MessageSquare, Coffee, Download, X } from "lucide-react";
 import { useModalDismiss } from "@/lib/useModalDismiss";
 
 interface Props {
@@ -40,39 +40,38 @@ export default function SuccessModal({
             <CheckCircle2 size={36} className="text-green-600" strokeWidth={2.5} />
           </div>
           <h3 className="font-semibold text-lg text-gray-800 mb-1">
-            บันทึก PDF สำเร็จ!
+            เตรียมไฟล์เสร็จสิ้น
           </h3>
           <p className="text-sm text-gray-500">
-            ถ้าถูกใจเครื่องมือนี้ ช่วยสนับสนุนหรือให้ข้อเสนอแนะได้เลย
+            กดปุ่มด้านล่างเพื่อดาวน์โหลด PDF
           </p>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mt-4">
+        <button
+          onClick={onViewPDF}
+          className="w-full flex items-center justify-center gap-2 bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white font-semibold py-3 rounded-lg transition mb-3"
+        >
+          <Download size={18} />
+          ดาวน์โหลด PDF
+        </button>
+
+        <div className="grid grid-cols-2 gap-2">
           <button
             onClick={onFeedback}
-            className="flex flex-col items-center gap-1.5 border border-gray-200 hover:border-brand-300 hover:bg-brand-50 rounded-lg py-3 px-2 transition"
+            className="flex items-center justify-center gap-1.5 border border-gray-200 hover:border-brand-300 hover:bg-brand-50 rounded-lg py-2.5 px-2 transition"
           >
-            <MessageSquare size={20} className="text-brand-500" />
+            <MessageSquare size={14} className="text-brand-500" />
             <span className="text-xs font-medium text-gray-700">
               ข้อเสนอแนะ
             </span>
           </button>
           <button
             onClick={onDonate}
-            className="flex flex-col items-center gap-1.5 border border-gray-200 hover:border-brand-300 hover:bg-brand-50 rounded-lg py-3 px-2 transition"
+            className="flex items-center justify-center gap-1.5 border border-gray-200 hover:border-brand-300 hover:bg-brand-50 rounded-lg py-2.5 px-2 transition"
           >
-            <Coffee size={20} className="text-brand-500" />
+            <Coffee size={14} className="text-brand-500" />
             <span className="text-xs font-medium text-gray-700">
               ช่วยค่ากาแฟ
-            </span>
-          </button>
-          <button
-            onClick={onViewPDF}
-            className="flex flex-col items-center gap-1.5 border border-gray-200 hover:border-brand-300 hover:bg-brand-50 rounded-lg py-3 px-2 transition"
-          >
-            <FileText size={20} className="text-brand-500" />
-            <span className="text-xs font-medium text-gray-700">
-              ดู PDF
             </span>
           </button>
         </div>

@@ -6,6 +6,7 @@ import { DocumentType } from "@/lib/types";
 import { useDocuments } from "@/lib/documents";
 import { useAuth } from "@/lib/auth";
 import DocumentListModal from "./DocumentListModal";
+import DocumentPicker from "./DocumentPicker";
 
 const TYPE_LABELS: Record<DocumentType, string> = {
   quote: "ใบเสนอราคา",
@@ -24,6 +25,9 @@ export default function DocumentTabs() {
   const { activeType, switchType, newDocument, data, documents, activeId } =
     useDocuments();
   const [listOpen, setListOpen] = useState(false);
+  const [pickerType, setPickerType] = useState<"invoice" | "receipt" | null>(
+    null
+  );
 
   const current = documents.find((d) => d.id === activeId);
 
@@ -36,8 +40,7 @@ export default function DocumentTabs() {
     if (t === "quote") {
       switchType(t);
     } else {
-      setListOpen(true);
-      switchType(t);
+      setPickerType(t);
     }
   };
 
@@ -110,6 +113,26 @@ export default function DocumentTabs() {
           onCreateNew={async (type, sourceId) => {
             await newDocument(type, sourceId);
             setListOpen(false);
+          }}
+        />
+      )}
+
+      {pickerType && (
+        <DocumentPicker
+          open
+          targetType={pickerType}
+          onClose={() => setPickerType(null)}
+          onPick={async (sourceId) => {
+            const t = pickerType;
+            setPickerType(null);
+            await newDocument(t, sourceId);
+            switchType(t);
+          }}
+          onCreateBlank={async () => {
+            const t = pickerType;
+            setPickerType(null);
+            await newDocument(t);
+            switchType(t);
           }}
         />
       )}
