@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   QuoteSettings,
   DEFAULT_QUOTE,
@@ -8,7 +8,7 @@ import {
 } from "@/lib/types";
 import { clearDraft } from "@/lib/storage";
 import { calculate, fmt } from "@/lib/calc";
-import { sendQuote, fetchStats, pingActive } from "@/lib/api";
+import { sendQuote } from "@/lib/api";
 import { useDocuments } from "@/lib/documents";
 import SettingsPanel from "@/components/SettingsPanel";
 import ServicesPanel from "@/components/ServicesPanel";
@@ -52,35 +52,11 @@ export default function FinancePage() {
   const [donationOpen, setDonationOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
-  const [, setStats] = useState<{
-    totalQuotes: number | null;
-    activeUsers: number | null;
-  }>({ totalQuotes: null, activeUsers: null });
 
   const [downloading, setDownloading] = useState(false);
   const [panelTab, setPanelTab] = useState<"settings" | "services" | "timeline">(
     "settings"
   );
-
-  useEffect(() => {
-    let cancelled = false;
-    const loadStats = async () => {
-      const s = await fetchStats();
-      if (cancelled || !s) return;
-      setStats({ totalQuotes: s.totalQuotes, activeUsers: s.activeUsers });
-    };
-    pingActive().catch(() => {});
-    loadStats();
-    const pingInterval = setInterval(() => {
-      pingActive().catch(() => {});
-    }, 60 * 1000);
-    const statsInterval = setInterval(loadStats, 60 * 1000);
-    return () => {
-      cancelled = true;
-      clearInterval(pingInterval);
-      clearInterval(statsInterval);
-    };
-  }, []);
 
   const update = useCallback(
     (patch: Partial<QuoteSettings>) => {
@@ -111,19 +87,8 @@ export default function FinancePage() {
     } catch (e) {
       console.error("sendQuote failed", e);
     }
-    // No arbitrary setTimeout — flip state immediately now that both async
-    // calls have settled. Stats refresh runs in the background.
     setDownloading(false);
     setSuccessOpen(true);
-    fetchStats()
-      .then((s) => {
-        if (s)
-          setStats({
-            totalQuotes: s.totalQuotes,
-            activeUsers: s.activeUsers,
-          });
-      })
-      .catch(() => {});
   };
 
   const openPDF = async () => {

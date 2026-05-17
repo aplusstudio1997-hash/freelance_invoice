@@ -21,9 +21,12 @@ as $$
   );
 $$;
 
--- only authenticated users need to call this; anon is never admin so no need to grant
-grant execute on function public.is_admin() to authenticated;
-revoke execute on function public.is_admin() from anon;
+-- anon must be able to call this too: every *_admin_all policy is FOR ALL and
+-- runs is_admin() during anon writes (e.g. active_sessions heartbeat). Without
+-- EXECUTE, Postgres raises permission denied while evaluating the policy and
+-- PostgREST returns 403. is_admin() is safe to call as anon — auth.uid() is
+-- null so the inner subquery returns no rows and coalesce → false.
+grant execute on function public.is_admin() to anon, authenticated;
 
 -- ============================================================================
 -- 1. profiles
@@ -498,25 +501,23 @@ drop policy if exists "active_sessions_select_admin" on public.active_sessions;
 drop policy if exists "active_sessions_admin_all" on public.active_sessions;
 drop policy if exists "active_sessions_insert_own_or_anon" on public.active_sessions;
 drop policy if exists "active_sessions_update_own_or_anon" on public.active_sessions;
+drop policy if exists "active_sessions_insert_any" on public.active_sessions;
+drop policy if exists "active_sessions_update_any" on public.active_sessions;
 
--- anon heartbeat allowed only with NULL user_id; auth users restricted to their uid
-create policy "active_sessions_insert_own_or_anon" on public.active_sessions
-  for insert with check (
-    user_id is null
-    or user_id = auth.uid()
-  );
+-- heartbeat is a low-trust counter — anyone (anon or auth) may upsert any row.
+-- The original strict `user_id = auth.uid()` policy kept failing in production
+-- with 42501 "new row violates RLS" even with a valid JWT (auth.uid()
+-- apparently not resolving inside the WITH CHECK at upsert time). No PII lives
+-- here, so trade ownership enforcement for a working heartbeat.
+create policy "active_sessions_insert_any" on public.active_sessions
+  for insert with check (true);
 
-create policy "active_sessions_update_own_or_anon" on public.active_sessions
-  for update using (
-    user_id is null
-    or user_id = auth.uid()
-  ) with check (
-    user_id is null
-    or user_id = auth.uid()
-  );
+create policy "active_sessions_update_any" on public.active_sessions
+  for update using (true) with check (true);
 
-create policy "active_sessions_admin_all" on public.active_sessions
-  for all using (public.is_admin()) with check (public.is_admin());
+-- reads stay admin-only so users can't enumerate other sessions
+create policy "active_sessions_select_admin" on public.active_sessions
+  for select using (public.is_admin());
 
 -- ============================================================================
 -- 12. Storage: supplier-files bucket

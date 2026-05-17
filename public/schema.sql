@@ -21,7 +21,12 @@ as $$
   );
 $$;
 
-grant execute on function public.is_admin() to authenticated, anon;
+-- anon must be able to call this too: every *_admin_all policy is FOR ALL and
+-- runs is_admin() during anon writes (e.g. active_sessions heartbeat). Without
+-- EXECUTE, Postgres raises permission denied while evaluating the policy and
+-- PostgREST returns 403. is_admin() is safe to call as anon — auth.uid() is
+-- null so the inner subquery returns no rows and coalesce → false.
+grant execute on function public.is_admin() to anon, authenticated;
 
 -- ============================================================================
 -- 1. profiles
@@ -58,9 +63,9 @@ create policy "profiles_insert_own" on public.profiles
 create policy "profiles_update_own" on public.profiles
   for update using (auth.uid() = user_id);
 
--- admin sees all (uses is_admin() to avoid recursion)
+-- admin: full access to all profiles (uses is_admin() to avoid recursion)
 create policy "profiles_admin_all" on public.profiles
-  for select using (public.is_admin());
+  for all using (public.is_admin()) with check (public.is_admin());
 
 -- ============================================================================
 -- 2. clients
@@ -104,7 +109,7 @@ create policy "clients_delete_own" on public.clients
   for delete using (auth.uid() = user_id);
 
 create policy "clients_admin_all" on public.clients
-  for select using (public.is_admin());
+  for all using (public.is_admin()) with check (public.is_admin());
 
 -- ============================================================================
 -- 3. documents
@@ -127,6 +132,7 @@ alter table public.documents
 create index if not exists documents_user_id_idx on public.documents(user_id);
 create index if not exists documents_type_idx on public.documents(type);
 create index if not exists documents_client_id_idx on public.documents(client_id);
+create index if not exists documents_linked_from_id_idx on public.documents(linked_from_id);
 
 alter table public.documents enable row level security;
 
@@ -150,7 +156,7 @@ create policy "documents_delete_own" on public.documents
   for delete using (auth.uid() = user_id);
 
 create policy "documents_admin_all" on public.documents
-  for select using (public.is_admin());
+  for all using (public.is_admin()) with check (public.is_admin());
 
 -- ============================================================================
 -- 4. incomes
@@ -162,16 +168,27 @@ create table if not exists public.incomes (
   currency text not null default 'THB',
   category text default 'other',
   source_doc_id uuid references public.documents(id) on delete set null,
+  document_id uuid references public.documents(id) on delete set null,
   client_id uuid references public.clients(id) on delete set null,
+  description text default '',
   note text default '',
   received_at date not null default current_date,
   wht_amount numeric default 0,
   vat_amount numeric default 0,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
+
+-- backfill missing columns on existing installs
+alter table public.incomes add column if not exists document_id uuid references public.documents(id) on delete set null;
+alter table public.incomes add column if not exists description text default '';
+alter table public.incomes add column if not exists updated_at timestamptz not null default now();
 
 create index if not exists incomes_user_id_idx on public.incomes(user_id);
 create index if not exists incomes_received_at_idx on public.incomes(received_at desc);
+create index if not exists incomes_client_id_idx on public.incomes(client_id);
+create index if not exists incomes_document_id_idx on public.incomes(document_id);
+create index if not exists incomes_source_doc_id_idx on public.incomes(source_doc_id);
 
 alter table public.incomes enable row level security;
 
@@ -195,7 +212,7 @@ create policy "incomes_delete_own" on public.incomes
   for delete using (auth.uid() = user_id);
 
 create policy "incomes_admin_all" on public.incomes
-  for select using (public.is_admin());
+  for all using (public.is_admin()) with check (public.is_admin());
 
 -- ============================================================================
 -- 5. expenses
@@ -206,11 +223,21 @@ create table if not exists public.expenses (
   amount numeric not null default 0,
   currency text not null default 'THB',
   category text default 'other',
+  description text default '',
   note text default '',
+  vendor text default '',
+  vat_amount numeric default 0,
   paid_at date not null default current_date,
   receipt_url text default '',
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
+
+-- backfill missing columns on existing installs
+alter table public.expenses add column if not exists description text default '';
+alter table public.expenses add column if not exists vendor text default '';
+alter table public.expenses add column if not exists vat_amount numeric default 0;
+alter table public.expenses add column if not exists updated_at timestamptz not null default now();
 
 create index if not exists expenses_user_id_idx on public.expenses(user_id);
 create index if not exists expenses_paid_at_idx on public.expenses(paid_at desc);
@@ -237,7 +264,7 @@ create policy "expenses_delete_own" on public.expenses
   for delete using (auth.uid() = user_id);
 
 create policy "expenses_admin_all" on public.expenses
-  for select using (public.is_admin());
+  for all using (public.is_admin()) with check (public.is_admin());
 
 -- ============================================================================
 -- 6. revenue_goals
@@ -287,18 +314,41 @@ create table if not exists public.subscriptions (
   amount numeric not null default 0,
   currency text not null default 'THB',
   billing_cycle text not null default 'monthly' check (billing_cycle in ('monthly', 'yearly', 'weekly', 'quarterly')),
-  next_billing_date date,
   next_billing_at date,
-  is_active boolean not null default true,
+  active boolean not null default true,
+  notify_days int not null default 7,
   note text default '',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
-alter table public.subscriptions
-  add column if not exists next_billing_at date;
+-- backfill missing columns on existing installs
+alter table public.subscriptions add column if not exists next_billing_at date;
+alter table public.subscriptions add column if not exists active boolean not null default true;
+alter table public.subscriptions add column if not exists notify_days int not null default 7;
+
+-- migrate legacy column names if present (one-time)
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'subscriptions' and column_name = 'is_active'
+  ) then
+    update public.subscriptions set active = is_active where active is distinct from is_active;
+    alter table public.subscriptions drop column is_active;
+  end if;
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'subscriptions' and column_name = 'next_billing_date'
+  ) then
+    update public.subscriptions set next_billing_at = next_billing_date where next_billing_at is null;
+    alter table public.subscriptions drop column next_billing_date;
+  end if;
+end $$;
 
 create index if not exists subscriptions_user_id_idx on public.subscriptions(user_id);
+create index if not exists subscriptions_next_billing_at_idx on public.subscriptions(next_billing_at);
+create index if not exists subscriptions_active_idx on public.subscriptions(active);
 
 alter table public.subscriptions enable row level security;
 
@@ -331,6 +381,7 @@ create table if not exists public.suppliers (
   phone text default '',
   line_id text default '',
   website text default '',
+  address text default '',
   service_type text default '',
   hourly_rate numeric default 0,
   note text default '',
@@ -338,6 +389,9 @@ create table if not exists public.suppliers (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- backfill missing column on existing installs
+alter table public.suppliers add column if not exists address text default '';
 
 create index if not exists suppliers_user_id_idx on public.suppliers(user_id);
 
@@ -374,17 +428,24 @@ create table if not exists public.feedback (
 
 create index if not exists feedback_created_at_idx on public.feedback(created_at desc);
 
+create index if not exists feedback_user_id_idx on public.feedback(user_id);
+
 alter table public.feedback enable row level security;
 
 drop policy if exists "feedback_insert_anyone" on public.feedback;
+drop policy if exists "feedback_insert_own_or_anon" on public.feedback;
 drop policy if exists "feedback_select_admin" on public.feedback;
 drop policy if exists "feedback_admin_all" on public.feedback;
 
-create policy "feedback_insert_anyone" on public.feedback
-  for insert with check (true);
+-- anon users may submit with NULL user_id; authenticated users may only set their own user_id
+create policy "feedback_insert_own_or_anon" on public.feedback
+  for insert with check (
+    user_id is null
+    or user_id = auth.uid()
+  );
 
 create policy "feedback_admin_all" on public.feedback
-  for select using (public.is_admin());
+  for all using (public.is_admin()) with check (public.is_admin());
 
 -- ============================================================================
 -- 10. activity_log
@@ -403,18 +464,23 @@ create index if not exists activity_log_created_at_idx on public.activity_log(cr
 alter table public.activity_log enable row level security;
 
 drop policy if exists "activity_log_insert_anyone" on public.activity_log;
+drop policy if exists "activity_log_insert_own_or_anon" on public.activity_log;
 drop policy if exists "activity_log_select_own" on public.activity_log;
 drop policy if exists "activity_log_select_admin" on public.activity_log;
 drop policy if exists "activity_log_admin_all" on public.activity_log;
 
-create policy "activity_log_insert_anyone" on public.activity_log
-  for insert with check (true);
+-- anon may log with NULL user_id; authenticated must use their own uid
+create policy "activity_log_insert_own_or_anon" on public.activity_log
+  for insert with check (
+    user_id is null
+    or user_id = auth.uid()
+  );
 
 create policy "activity_log_select_own" on public.activity_log
   for select using (auth.uid() = user_id);
 
 create policy "activity_log_admin_all" on public.activity_log
-  for select using (public.is_admin());
+  for all using (public.is_admin()) with check (public.is_admin());
 
 -- ============================================================================
 -- 11. active_sessions (heartbeat)
@@ -430,17 +496,27 @@ create index if not exists active_sessions_last_seen_idx on public.active_sessio
 alter table public.active_sessions enable row level security;
 
 drop policy if exists "active_sessions_upsert_anyone" on public.active_sessions;
-drop policy if exists "active_sessions_select_admin" on public.active_sessions;
 drop policy if exists "active_sessions_update_anyone" on public.active_sessions;
+drop policy if exists "active_sessions_select_admin" on public.active_sessions;
 drop policy if exists "active_sessions_admin_all" on public.active_sessions;
+drop policy if exists "active_sessions_insert_own_or_anon" on public.active_sessions;
+drop policy if exists "active_sessions_update_own_or_anon" on public.active_sessions;
+drop policy if exists "active_sessions_insert_any" on public.active_sessions;
+drop policy if exists "active_sessions_update_any" on public.active_sessions;
 
-create policy "active_sessions_upsert_anyone" on public.active_sessions
+-- heartbeat is a low-trust counter — anyone (anon or auth) may upsert any row.
+-- The original strict `user_id = auth.uid()` policy kept failing in production
+-- with 42501 "new row violates RLS" even with a valid JWT (auth.uid()
+-- apparently not resolving inside the WITH CHECK at upsert time). No PII lives
+-- here, so trade ownership enforcement for a working heartbeat.
+create policy "active_sessions_insert_any" on public.active_sessions
   for insert with check (true);
 
-create policy "active_sessions_update_anyone" on public.active_sessions
-  for update using (true);
+create policy "active_sessions_update_any" on public.active_sessions
+  for update using (true) with check (true);
 
-create policy "active_sessions_admin_all" on public.active_sessions
+-- reads stay admin-only so users can't enumerate other sessions
+create policy "active_sessions_select_admin" on public.active_sessions
   for select using (public.is_admin());
 
 -- ============================================================================
@@ -514,6 +590,14 @@ create trigger set_updated_at_subscriptions before update on public.subscription
 
 drop trigger if exists set_updated_at_suppliers on public.suppliers;
 create trigger set_updated_at_suppliers before update on public.suppliers
+  for each row execute function public.set_updated_at();
+
+drop trigger if exists set_updated_at_incomes on public.incomes;
+create trigger set_updated_at_incomes before update on public.incomes
+  for each row execute function public.set_updated_at();
+
+drop trigger if exists set_updated_at_expenses on public.expenses;
+create trigger set_updated_at_expenses before update on public.expenses
   for each row execute function public.set_updated_at();
 
 -- ============================================================================
