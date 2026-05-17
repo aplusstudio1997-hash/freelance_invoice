@@ -70,12 +70,16 @@ export default function LandingFAQ() {
                 />
               </button>
               <div
-                className={`overflow-hidden transition-all ${
-                  openIdx === i ? "max-h-60" : "max-h-0"
+                className={`grid transition-all ${
+                  openIdx === i
+                    ? "grid-rows-[1fr] opacity-100"
+                    : "grid-rows-[0fr] opacity-0"
                 }`}
               >
-                <div className="px-5 pb-4 text-sm text-ink-600 leading-relaxed">
-                  {f.a}
+                <div className="overflow-hidden">
+                  <div className="px-5 pb-4 text-sm text-ink-600 leading-relaxed">
+                    {f.a}
+                  </div>
                 </div>
               </div>
             </div>

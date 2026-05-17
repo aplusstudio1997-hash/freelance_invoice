@@ -12,6 +12,7 @@ import {
   Wand2,
 } from "lucide-react";
 import { fmtMoney } from "@/lib/finance-utils";
+import { useModalDismiss } from "@/lib/useModalDismiss";
 
 interface Props {
   open: boolean;
@@ -49,8 +50,6 @@ export default function AiPriceCheckModal({ open, onClose }: Props) {
   const [complexity, setComplexity] = useState<string>("medium");
   const [urgency, setUrgency] = useState<string>("normal");
 
-  if (!open) return null;
-
   const reset = () => {
     setStep(1);
     setWorkType("logo");
@@ -63,10 +62,17 @@ export default function AiPriceCheckModal({ open, onClose }: Props) {
     onClose();
   };
 
+  const { onBackdropClick } = useModalDismiss(close, { open });
+
+  if (!open) return null;
+
   const estimate = mockEstimate(workType, complexity, urgency);
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm"
+      onClick={onBackdropClick}
+    >
       <div className="bg-white sm:rounded-3xl rounded-t-3xl w-full sm:max-w-lg shadow-soft-lg max-h-[92vh] flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-orange-100">
           <div className="flex items-center gap-2">

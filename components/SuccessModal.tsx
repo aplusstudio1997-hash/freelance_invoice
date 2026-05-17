@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckCircle2, MessageSquare, Coffee, FileText, X } from "lucide-react";
+import { useModalDismiss } from "@/lib/useModalDismiss";
 
 interface Props {
   open: boolean;
@@ -17,10 +18,14 @@ export default function SuccessModal({
   onDonate,
   onViewPDF,
 }: Props) {
+  const { onBackdropClick } = useModalDismiss(onClose, { open });
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+      onClick={onBackdropClick}
+    >
       <div className="bg-white rounded-xl max-w-md w-full p-6 animate-fadeIn shadow-xl relative">
         <button
           onClick={onClose}

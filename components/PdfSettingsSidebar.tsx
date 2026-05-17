@@ -2,6 +2,7 @@
 
 import { Eye, EyeOff, Settings2, X } from "lucide-react";
 import { useState } from "react";
+import { useModalDismiss } from "@/lib/useModalDismiss";
 
 export interface PdfVisibility {
   contactFrom: boolean;
@@ -206,6 +207,7 @@ export function PdfSettingsButton({
   const [open, setOpen] = useState(false);
   const visibleCount = Object.values(visibility).filter(Boolean).length;
   const totalCount = Object.values(visibility).length;
+  const { onBackdropClick } = useModalDismiss(() => setOpen(false), { open });
 
   return (
     <>
@@ -221,7 +223,10 @@ export function PdfSettingsButton({
       </button>
 
       {open && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 no-print">
+        <div
+          className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 no-print"
+          onClick={onBackdropClick}
+        >
           <div className="bg-white sm:rounded-xl w-full sm:max-w-md flex flex-col max-h-[85vh] sm:max-h-[80vh] shadow-xl rounded-t-xl">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 shrink-0">
               <div className="flex items-center gap-2">

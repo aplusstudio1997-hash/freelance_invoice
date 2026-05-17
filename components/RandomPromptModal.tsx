@@ -12,6 +12,7 @@ import {
   Check,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useModalDismiss } from "@/lib/useModalDismiss";
 
 interface Props {
   open: boolean;
@@ -28,6 +29,7 @@ export default function RandomPromptModal({
   const [promptIdx, setPromptIdx] = useState(0);
   const [chaosList, setChaosList] = useState<number[]>([]);
   const [copied, setCopied] = useState(false);
+  const { onBackdropClick } = useModalDismiss(onClose, { open });
 
   const [timerOn, setTimerOn] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -124,6 +126,7 @@ export default function RandomPromptModal({
   return (
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto"
+      onClick={onBackdropClick}
     >
       <div
         className="bg-white rounded-xl max-w-lg w-full p-5 sm:p-6 animate-fadeIn shadow-xl my-auto"

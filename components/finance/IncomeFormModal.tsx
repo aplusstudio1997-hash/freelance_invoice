@@ -17,6 +17,7 @@ import {
 } from "@/lib/finance";
 import { INCOME_CATEGORIES, fmtDateInput } from "@/lib/finance-utils";
 import { useDocuments } from "@/lib/documents";
+import { useModalDismiss } from "@/lib/useModalDismiss";
 
 interface Props {
   open: boolean;
@@ -55,6 +56,7 @@ export default function IncomeFormModal({
   const [form, setForm] = useState<IncomeInput>(EMPTY);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { onBackdropClick } = useModalDismiss(onClose, { open });
 
   useEffect(() => {
     if (!open) return;
@@ -116,7 +118,10 @@ export default function IncomeFormModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm"
+      onClick={onBackdropClick}
+    >
       <div className="bg-white sm:rounded-3xl rounded-t-3xl w-full sm:max-w-lg shadow-soft-lg max-h-[92vh] flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-orange-100">
           <div className="flex items-center gap-2">
@@ -298,7 +303,11 @@ function NumberField({
 }) {
   const [str, setStr] = useState(value ? String(value) : "");
   useEffect(() => {
-    setStr(value ? String(value) : "");
+    setStr((prev) => {
+      const parsed = parseFloat(prev);
+      if (Number.isFinite(parsed) && parsed === value) return prev;
+      return value ? String(value) : "";
+    });
   }, [value]);
 
   return (

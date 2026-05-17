@@ -3,6 +3,7 @@
 import { Service } from "@/lib/types";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useModalDismiss } from "@/lib/useModalDismiss";
 
 function parseMoney(s: string): number {
   const n = parseFloat(s.replace(/,/g, ""));
@@ -32,6 +33,7 @@ export default function ServiceEditModal({
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [quantity, setQuantity] = useState("1");
+  const { onBackdropClick } = useModalDismiss(onClose, { open: open && !!service });
 
   useEffect(() => {
     if (service) {
@@ -61,6 +63,7 @@ export default function ServiceEditModal({
   return (
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+      onClick={onBackdropClick}
     >
       <div
         className="bg-white rounded-xl max-w-md w-full p-6 animate-fadeIn shadow-xl"

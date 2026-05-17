@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useModalDismiss } from "@/lib/useModalDismiss";
 
 interface Props {
   open: boolean;
@@ -16,6 +17,7 @@ export default function BillableRevisionModal({
   onClose,
   onSave,
 }: Props) {
+  const { onBackdropClick } = useModalDismiss(onClose, { open });
   const [value, setValue] = useState(String(current));
 
   useEffect(() => {
@@ -37,6 +39,7 @@ export default function BillableRevisionModal({
   return (
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+      onClick={onBackdropClick}
     >
       <div
         className="bg-white rounded-xl max-w-sm w-full p-6 animate-fadeIn shadow-xl"

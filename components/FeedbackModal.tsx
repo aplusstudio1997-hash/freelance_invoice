@@ -3,6 +3,7 @@
 import { sendFeedback } from "@/lib/api";
 import { MessageSquare, Send, X, Coffee, Star, Check } from "lucide-react";
 import { useState } from "react";
+import { useModalDismiss } from "@/lib/useModalDismiss";
 
 interface Props {
   open: boolean;
@@ -22,8 +23,6 @@ export default function FeedbackModal({
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
 
-  if (!open) return null;
-
   const close = () => {
     setMessage("");
     setEmail("");
@@ -32,6 +31,10 @@ export default function FeedbackModal({
     setSending(false);
     onClose();
   };
+
+  const { onBackdropClick } = useModalDismiss(close, { open: open && !sending });
+
+  if (!open) return null;
 
   const send = async () => {
     const trimmed = message.trim();
@@ -66,6 +69,7 @@ export default function FeedbackModal({
   return (
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto"
+      onClick={onBackdropClick}
     >
       <div
         className="bg-white rounded-xl max-w-md w-full p-6 animate-fadeIn shadow-xl my-auto"

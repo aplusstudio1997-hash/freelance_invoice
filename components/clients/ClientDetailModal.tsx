@@ -21,6 +21,7 @@ import {
   DocumentSummary,
   listDocumentsByClient,
 } from "@/lib/repository";
+import { useModalDismiss } from "@/lib/useModalDismiss";
 
 interface Props {
   client: ClientRecord;
@@ -52,6 +53,7 @@ export default function ClientDetailModal({
   const [docs, setDocs] = useState<DocumentSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const { onBackdropClick } = useModalDismiss(onClose);
 
   useEffect(() => {
     let cancelled = false;
@@ -71,7 +73,10 @@ export default function ClientDetailModal({
   }, [client.id]);
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm"
+      onClick={onBackdropClick}
+    >
       <div className="bg-white sm:rounded-3xl rounded-t-3xl w-full sm:max-w-2xl shadow-soft-lg max-h-[92vh] flex flex-col">
         <div className="flex items-start justify-between px-5 py-4 border-b border-orange-100">
           <div className="flex items-start gap-3 min-w-0 flex-1">

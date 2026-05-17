@@ -2,6 +2,7 @@
 
 import { X, Facebook, Send, Link2, Check } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useModalDismiss } from "@/lib/useModalDismiss";
 
 interface Props {
   open: boolean;
@@ -11,6 +12,7 @@ interface Props {
 export default function ShareModal({ open, onClose }: Props) {
   const [copied, setCopied] = useState(false);
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { onBackdropClick } = useModalDismiss(onClose, { open });
 
   // clear the "copied" timer on unmount so it doesn't setState on a dead modal
   useEffect(() => {
@@ -59,6 +61,7 @@ export default function ShareModal({ open, onClose }: Props) {
   return (
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+      onClick={onBackdropClick}
     >
       <div
         className="bg-white rounded-xl max-w-sm w-full p-6 animate-fadeIn shadow-xl"

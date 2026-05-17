@@ -1,6 +1,7 @@
 "use client";
 
 import { Coffee, X, Heart } from "lucide-react";
+import { useModalDismiss } from "@/lib/useModalDismiss";
 
 interface Props {
   open: boolean;
@@ -8,11 +9,13 @@ interface Props {
 }
 
 export default function DonationModal({ open, onClose }: Props) {
+  const { onBackdropClick } = useModalDismiss(onClose, { open });
   if (!open) return null;
 
   return (
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+      onClick={onBackdropClick}
     >
       <div
         className="bg-white rounded-xl max-w-md w-full p-6 animate-fadeIn shadow-xl"

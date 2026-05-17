@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X, Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { useModalDismiss } from "@/lib/useModalDismiss";
 
 interface Props {
   onClose: () => void;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export default function AuthModal({ onClose, initialMode = "login" }: Props) {
+  const { onBackdropClick } = useModalDismiss(onClose);
   const { signInWithEmail, signUpWithEmail, signInWithGoogle } = useAuth();
   const [mode, setMode] = useState<"login" | "signup">(initialMode);
   const [email, setEmail] = useState("");
@@ -62,7 +64,10 @@ export default function AuthModal({ onClose, initialMode = "login" }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4">
+    <div
+      className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4"
+      onClick={onBackdropClick}
+    >
       <div className="bg-white sm:rounded-xl rounded-t-xl w-full sm:max-w-sm shadow-xl">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <h3 className="font-semibold text-gray-800">

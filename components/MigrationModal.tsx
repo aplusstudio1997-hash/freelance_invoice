@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Loader2, UploadCloud, X, Check } from "lucide-react";
 import { loadDraft, loadProfile, clearDraft } from "@/lib/storage";
+import { useModalDismiss } from "@/lib/useModalDismiss";
 import {
   createDocument,
   createClient,
@@ -21,6 +22,7 @@ export default function MigrationModal({ onClose, onDone }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<string>("");
+  const { onBackdropClick } = useModalDismiss(onClose, { open: !busy });
   // mount flag so async setState calls don't fire after unmount
   const mountedRef = useRef(true);
   useEffect(() => {
@@ -81,7 +83,10 @@ export default function MigrationModal({ onClose, onDone }: Props) {
   const skip = () => onDone();
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm"
+      onClick={onBackdropClick}
+    >
       <div className="bg-white sm:rounded-3xl rounded-t-3xl w-full sm:max-w-md shadow-soft-lg">
         <div className="flex items-center justify-between px-5 py-4 border-b border-orange-100">
           <h3 className="font-semibold text-ink-900">นำเข้าข้อมูลเก่า</h3>

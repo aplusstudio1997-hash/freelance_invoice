@@ -8,6 +8,7 @@ import {
 } from "@/lib/types";
 import { X, Image as ImageIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useModalDismiss } from "@/lib/useModalDismiss";
 
 interface Props {
   open: boolean;
@@ -35,6 +36,7 @@ export default function ProfileModal({
   const [form, setForm] = useState<Profile>(profile);
   const logoRef = useRef<HTMLInputElement>(null);
   const qrRef = useRef<HTMLInputElement>(null);
+  const { onBackdropClick } = useModalDismiss(onClose, { open });
 
   useEffect(() => {
     if (open) setForm(profile);
@@ -82,6 +84,7 @@ export default function ProfileModal({
   return (
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+      onClick={onBackdropClick}
     >
       <div
         className="bg-white rounded-xl max-w-md w-full shadow-xl animate-fadeIn flex flex-col"

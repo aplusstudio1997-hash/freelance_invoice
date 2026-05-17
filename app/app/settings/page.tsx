@@ -20,6 +20,7 @@ import {
 import FeedbackModal from "@/components/FeedbackModal";
 import DonationModal from "@/components/DonationModal";
 import ShareModal from "@/components/ShareModal";
+import { version as APP_VERSION } from "@/package.json";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -128,7 +129,7 @@ export default function SettingsPage() {
       <section className="bg-white/85 backdrop-blur border border-orange-100/80 rounded-3xl shadow-soft p-5 sm:p-6">
         <h3 className="font-semibold text-ink-900 mb-3">เกี่ยวกับ</h3>
         <div className="text-xs text-ink-400 space-y-1">
-          <div>So1o Freelancer v1.1.0 — Beta</div>
+          <div>So1o Freelancer v{APP_VERSION} — Beta</div>
           <div>หลังบ้านฟรีแลนซ์ของคุณ</div>
         </div>
         <div className="mt-3 flex flex-wrap gap-2 text-xs">

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { X, Target, Loader2 } from "lucide-react";
 import { upsertGoal } from "@/lib/finance";
 import { THAI_MONTHS } from "@/lib/finance-utils";
+import { useModalDismiss } from "@/lib/useModalDismiss";
 
 interface Props {
   open: boolean;
@@ -27,6 +28,7 @@ export default function GoalModal({
   const [str, setStr] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { onBackdropClick } = useModalDismiss(onClose, { open });
 
   useEffect(() => {
     if (open) {
@@ -57,7 +59,10 @@ export default function GoalModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm"
+      onClick={onBackdropClick}
+    >
       <div className="bg-white sm:rounded-3xl rounded-t-3xl w-full sm:max-w-sm shadow-soft-lg">
         <div className="flex items-center justify-between px-5 py-4 border-b border-orange-100">
           <div className="flex items-center gap-2">

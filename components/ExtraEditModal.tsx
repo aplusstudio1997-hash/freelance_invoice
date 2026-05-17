@@ -3,6 +3,7 @@
 import { ExtraOption } from "@/lib/types";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useModalDismiss } from "@/lib/useModalDismiss";
 
 interface Props {
   open: boolean;
@@ -19,6 +20,7 @@ export default function ExtraEditModal({
   onSave,
   onDelete,
 }: Props) {
+  const { onBackdropClick } = useModalDismiss(onClose, { open: open && !!extra });
   const [label, setLabel] = useState("");
   const [percent, setPercent] = useState("0");
 
@@ -52,6 +54,7 @@ export default function ExtraEditModal({
   return (
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+      onClick={onBackdropClick}
     >
       <div
         className="bg-white rounded-xl max-w-md w-full p-6 animate-fadeIn shadow-xl"

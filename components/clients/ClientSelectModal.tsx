@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useDocuments } from "@/lib/documents";
 import { X, Search, UserPlus, User, CheckCircle2 } from "lucide-react";
 import ClientFormModal from "./ClientFormModal";
+import { useModalDismiss } from "@/lib/useModalDismiss";
 
 interface Props {
   open: boolean;
@@ -15,6 +16,7 @@ export default function ClientSelectModal({ open, onClose }: Props) {
     useDocuments();
   const [search, setSearch] = useState("");
   const [addOpen, setAddOpen] = useState(false);
+  const { onBackdropClick } = useModalDismiss(onClose, { open: open && !addOpen });
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -36,7 +38,10 @@ export default function ClientSelectModal({ open, onClose }: Props) {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm">
+      <div
+        className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm"
+        onClick={onBackdropClick}
+      >
         <div className="bg-white sm:rounded-3xl rounded-t-3xl w-full sm:max-w-lg shadow-soft-lg max-h-[92vh] flex flex-col">
           <div className="flex items-center justify-between px-5 py-4 border-b border-orange-100">
             <div className="flex items-center gap-2">

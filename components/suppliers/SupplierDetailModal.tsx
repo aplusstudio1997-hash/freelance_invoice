@@ -26,6 +26,7 @@ import {
   getSupplierFileUrl,
 } from "@/lib/suppliers";
 import { SUPPLIER_CATEGORIES } from "./SupplierFormModal";
+import { useModalDismiss } from "@/lib/useModalDismiss";
 
 interface Props {
   supplier: SupplierRecord;
@@ -68,6 +69,7 @@ export default function SupplierDetailModal({
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { onBackdropClick } = useModalDismiss(onClose, { open: !uploading });
 
   const onPickFiles = () => inputRef.current?.click();
 
@@ -119,7 +121,10 @@ export default function SupplierDetailModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm"
+      onClick={onBackdropClick}
+    >
       <div className="bg-white sm:rounded-3xl rounded-t-3xl w-full sm:max-w-2xl shadow-soft-lg max-h-[92vh] flex flex-col">
         <div className="flex items-start justify-between px-5 py-4 border-b border-orange-100">
           <div className="flex items-start gap-3 min-w-0 flex-1">

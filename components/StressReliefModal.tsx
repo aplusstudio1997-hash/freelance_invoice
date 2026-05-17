@@ -9,6 +9,7 @@ import {
 } from "@/lib/prompts";
 import { X, Dice5, RefreshCw, Wand2, MessageCircle, Folder } from "lucide-react";
 import { useState } from "react";
+import { useModalDismiss } from "@/lib/useModalDismiss";
 
 interface Props {
   open: boolean;
@@ -18,6 +19,7 @@ interface Props {
 type Tab = "fortune" | "excuse" | "filename";
 
 export default function StressReliefModal({ open, onClose }: Props) {
+  const { onBackdropClick } = useModalDismiss(onClose, { open });
   const [tab, setTab] = useState<Tab>("fortune");
   const [fortune, setFortune] = useState(() => pickRandom(FORTUNES, ""));
   const [excuse, setExcuse] = useState("");
@@ -31,6 +33,7 @@ export default function StressReliefModal({ open, onClose }: Props) {
   return (
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto"
+      onClick={onBackdropClick}
     >
       <div
         className="bg-white rounded-xl max-w-lg w-full p-5 sm:p-6 animate-fadeIn shadow-xl my-auto"

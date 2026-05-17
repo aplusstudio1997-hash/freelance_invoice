@@ -12,6 +12,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { ClientRecord } from "@/lib/repository";
+import { useModalDismiss } from "@/lib/useModalDismiss";
 
 export interface ClientFormData {
   name: string;
@@ -49,6 +50,7 @@ export default function ClientFormModal({
   const [form, setForm] = useState<ClientFormData>(EMPTY);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { onBackdropClick } = useModalDismiss(onClose, { open });
 
   useEffect(() => {
     if (!open) return;
@@ -91,7 +93,10 @@ export default function ClientFormModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm"
+      onClick={onBackdropClick}
+    >
       <div className="bg-white sm:rounded-3xl rounded-t-3xl w-full sm:max-w-lg shadow-soft-lg max-h-[92vh] flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-orange-100">
           <h3 className="font-semibold text-ink-900">

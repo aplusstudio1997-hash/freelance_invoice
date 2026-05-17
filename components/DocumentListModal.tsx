@@ -16,6 +16,7 @@ import { DocumentType } from "@/lib/types";
 import { useAuth } from "@/lib/auth";
 import { useDocuments } from "@/lib/documents";
 import { DocumentSummary, listDocuments } from "@/lib/repository";
+import { useModalDismiss } from "@/lib/useModalDismiss";
 
 const TYPE_LABELS: Record<DocumentType, string> = {
   quote: "ใบเสนอราคา",
@@ -52,6 +53,7 @@ export default function DocumentListModal({
   const [quoteList, setQuoteList] = useState<DocumentSummary[]>([]);
   const [busy, setBusy] = useState(false);
   const [search, setSearch] = useState("");
+  const { onBackdropClick } = useModalDismiss(onClose);
 
   useEffect(() => {
     if ((filterType === "invoice" || filterType === "receipt") && user) {
@@ -80,7 +82,10 @@ export default function DocumentListModal({
 
   if (!user) {
     return (
-      <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+      <div
+        className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+        onClick={onBackdropClick}
+      >
         <div className="bg-white rounded-3xl max-w-sm w-full p-5 shadow-soft-lg">
           <div className="flex items-start justify-between mb-3">
             <h3 className="font-semibold text-ink-900">เอกสารของฉัน</h3>
@@ -113,7 +118,10 @@ export default function DocumentListModal({
     );
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm"
+      onClick={onBackdropClick}
+    >
       <div className="bg-white sm:rounded-3xl rounded-t-3xl w-full sm:max-w-xl shadow-soft-lg flex flex-col max-h-[88vh]">
         <div className="flex items-center justify-between px-5 py-4 border-b border-orange-100">
           <div>
