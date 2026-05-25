@@ -3,6 +3,7 @@
 import { ExtraOption } from "@/lib/types";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useModalDismiss } from "@/lib/useModalDismiss";
 
 interface Props {
@@ -31,7 +32,7 @@ export default function ExtraEditModal({
     }
   }, [extra]);
 
-  if (!open || !extra) return null;
+  if (!open || !extra || typeof document === "undefined") return null;
 
   const save = () => {
     const l = label.trim();
@@ -51,7 +52,7 @@ export default function ExtraEditModal({
 
   const isNew = extra.id.startsWith("new_");
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
       onClick={onBackdropClick}
@@ -136,6 +137,7 @@ export default function ExtraEditModal({
           </button>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

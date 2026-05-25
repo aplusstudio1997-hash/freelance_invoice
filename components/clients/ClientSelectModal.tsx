@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useDocuments } from "@/lib/documents";
 import { X, Search, UserPlus, User, CheckCircle2 } from "lucide-react";
 import ClientFormModal from "./ClientFormModal";
@@ -29,14 +30,14 @@ export default function ClientSelectModal({ open, onClose }: Props) {
     );
   }, [clients, search]);
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
   const pick = async (id: string) => {
     await attachClient(id);
     onClose();
   };
 
-  return (
+  return createPortal(
     <>
       <div
         className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm"
@@ -164,6 +165,7 @@ export default function ClientSelectModal({ open, onClose }: Props) {
           onClose();
         }}
       />
-    </>
+    </>,
+    document.body
   );
 }

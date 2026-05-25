@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import {
   X,
   Sparkles,
@@ -64,11 +65,11 @@ export default function AiPriceCheckModal({ open, onClose }: Props) {
 
   const { onBackdropClick } = useModalDismiss(close, { open });
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
   const estimate = mockEstimate(workType, complexity, urgency);
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm"
       onClick={onBackdropClick}
@@ -262,7 +263,8 @@ export default function AiPriceCheckModal({ open, onClose }: Props) {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

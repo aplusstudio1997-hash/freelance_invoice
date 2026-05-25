@@ -12,6 +12,7 @@ import {
   Check,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useModalDismiss } from "@/lib/useModalDismiss";
 
 interface Props {
@@ -54,7 +55,7 @@ export default function RandomPromptModal({
     }
   }, [open]);
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
   const catData = PROMPT_CATEGORIES[category];
   const prompt = catData.prompts[promptIdx % catData.prompts.length];
@@ -123,7 +124,7 @@ export default function RandomPromptModal({
     return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
   };
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto"
       onClick={onBackdropClick}
@@ -266,7 +267,8 @@ export default function RandomPromptModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

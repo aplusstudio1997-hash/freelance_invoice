@@ -3,6 +3,7 @@
 import { Service } from "@/lib/types";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useModalDismiss } from "@/lib/useModalDismiss";
 
 function parseMoney(s: string): number {
@@ -44,7 +45,7 @@ export default function ServiceEditModal({
     }
   }, [service]);
 
-  if (!open || !service) return null;
+  if (!open || !service || typeof document === "undefined") return null;
 
   const save = () => {
     const n = name.trim();
@@ -60,7 +61,7 @@ export default function ServiceEditModal({
     onClose();
   };
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
       onClick={onBackdropClick}
@@ -150,6 +151,7 @@ export default function ServiceEditModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckCircle2, MessageSquare, Coffee, Download, X } from "lucide-react";
+import { createPortal } from "react-dom";
 import { useModalDismiss } from "@/lib/useModalDismiss";
 
 interface Props {
@@ -19,9 +20,9 @@ export default function SuccessModal({
   onViewPDF,
 }: Props) {
   const { onBackdropClick } = useModalDismiss(onClose, { open });
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
       onClick={onBackdropClick}
@@ -76,6 +77,7 @@ export default function SuccessModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Loader2, UploadCloud, X, Check } from "lucide-react";
 import { loadDraft, loadProfile, clearDraft } from "@/lib/storage";
 import { useModalDismiss } from "@/lib/useModalDismiss";
@@ -82,7 +83,9 @@ export default function MigrationModal({ onClose, onDone }: Props) {
 
   const skip = () => onDone();
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm"
       onClick={onBackdropClick}
@@ -154,7 +157,8 @@ export default function MigrationModal({ onClose, onDone }: Props) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

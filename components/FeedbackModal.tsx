@@ -3,6 +3,7 @@
 import { sendFeedback } from "@/lib/api";
 import { MessageSquare, Send, X, Coffee, Star, Check } from "lucide-react";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useModalDismiss } from "@/lib/useModalDismiss";
 
 interface Props {
@@ -34,7 +35,7 @@ export default function FeedbackModal({
 
   const { onBackdropClick } = useModalDismiss(close, { open: open && !sending });
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
   const send = async () => {
     const trimmed = message.trim();
@@ -66,7 +67,7 @@ export default function FeedbackModal({
     5: "ยอดเยี่ยม!",
   };
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto"
       onClick={onBackdropClick}
@@ -196,6 +197,7 @@ export default function FeedbackModal({
           </>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   X,
   User,
@@ -70,7 +71,7 @@ export default function ClientFormModal({
     setError(null);
   }, [open, initial]);
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
   const set = (patch: Partial<ClientFormData>) =>
     setForm((f) => ({ ...f, ...patch }));
@@ -92,7 +93,7 @@ export default function ClientFormModal({
     }
   };
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm"
       onClick={onBackdropClick}
@@ -192,7 +193,8 @@ export default function ClientFormModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

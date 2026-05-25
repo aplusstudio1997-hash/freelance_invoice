@@ -1,6 +1,7 @@
 "use client";
 
 import { Coffee, X, Heart } from "lucide-react";
+import { createPortal } from "react-dom";
 import { useModalDismiss } from "@/lib/useModalDismiss";
 
 interface Props {
@@ -10,9 +11,9 @@ interface Props {
 
 export default function DonationModal({ open, onClose }: Props) {
   const { onBackdropClick } = useModalDismiss(onClose, { open });
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
       onClick={onBackdropClick}
@@ -68,6 +69,7 @@ export default function DonationModal({ open, onClose }: Props) {
           ปิด
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

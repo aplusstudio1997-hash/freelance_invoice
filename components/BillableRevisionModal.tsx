@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useModalDismiss } from "@/lib/useModalDismiss";
 
 interface Props {
@@ -24,7 +25,7 @@ export default function BillableRevisionModal({
     if (open) setValue(String(current));
   }, [open, current]);
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
   const save = () => {
     // explicit Number.isFinite guard so NaN ("abc") doesn't slip through the
@@ -36,7 +37,7 @@ export default function BillableRevisionModal({
     onClose();
   };
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
       onClick={onBackdropClick}
@@ -94,6 +95,7 @@ export default function BillableRevisionModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
