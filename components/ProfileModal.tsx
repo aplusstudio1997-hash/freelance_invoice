@@ -106,7 +106,7 @@ export default function ProfileModal({
           </p>
         </div>
 
-        <div className="flex-1 overflow-y-auto scrollbar-thin p-5 space-y-4 text-sm">
+        <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin p-5 space-y-4 text-sm">
           <section>
             <label className="block text-xs font-medium text-gray-500 mb-2">
               โลโก้ร้าน

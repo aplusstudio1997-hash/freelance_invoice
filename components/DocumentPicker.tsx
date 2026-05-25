@@ -197,7 +197,7 @@ export default function DocumentPicker({
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto scrollbar-thin">
+        <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin">
           {!user ? (
             <div className="text-center py-12 px-6 text-sm text-ink-600">
               ต้องเข้าสู่ระบบก่อนถึงจะเลือกจากเอกสารเดิมได้

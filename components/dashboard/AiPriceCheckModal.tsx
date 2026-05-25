@@ -110,7 +110,7 @@ export default function AiPriceCheckModal({ open, onClose }: Props) {
           </div>
         </div>
 
-        <div className="px-5 py-5 overflow-y-auto flex-1 scrollbar-thin">
+        <div className="px-5 py-5 overflow-y-auto flex-1 min-h-0 scrollbar-thin">
           {step === 1 && (
             <StepBlock
               icon={<Briefcase size={16} />}
