@@ -155,7 +155,7 @@ export default function SupplierDetailModal({
           </button>
         </div>
 
-        <div className="px-5 py-4 overflow-y-auto space-y-4 scrollbar-thin">
+        <div className="flex-1 min-h-0 px-5 py-4 overflow-y-auto space-y-4 scrollbar-thin">
           <section>
             <div className="text-xs font-semibold text-ink-700 mb-2">
               ข้อมูลติดต่อ

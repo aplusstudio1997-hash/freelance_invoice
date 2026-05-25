@@ -111,7 +111,7 @@ export default function ClientFormModal({
           </button>
         </div>
 
-        <div className="px-5 py-4 overflow-y-auto space-y-3.5">
+        <div className="flex-1 min-h-0 px-5 py-4 overflow-y-auto space-y-3.5 scrollbar-thin">
           <FormField
             label="ชื่อลูกค้า / บริษัท"
             icon={<User size={13} />}

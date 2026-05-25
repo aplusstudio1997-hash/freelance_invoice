@@ -142,7 +142,7 @@ export default function SubscriptionFormModal({
           </button>
         </div>
 
-        <div className="px-5 py-4 overflow-y-auto space-y-3.5 scrollbar-thin">
+        <div className="flex-1 min-h-0 px-5 py-4 overflow-y-auto space-y-3.5 scrollbar-thin">
           <Field
             label="ชื่อ Subscription"
             value={form.name}
