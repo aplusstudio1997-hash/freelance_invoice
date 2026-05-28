@@ -12,6 +12,7 @@ import {
   Loader2,
   Search,
   User,
+  FolderOpen,
 } from "lucide-react";
 import { DocumentType } from "@/lib/types";
 import { useAuth } from "@/lib/auth";
@@ -39,13 +40,11 @@ const TYPE_COLORS: Record<DocumentType, string> = {
 
 interface Props {
   onClose: () => void;
-  filterType: DocumentType;
   onCreateNew: (type: DocumentType, sourceId?: string) => Promise<void>;
 }
 
 export default function DocumentListModal({
   onClose,
-  filterType,
   onCreateNew,
 }: Props) {
   const { user } = useAuth();
@@ -54,10 +53,12 @@ export default function DocumentListModal({
   const [quoteList, setQuoteList] = useState<DocumentSummary[]>([]);
   const [busy, setBusy] = useState(false);
   const [search, setSearch] = useState("");
+  // default to showing every document so any of them can be deleted from here
+  const [typeFilter, setTypeFilter] = useState<DocumentType | "all">("all");
   const { onBackdropClick } = useModalDismiss(onClose);
 
   useEffect(() => {
-    if ((filterType === "invoice" || filterType === "receipt") && user) {
+    if ((typeFilter === "invoice" || typeFilter === "receipt") && user) {
       // cancelled flag prevents setQuoteList from firing after the modal closes
       let cancelled = false;
       (async () => {
@@ -68,7 +69,7 @@ export default function DocumentListModal({
             docs.filter(
               (d) =>
                 d.type === "quote" ||
-                (filterType === "receipt" && d.type === "invoice")
+                (typeFilter === "receipt" && d.type === "invoice")
             )
           );
         } catch (e) {
@@ -79,7 +80,7 @@ export default function DocumentListModal({
         cancelled = true;
       };
     }
-  }, [filterType, user]);
+  }, [typeFilter, user]);
 
   if (typeof document === "undefined") return null;
 
@@ -112,7 +113,7 @@ export default function DocumentListModal({
 
   const q = search.trim().toLowerCase();
   const filteredDocs = documents
-    .filter((d) => d.type === filterType)
+    .filter((d) => typeFilter === "all" || d.type === typeFilter)
     .filter(
       (d) =>
         !q ||
@@ -129,9 +130,7 @@ export default function DocumentListModal({
       <div className="bg-white sm:rounded-3xl rounded-t-3xl w-full sm:max-w-xl shadow-soft-lg flex flex-col max-h-[88vh]">
         <div className="flex items-center justify-between px-5 py-4 border-b border-orange-100">
           <div>
-            <h3 className="font-semibold text-ink-900">
-              {TYPE_LABELS[filterType]} ของฉัน
-            </h3>
+            <h3 className="font-semibold text-ink-900">เอกสารของฉัน</h3>
             <div className="text-xs text-ink-400 mt-0.5">
               {filteredDocs.length} ฉบับ
             </div>
@@ -157,23 +156,64 @@ export default function DocumentListModal({
               className="w-full pl-9 pr-3.5 py-2 bg-orange-50/40 border border-orange-100 rounded-full text-sm placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:bg-white transition"
             />
           </div>
+
+          <div className="flex items-center gap-1.5 mt-2.5 overflow-x-auto scrollbar-thin">
+            {(
+              [
+                { key: "all", label: "ทั้งหมด" },
+                { key: "quote", label: TYPE_LABELS.quote },
+                { key: "invoice", label: TYPE_LABELS.invoice },
+                { key: "receipt", label: TYPE_LABELS.receipt },
+              ] as const
+            ).map((chip) => {
+              const active = typeFilter === chip.key;
+              const count =
+                chip.key === "all"
+                  ? documents.length
+                  : documents.filter((d) => d.type === chip.key).length;
+              return (
+                <button
+                  key={chip.key}
+                  onClick={() => {
+                    setTypeFilter(chip.key);
+                    setPicking(false);
+                  }}
+                  className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition ${
+                    active
+                      ? "bg-ink-900 text-white shadow-soft"
+                      : "text-ink-600 hover:text-ink-900 hover:bg-orange-50 border border-orange-100"
+                  }`}
+                >
+                  {chip.label}
+                  <span
+                    className={`tabular-nums ${
+                      active ? "text-white/70" : "text-ink-400"
+                    }`}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 scrollbar-thin">
-          {!picking && filterType !== "quote" && (
+          {!picking &&
+            (typeFilter === "invoice" || typeFilter === "receipt") && (
             <button
               onClick={() => setPicking(true)}
               className="w-full mb-3 flex items-center justify-center gap-2 border border-dashed border-brand-300 hover:border-brand-500 hover:bg-orange-50 text-brand-700 rounded-2xl px-3 py-3 text-sm font-medium transition"
             >
               <Plus size={14} />
-              สร้าง{TYPE_LABELS[filterType]}ใหม่จาก
-              {filterType === "invoice"
+              สร้าง{TYPE_LABELS[typeFilter]}ใหม่จาก
+              {typeFilter === "invoice"
                 ? "ใบเสนอราคา"
                 : "ใบเสนอราคา/ใบแจ้งหนี้"}
             </button>
           )}
 
-          {!picking && filterType === "quote" && (
+          {!picking && typeFilter === "quote" && (
             <button
               onClick={async () => {
                 setBusy(true);
@@ -212,9 +252,10 @@ export default function DocumentListModal({
                     <button
                       key={q2.id}
                       onClick={async () => {
+                        if (typeFilter === "all") return;
                         setBusy(true);
                         try {
-                          await onCreateNew(filterType, q2.id);
+                          await onCreateNew(typeFilter, q2.id);
                           setPicking(false);
                         } finally {
                           setBusy(false);
@@ -247,7 +288,8 @@ export default function DocumentListModal({
             <div className="text-center py-10">
               <div className="mx-auto w-12 h-12 rounded-2xl bg-orange-50 text-brand-300 flex items-center justify-center mb-2">
                 {(() => {
-                  const Icon = TYPE_ICONS[filterType];
+                  const Icon =
+                    typeFilter === "all" ? FolderOpen : TYPE_ICONS[typeFilter];
                   return <Icon size={20} />;
                 })()}
               </div>

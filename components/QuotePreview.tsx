@@ -4,6 +4,10 @@ import { QuoteSettings, Profile, DocumentType } from "@/lib/types";
 import { CalcResult, fmt, fmtDate } from "@/lib/calc";
 import { FileText, Link2 } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  PdfVisibility,
+  DEFAULT_VISIBILITY,
+} from "@/components/PdfSettingsSidebar";
 
 interface Props {
   data: QuoteSettings;
@@ -13,12 +17,19 @@ interface Props {
   onDownload: () => void;
   downloading: boolean;
   type?: DocumentType;
+  visibility?: PdfVisibility;
 }
 
 const TYPE_LABELS: Record<DocumentType, string> = {
   quote: "ใบเสนอราคา",
   invoice: "ใบแจ้งหนี้",
   receipt: "ใบเสร็จรับเงิน",
+};
+
+const SIGN_LABELS: Record<DocumentType, string> = {
+  quote: "ลงนามผู้เสนอราคา",
+  invoice: "ลงนามผู้วางบิล",
+  receipt: "ลงนามผู้รับเงิน",
 };
 
 export default function QuotePreview({
@@ -29,6 +40,7 @@ export default function QuotePreview({
   onDownload,
   downloading,
   type = "quote",
+  visibility = DEFAULT_VISIBILITY,
 }: Props) {
   const docLabel = TYPE_LABELS[type];
   const today = new Date().toLocaleDateString("th-TH", {
@@ -169,7 +181,9 @@ export default function QuotePreview({
             </div>
           </header>
 
+          {(visibility.contactFrom || visibility.contactTo) && (
           <section className="grid grid-cols-2 gap-3">
+            {visibility.contactFrom && (
             <div className="min-w-0">
               <div className="text-xs text-gray-500 mb-0.5">จาก</div>
               <div className="font-medium truncate">
@@ -201,6 +215,8 @@ export default function QuotePreview({
                 </div>
               )}
             </div>
+            )}
+            {visibility.contactTo && (
             <div className="min-w-0">
               <div className="text-xs text-gray-500 mb-0.5">เรียน/สำหรับ</div>
               <div className="font-medium truncate">
@@ -232,19 +248,23 @@ export default function QuotePreview({
                 </div>
               )}
             </div>
+            )}
           </section>
+          )}
 
+          {visibility.project && (
           <section className="pt-2 border-t border-gray-100">
             <div className="text-xs text-gray-500 mb-0.5">โครงการ</div>
             <div className="font-medium break-words">
               {data.projectName || "—"}
             </div>
-            {data.startDate && (
+            {visibility.duration && data.startDate && (
               <div className="text-gray-600 text-xs mt-1">
                 {fmtDate(data.startDate)} — {fmtDate(data.endDate)}
               </div>
             )}
           </section>
+          )}
 
           <section>
             <table className="w-full">
@@ -255,7 +275,8 @@ export default function QuotePreview({
                 </tr>
               </thead>
               <tbody className="text-xs">
-                {data.services.length === 0 ? (
+                {visibility.services &&
+                  (data.services.length === 0 ? (
                   <tr>
                     <td colSpan={2} className="py-4 text-center text-gray-400">
                       ไม่มีรายการ
@@ -293,9 +314,10 @@ export default function QuotePreview({
                       </tr>
                     );
                   })
-                )}
+                ))}
 
-                {calc.extrasBreakdown.map((x, i) => (
+                {visibility.extras &&
+                  calc.extrasBreakdown.map((x, i) => (
                   <tr
                     key={`ex-${i}`}
                     className="border-b border-gray-100 text-gray-600"
@@ -307,7 +329,7 @@ export default function QuotePreview({
                     </td>
                   </tr>
                 ))}
-                {calc.hiddenCostNum > 0 && (
+                {visibility.extras && calc.hiddenCostNum > 0 && (
                   <tr className="border-b border-gray-100 text-gray-600">
                     <td className="py-1.5">ต้นทุนแฝง</td>
                     <td className="py-1.5 text-right tabular-nums">
@@ -325,7 +347,7 @@ export default function QuotePreview({
               label="ยอดรวมก่อนภาษี"
               value={`${currencySymbol}${fmt(calc.preDiscount)}`}
             />
-            {calc.discountValue > 0 && (
+            {visibility.discount && calc.discountValue > 0 && (
               <SummaryRow
                 label={`ส่วนลด${
                   data.discountUnit === "percent"
@@ -336,19 +358,19 @@ export default function QuotePreview({
                 tone="discount"
               />
             )}
-            {calc.discountValue > 0 && (
+            {visibility.discount && calc.discountValue > 0 && (
               <SummaryRow
                 label="ยอดหลังหักส่วนลด"
                 value={`${currencySymbol}${fmt(calc.afterDiscount)}`}
               />
             )}
-            {data.vat7 && (
+            {visibility.vat && data.vat7 && (
               <SummaryRow
                 label="VAT 7%"
                 value={`+${currencySymbol}${fmt(calc.vatAmount)}`}
               />
             )}
-            {data.tax3Percent && (
+            {visibility.withholding && data.tax3Percent && (
               <SummaryRow
                 label="หัก ณ ที่จ่าย 3%"
                 value={`−${currencySymbol}${fmt(calc.taxDeduction)}`}
@@ -363,7 +385,7 @@ export default function QuotePreview({
               value={`${currencySymbol}${fmt(calc.total)}`}
               highlight
             />
-            {type === "quote" && (
+            {type === "quote" && visibility.deposit && (
               <Row
                 label="มัดจำที่ต้องชำระ"
                 value={`${currencySymbol}${fmt(calc.deposit)}`}
@@ -403,7 +425,7 @@ export default function QuotePreview({
             </section>
           )}
 
-          {type !== "receipt" && (
+          {type !== "receipt" && visibility.paymentCondition && (
             <section className="bg-orange-50 border-l-4 border-brand-500 px-3 py-2 rounded">
               <div className="text-xs text-gray-500 mb-0.5">
                 เงื่อนไขการชำระ
@@ -414,7 +436,7 @@ export default function QuotePreview({
             </section>
           )}
 
-          {hasPayment && (
+          {visibility.paymentChannel && hasPayment && (
             <section className="border border-gray-200 rounded-lg p-3">
               <div className="text-xs text-gray-500 mb-2 font-medium uppercase tracking-wide">
                 ช่องทางการชำระเงิน
@@ -458,6 +480,7 @@ export default function QuotePreview({
             </section>
           )}
 
+          {visibility.signature && (
           <section className="flex items-end justify-between pt-6">
             <div className="min-w-0">
               <div className="text-xs text-gray-500">เตรียมโดย</div>
@@ -475,11 +498,12 @@ export default function QuotePreview({
             </div>
             <div className="text-right shrink-0">
               <div className="border-b border-gray-400 w-24 sm:w-28 mb-1"></div>
-              <div className="text-xs text-gray-500">ลงนาม</div>
+              <div className="text-xs text-gray-500">{SIGN_LABELS[type]}</div>
             </div>
           </section>
+          )}
 
-          {termsLines.length > 0 && (
+          {visibility.notes && termsLines.length > 0 && (
             <section className="pt-2 border-t border-gray-100">
               <div className="text-xs text-gray-500 mb-1">
                 หมายเหตุและเงื่อนไข

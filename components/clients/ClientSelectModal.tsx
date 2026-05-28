@@ -3,8 +3,22 @@
 import { useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useDocuments } from "@/lib/documents";
-import { X, Search, UserPlus, User, CheckCircle2 } from "lucide-react";
+import {
+  X,
+  Search,
+  UserPlus,
+  User,
+  CheckCircle2,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import ClientFormModal from "./ClientFormModal";
+import {
+  getClient,
+  updateClient,
+  deleteClient,
+  ClientRecord,
+} from "@/lib/repository";
 import { useModalDismiss } from "@/lib/useModalDismiss";
 
 interface Props {
@@ -17,7 +31,34 @@ export default function ClientSelectModal({ open, onClose }: Props) {
     useDocuments();
   const [search, setSearch] = useState("");
   const [addOpen, setAddOpen] = useState(false);
-  const { onBackdropClick } = useModalDismiss(onClose, { open: open && !addOpen });
+  const [editRecord, setEditRecord] = useState<ClientRecord | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const { onBackdropClick } = useModalDismiss(onClose, {
+    open: open && !addOpen && !editRecord,
+  });
+
+  const startEdit = async (id: string) => {
+    try {
+      const rec = await getClient(id);
+      if (rec) setEditRecord(rec);
+    } catch (e) {
+      console.error("load client failed", e);
+    }
+  };
+
+  const remove = async (id: string, name: string) => {
+    if (!confirm(`ลบลูกค้า "${name}" ออกจากระบบ? ทำแล้วเรียกคืนไม่ได้`)) return;
+    setDeletingId(id);
+    try {
+      await deleteClient(id);
+      if (activeClientId === id) await attachClient(null, false);
+      await refreshClients();
+    } catch (e) {
+      console.error("delete client failed", e);
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -104,12 +145,15 @@ export default function ClientSelectModal({ open, onClose }: Props) {
                 {filtered.map((c) => {
                   const isActive = c.id === activeClientId;
                   return (
-                    <li key={c.id}>
+                    <li
+                      key={c.id}
+                      className={`flex items-center group ${
+                        isActive ? "bg-orange-50/60" : ""
+                      }`}
+                    >
                       <button
                         onClick={() => pick(c.id)}
-                        className={`w-full flex items-center gap-3 px-5 py-3 hover:bg-orange-50/40 text-left transition ${
-                          isActive ? "bg-orange-50/60" : ""
-                        }`}
+                        className="flex-1 min-w-0 flex items-center gap-3 px-5 py-3 hover:bg-orange-50/40 text-left transition"
                       >
                         <div
                           className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 ${
@@ -135,6 +179,25 @@ export default function ClientSelectModal({ open, onClose }: Props) {
                           />
                         )}
                       </button>
+                      <div className="flex items-center gap-0.5 pr-3 shrink-0">
+                        <button
+                          onClick={() => startEdit(c.id)}
+                          className="p-2 rounded-full text-ink-400 hover:text-brand-600 hover:bg-orange-50 transition"
+                          aria-label="แก้ไขลูกค้า"
+                          title="แก้ไข"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          onClick={() => remove(c.id, c.name)}
+                          disabled={deletingId === c.id}
+                          className="p-2 rounded-full text-ink-400 hover:text-red-500 hover:bg-red-50 transition disabled:opacity-50"
+                          aria-label="ลบลูกค้า"
+                          title="ลบ"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </li>
                   );
                 })}
@@ -163,6 +226,30 @@ export default function ClientSelectModal({ open, onClose }: Props) {
           await attachClient(rec.id);
           setAddOpen(false);
           onClose();
+        }}
+      />
+
+      <ClientFormModal
+        open={!!editRecord}
+        initial={editRecord}
+        onClose={() => setEditRecord(null)}
+        onSubmit={async (f) => {
+          if (!editRecord) return;
+          await updateClient(editRecord.id, {
+            name: f.name,
+            phone: f.phone,
+            email: f.email,
+            lineId: f.lineId,
+            address: f.address,
+            taxId: f.taxId,
+            note: f.note,
+          });
+          await refreshClients();
+          // keep the document in sync if the edited client is the active one
+          if (activeClientId === editRecord.id) {
+            await attachClient(editRecord.id);
+          }
+          setEditRecord(null);
         }}
       />
     </>,

@@ -152,7 +152,7 @@ export function PdfVisibilityBody({ visibility, onChange, onReset }: BodyProps) 
             <div className="text-xs uppercase tracking-wide text-gray-400 mb-1.5">
               {g.title}
             </div>
-            <div className="space-y-1">
+            <div className="grid grid-cols-2 gap-1">
               {g.items.map((it) => {
                 const on = visibility[it.key];
                 return (

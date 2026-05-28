@@ -34,6 +34,34 @@ function dateToIsoTime(d: Date): string {
   return `${dateToIso(d)} ${dateToTime(d)}`;
 }
 
+// Parse the ISO-ish external value into a Date ourselves. flatpickr.setDate()
+// would otherwise re-parse the string using the *display* dateFormat ("j M Y"),
+// reading "20" out of "2026-..." and snapping the day to the 20th.
+function parseValue(
+  value: string,
+  withTime: boolean,
+  timeOnly: boolean
+): Date | null {
+  if (timeOnly) {
+    const m = value.match(/^(\d{1,2}):(\d{2})/);
+    if (!m) return null;
+    const d = new Date();
+    d.setHours(Number(m[1]), Number(m[2]), 0, 0);
+    return d;
+  }
+  const m = value.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2}):(\d{2}))?/);
+  if (!m) return null;
+  return new Date(
+    Number(m[1]),
+    Number(m[2]) - 1,
+    Number(m[3]),
+    withTime && m[4] ? Number(m[4]) : 0,
+    withTime && m[5] ? Number(m[5]) : 0,
+    0,
+    0
+  );
+}
+
 export default function FlatpickrInput({
   value,
   onChange,
@@ -87,13 +115,13 @@ export default function FlatpickrInput({
   useEffect(() => {
     const fp = fpRef.current;
     if (!fp) return;
-    if (value) {
-      // Accept ISO ("2026-05-17" or "2026-05-17 14:30") and time ("14:30").
-      fp.setDate(value, false);
+    const parsed = value ? parseValue(value, withTime, timeOnly) : null;
+    if (parsed) {
+      fp.setDate(parsed, false);
     } else {
       fp.clear(false);
     }
-  }, [value]);
+  }, [value, withTime, timeOnly]);
 
   const Icon = timeOnly ? Clock : Calendar;
 

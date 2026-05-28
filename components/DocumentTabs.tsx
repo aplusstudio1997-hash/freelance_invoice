@@ -109,7 +109,6 @@ export default function DocumentTabs() {
       {listOpen && (
         <DocumentListModal
           onClose={() => setListOpen(false)}
-          filterType={activeType}
           onCreateNew={async (type, sourceId) => {
             await newDocument(type, sourceId);
             setListOpen(false);

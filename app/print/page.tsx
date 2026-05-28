@@ -16,6 +16,12 @@ import {
 } from "@/components/PdfSettingsSidebar";
 import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 
+const SIGN_LABELS: Record<DocumentType, string> = {
+  quote: "ลงนามผู้เสนอราคา",
+  invoice: "ลงนามผู้วางบิล",
+  receipt: "ลงนามผู้รับเงิน",
+};
+
 function sanitizeForFilename(s: string): string {
   return s
     .replace(/[\\/:*?"<>|]/g, "")
@@ -1057,7 +1063,7 @@ export default function PrintPage() {
           </div>
           <div className="text-right">
             <div className="border-b border-gray-400 w-48 mb-1"></div>
-            <div className="text-xs text-gray-500">ลงนามผู้เสนอราคา</div>
+            <div className="text-xs text-gray-500">{SIGN_LABELS[activeType]}</div>
           </div>
         </section>
         )}
@@ -1071,7 +1077,6 @@ export default function PrintPage() {
               {termsLines.map((l, i) => (
                 <li key={i}>{l}</li>
               ))}
-              <li>ราคานี้มีผลภายใน 30 วันนับจากวันที่เสนอ</li>
             </ul>
           </section>
         )}

@@ -7,6 +7,7 @@ import AppHeader from "@/components/app-shell/AppHeader";
 import AppTabs from "@/components/app-shell/AppTabs";
 import BetaBanner from "@/components/app-shell/BetaBanner";
 import SchemaWarningBanner from "@/components/app-shell/SchemaWarningBanner";
+import UnsavedGuard from "@/components/app-shell/UnsavedGuard";
 
 export default function AppLayout({
   children,
@@ -30,6 +31,7 @@ export default function AppLayout({
 
   return (
     <div className="min-h-[100dvh] bg-app pb-12">
+      <UnsavedGuard />
       <AppHeader />
       <BetaBanner />
       <SchemaWarningBanner />

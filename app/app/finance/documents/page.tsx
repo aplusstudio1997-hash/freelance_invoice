@@ -228,6 +228,7 @@ export default function FinancePage() {
           onDownload={downloadPDF}
           downloading={downloading}
           type={activeType}
+          visibility={pdfVisibility}
         />
 
         <PdfSettingsPanel
